@@ -335,6 +335,8 @@ class ThresholdKey implements ITKey {
       throw CoreError.default("Input is not supported");
     }
 
+    console.log("have shareStore from postboxkey for polynomial", shareStore.polynomialID);
+
     // We determine the latest metadata on the SDK and if there has been
     // needed transitions to include
     let currentMetadata: Metadata;
@@ -352,6 +354,12 @@ class ThresholdKey implements ITKey {
         throw err;
       }
     }
+
+    console.log("latestShareDetails polyIDList", latestShareDetails.shareMetadata.polyIDList);
+    console.log("latestShareDetails latestShare polynomialID", latestShareDetails.latestShare.polynomialID);
+
+    console.log("reinitializing", reinitializing);
+    console.log("reinitializingWithNewKeyAssign", reinitializingWithNewKeyAssign);
 
     // lets check if the cloud metadata has been updated or not from previously if we are reinitializing
     if (reinitializing && !reinitializingWithNewKeyAssign) {
@@ -375,10 +383,16 @@ class ThresholdKey implements ITKey {
       currentMetadata = latestShareDetails.shareMetadata;
     }
 
+    console.log("Final currentM etadata polyIDList", currentMetadata.polyIDList);
+    console.log("Final currentM etadata PublicPolynomial", currentMetadata.publicPolynomials);
+    console.log("Final currentM etadata latestShare polynomialID", currentMetadata.getLatestPublicPolynomial().getPolynomialID());
+
     this.lastFetchedCloudMetadata = latestCloudMetadata;
     this.metadata = currentMetadata.clone();
     const latestShare = latestShareDetails ? latestShareDetails.latestShare : shareStore;
     this.inputShareStore(latestShare);
+
+    console.log("Final latest share polyIDList", latestShare.polyIDList);
 
     if (importEd25519Seed && this.getEd25519PublicKey()) {
       throw CoreError.default("Ed25119 key already exists");
@@ -402,8 +416,13 @@ class ThresholdKey implements ITKey {
   }): Promise<CatchupToLatestShareResult> {
     const { shareStore, polyID, includeLocalMetadataTransitions } = params;
     let shareMetadata: Metadata;
+    console.log("catchupToLatestShare");
     try {
+      console.log("shareStore PolynomialID", shareStore.polynomialID);
       shareMetadata = await this.getAuthMetadata({ privKey: shareStore.share.share, includeLocalMetadataTransitions });
+      console.log("shareMetadata PolynomialID", shareMetadata.polyIDList);
+      console.log("shareMetadata PublicPolynomial", shareMetadata.publicPolynomials);
+      console.log("shareMetadata PublicPolynomial", shareMetadata.getLatestPublicPolynomial().getPolynomialID());
     } catch (error: unknown) {
       // delete share error
       const err = error as Error & { code?: number };
@@ -422,6 +441,7 @@ class ThresholdKey implements ITKey {
         }
       }
       const nextShare = await shareMetadata.getEncryptedShare(shareStore);
+      console.log("have nextShare for share", shareStore.polynomialID);
       return await this.catchupToLatestShare({ shareStore: nextShare, polyID, includeLocalMetadataTransitions });
     } catch (error: unknown) {
       // delete share error
@@ -816,7 +836,10 @@ class ThresholdKey implements ITKey {
       throw CoreError.metadataUndefined();
     }
     const poly = this.metadata.getLatestPublicPolynomial();
+    console.log("getKeyDetails polyIDList", poly);
     const previousPolyID = poly.getPolynomialID();
+    console.log("share polynomialID", Object.keys(this.shares));
+
     const requiredShares = poly.getThreshold() - Object.keys(this.shares[previousPolyID]).length;
 
     let shareDescriptions = this.metadata.getShareDescription();
