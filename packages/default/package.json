@@ -1,6 +1,6 @@
 {
   "name": "@tkey/default",
-  "version": "16.0.0",
+  "version": "16.0.1-alpha.0",
   "description": "TKey default library",
   "main": "dist/lib.cjs/index.js",
   "module": "dist/lib.esm/index.js",
@@ -35,7 +35,7 @@
   ],
   "dependencies": {
     "@tkey/common-types": "^16.0.0",
-    "@tkey/core": "^16.0.0",
+    "@tkey/core": "^16.0.1-alpha.0",
     "@tkey/security-questions": "^16.0.0",
     "@tkey/service-provider-base": "^16.0.0",
     "@tkey/service-provider-torus": "^16.0.0",
