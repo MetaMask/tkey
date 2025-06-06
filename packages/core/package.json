@@ -1,6 +1,6 @@
 {
   "name": "@tkey/core",
-  "version": "16.0.0",
+  "version": "16.0.1-alpha.0",
   "description": "TKey Core library",
   "main": "dist/lib.cjs/index.js",
   "module": "dist/lib.esm/index.js",
