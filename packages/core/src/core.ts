@@ -361,6 +361,9 @@ class ThresholdKey implements ITKey {
     console.log("reinitializing", reinitializing);
     console.log("reinitializingWithNewKeyAssign", reinitializingWithNewKeyAssign);
 
+    console.log("reinitializing", reinitializing);
+    console.log("reinitializingWithNewKeyAssign", reinitializingWithNewKeyAssign);
+
     // lets check if the cloud metadata has been updated or not from previously if we are reinitializing
     if (reinitializing && !reinitializingWithNewKeyAssign) {
       if (previouslyFetchedCloudMetadata.nonce < latestShareDetails.shareMetadata.nonce) {
@@ -383,16 +386,16 @@ class ThresholdKey implements ITKey {
       currentMetadata = latestShareDetails.shareMetadata;
     }
 
-    console.log("Final currentM etadata polyIDList", currentMetadata.polyIDList);
-    console.log("Final currentM etadata PublicPolynomial", currentMetadata.publicPolynomials);
-    console.log("Final currentM etadata latestShare polynomialID", currentMetadata.getLatestPublicPolynomial().getPolynomialID());
+    console.log("Final current Metadata polyIDList", currentMetadata.polyIDList);
+    console.log("Final current Metadata PublicPolynomial", currentMetadata.publicPolynomials);
+    console.log("Final current Metadata latestShare polynomialID", currentMetadata.getLatestPublicPolynomial().getPolynomialID());
 
     this.lastFetchedCloudMetadata = latestCloudMetadata;
     this.metadata = currentMetadata.clone();
     const latestShare = latestShareDetails ? latestShareDetails.latestShare : shareStore;
     this.inputShareStore(latestShare);
 
-    console.log("Final latest share polyIDList", latestShare.polyIDList);
+    console.log("Final latest share polynomialID", latestShare.polynomialID);
 
     if (importEd25519Seed && this.getEd25519PublicKey()) {
       throw CoreError.default("Ed25119 key already exists");
