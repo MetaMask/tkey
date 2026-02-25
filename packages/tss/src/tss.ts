@@ -16,7 +16,7 @@ import {
 import { CoreError, TKey } from "@tkey/core";
 import { post } from "@toruslabs/http-helpers";
 import { dotProduct, ecPoint, hexPoint, PointHex, randomSelection, RSSClient } from "@toruslabs/rss-client";
-import { getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed, getSecpKeyFromEd25519 } from "@toruslabs/torus.js";
+import { getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed, getKeyCurve, getSecpKeyFromEd25519 } from "@toruslabs/torus.js";
 import BN from "bn.js";
 import { ec as EC } from "elliptic";
 import { keccak256 } from "ethereum-cryptography/keccak";
@@ -378,11 +378,11 @@ export class TKeyTSS extends TKey {
           }
 
           const { scalar } = getEd25519KeyPairFromSeed(importKey);
-          const encKey = Buffer.from(getSecpKeyFromEd25519(scalar).point.encodeCompressed("hex"), "hex");
+          const encKey = Buffer.from(getKeyCurve(KeyType.secp256k1).Point.fromAffine(getSecpKeyFromEd25519(scalar).point).toBytes(true));
           const msg = await encrypt(encKey, importKey);
           this.metadata.setGeneralStoreDomain(domainKey, { message: msg });
 
-          return scalar;
+          return new BN(scalar.toString(16), 16);
         }
         throw new Error("Invalid key type");
       })();
@@ -540,9 +540,10 @@ export class TKeyTSS extends TKey {
     const domainKey = getEd25519SeedStoreDomainKey(this.tssTag || TSS_TAG_DEFAULT);
     const result = this.metadata.getGeneralStoreDomain(domainKey) as Record<string, EncryptedMessage>;
 
-    const decKey = getSecpKeyFromEd25519(edScalar).scalar;
+    const decKey = getSecpKeyFromEd25519(BigInt(`0x${edScalar.toString(16)}`)).scalar;
+    const decKeyBuffer = Buffer.from(decKey.toString(16).padStart(64, "0"), "hex");
 
-    const seed = await decrypt(decKey.toArrayLike(Buffer, "be", 32), result.message);
+    const seed = await decrypt(decKeyBuffer, result.message);
     return seed;
   }
 

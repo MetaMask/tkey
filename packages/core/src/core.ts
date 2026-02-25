@@ -45,7 +45,7 @@ import {
   TkeyStoreItemType,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed } from "@toruslabs/torus.js";
+import { encodeEd25519Point, getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed } from "@toruslabs/torus.js";
 import BN from "bn.js";
 import { getRandomBytes } from "ethereum-cryptography/random";
 import stringify from "json-stable-stringify";
@@ -1472,7 +1472,10 @@ class ThresholdKey implements ITKey {
     // derive key pair (scalar, public key point) from seed
     const keyPair = getEd25519KeyPairFromSeed(seed);
 
-    this.metadata.setGeneralStoreDomain(ed25519SeedConst, { message: await this.encrypt(seed), publicKey: keyPair.point.encode("hex", false) });
+    this.metadata.setGeneralStoreDomain(ed25519SeedConst, {
+      message: await this.encrypt(seed),
+      publicKey: Buffer.from(encodeEd25519Point(keyPair.point)).toString("hex"),
+    });
     this._ed25519Seed = seed;
   }
 

@@ -4,8 +4,8 @@
   "description": "Threshold signing for Tkey",
   "main": "dist/lib.cjs/index.js",
   "module": "dist/lib.esm/index.js",
-  "unpkg": "dist/tss.umd.min.js",
-  "jsdelivr": "dist/tss.umd.min.js",
+  "unpkg": "dist/lib.esm/index.js",
+  "jsdelivr": "dist/lib.esm/index.js",
   "types": "dist/lib.cjs/types/index.d.ts",
   "sideEffects": false,
   "files": [
@@ -24,10 +24,10 @@
     "@tkey/common-types": "^16.0.0",
     "@tkey/core": "^16.0.0",
     "@tkey/service-provider-torus": "^16.0.0",
-    "@toruslabs/customauth": "^21.0.0",
-    "@toruslabs/http-helpers": "^8.1.1",
+    "@toruslabs/customauth": "^22.1.0",
+    "@toruslabs/http-helpers": "^9.0.0",
     "@toruslabs/rss-client": "^2.0.2",
-    "@toruslabs/torus.js": "^16.0.0",
+    "@toruslabs/torus.js": "^17.0.0",
     "@types/bn.js": "^5.1.6",
     "bn.js": "^5.2.1",
     "elliptic": "^6.6.1",
@@ -39,5 +39,9 @@
     "jsrsasign": "^11.1.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=22.x",
+    "npm": ">=10.x"
   }
 }

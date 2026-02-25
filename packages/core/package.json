@@ -4,8 +4,8 @@
   "description": "TKey Core library",
   "main": "dist/lib.cjs/index.js",
   "module": "dist/lib.esm/index.js",
-  "unpkg": "dist/core.umd.min.js",
-  "jsdelivr": "dist/core.umd.min.js",
+  "unpkg": "dist/lib.esm/index.js",
+  "jsdelivr": "dist/lib.esm/index.js",
   "types": "dist/lib.cjs/types/index.d.ts",
   "sideEffects": false,
   "scripts": {
@@ -36,8 +36,8 @@
   "dependencies": {
     "@tkey/common-types": "^16.0.0",
     "@toruslabs/eccrypto": "^6.0.2",
-    "@toruslabs/http-helpers": "^8.1.1",
-    "@toruslabs/torus.js": "^16.0.0",
+    "@toruslabs/http-helpers": "^9.0.0",
+    "@toruslabs/torus.js": "^17.0.0",
     "bn.js": "^5.2.1",
     "elliptic": "^6.6.1",
     "ethereum-cryptography": "^3.1.0",
@@ -72,8 +72,8 @@
     "tkey"
   ],
   "engines": {
-    "node": ">=20.x",
-    "npm": ">=9.x"
+    "node": ">=22.x",
+    "npm": ">=10.x"
   },
   "gitHead": "4ff88f7fe92b8c85bd0bfde069cde2e56005faca"
 }

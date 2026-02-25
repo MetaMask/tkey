@@ -7,8 +7,8 @@
   "license": "MIT",
   "main": "dist/lib.cjs/index.js",
   "module": "dist/lib.esm/index.js",
-  "unpkg": "dist/serviceProviderSfa.umd.min.js",
-  "jsdelivr": "dist/serviceProviderSfa.umd.min.js",
+  "unpkg": "dist/lib.esm/index.js",
+  "jsdelivr": "dist/lib.esm/index.js",
   "types": "dist/lib.cjs/types/index.d.ts",
   "files": [
     "dist"
@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "@tkey/service-provider-base": "^16.0.0",
-    "@toruslabs/fetch-node-details": "^15.0.0",
-    "@toruslabs/torus.js": "^16.0.0",
+    "@toruslabs/fetch-node-details": "^16.0.0",
+    "@toruslabs/torus.js": "^17.0.0",
     "bn.js": "^5.2.1"
   },
   "devDependencies": {
@@ -55,8 +55,8 @@
     ]
   },
   "engines": {
-    "node": ">=20.x",
-    "npm": ">=9.x"
+    "node": ">=22.x",
+    "npm": ">=10.x"
   },
   "gitHead": "9967ce9f795f495f28ef0da1fc50acde31dcc258"
 }
