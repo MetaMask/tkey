@@ -1,5 +1,4 @@
 import { generateID, ISeedPhraseFormat, ISeedPhraseStore, MetamaskSeedPhraseStore } from "@tkey/common-types";
-import BN from "bn.js";
 import { HDNodeWallet, Mnemonic, Provider, randomBytes } from "ethers";
 
 class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
@@ -24,16 +23,16 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
     return Mnemonic.isValidMnemonic(parsedSeedPhrase);
   }
 
-  async deriveKeysFromSeedPhrase(seedPhraseStore: ISeedPhraseStore): Promise<BN[]> {
+  async deriveKeysFromSeedPhrase(seedPhraseStore: ISeedPhraseStore): Promise<bigint[]> {
     const mmStore = seedPhraseStore as MetamaskSeedPhraseStore;
     const { seedPhrase } = mmStore;
     const hdkey = HDNodeWallet.fromSeed(Mnemonic.fromPhrase(seedPhrase).computeSeed());
     const numOfWallets = mmStore.numberOfWallets;
-    const wallets: BN[] = [];
+    const wallets: bigint[] = [];
     const root = hdkey.derivePath(this.hdPathString);
     for (let i = 0; i < numOfWallets; i += 1) {
       const child = root.deriveChild(i);
-      const wallet = new BN(child.privateKey.slice(2), "hex");
+      const wallet = BigInt(child.privateKey);
       wallets.push(wallet);
     }
     return wallets;

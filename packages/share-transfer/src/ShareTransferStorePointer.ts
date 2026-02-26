@@ -1,11 +1,10 @@
 import { ShareTransferStorePointerArgs } from "@tkey/common-types";
-import BN from "bn.js";
 
 class ShareTransferStorePointer {
-  pointer: BN;
+  pointer: bigint;
 
   constructor({ pointer }: ShareTransferStorePointerArgs) {
-    this.pointer = new BN(pointer, "hex");
+    this.pointer = typeof pointer === "bigint" ? pointer : BigInt(`0x${pointer}`);
   }
 }
 export default ShareTransferStorePointer;

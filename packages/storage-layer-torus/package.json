@@ -42,12 +42,10 @@
     "@toruslabs/http-helpers": "^9.0.0",
     "@toruslabs/metadata-helpers": "^8.1.0",
     "base64url": "3.0.1",
-    "bn.js": "^5.2.1",
     "ethereum-cryptography": "^3.1.0",
     "json-stable-stringify": "^1.2.1"
   },
   "devDependencies": {
-    "@types/bn.js": "^5.1.6",
     "@types/json-stable-stringify": "^1.2.0"
   },
   "bugs": {

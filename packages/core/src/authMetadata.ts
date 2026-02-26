@@ -1,5 +1,5 @@
 import { IAuthMetadata, secp256k1, StringifiedType, stripHexPrefix, toPrivKeyECC } from "@tkey/common-types";
-import { utf8ToBytes } from "@toruslabs/metadata-helpers";
+import { bytesToHex, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256 } from "@toruslabs/torus.js";
 import stringify from "json-stable-stringify";
 
@@ -35,11 +35,11 @@ class AuthMetadata implements IAuthMetadata {
 
     if (!this.privKey) throw CoreError.privKeyUnavailable();
     const msgHash = stripHexPrefix(keccak256(utf8ToBytes(stringify(data))));
-    const sig = secp256k1.sign(msgHash, toPrivKeyECC(this.privKey), { prehash: false });
+    const sig = secp256k1.sign(msgHash, toPrivKeyECC(this.privKey), { prehash: false, format: "der" });
 
     return {
       data,
-      sig: sig.toHex("der"),
+      sig: bytesToHex(sig),
     };
   }
 }

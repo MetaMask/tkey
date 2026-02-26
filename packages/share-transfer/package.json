@@ -41,12 +41,10 @@
     "@tkey/common-types": "^16.0.0",
     "@toruslabs/eccrypto": "^6.0.2",
     "@toruslabs/http-helpers": "^9.0.0",
-    "@toruslabs/metadata-helpers": "^8.1.0",
-    "bn.js": "^5.2.1"
+    "@noble/curves": "^1.8.1",
+    "@toruslabs/metadata-helpers": "^8.1.0"
   },
-  "devDependencies": {
-    "@types/bn.js": "^5.1.6"
-  },
+  "devDependencies": {},
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"
   },

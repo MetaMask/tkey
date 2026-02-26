@@ -1,3 +1,5 @@
+import { mod } from "@noble/curves/abstract/modular.js";
+import { bytesToNumberBE } from "@noble/curves/utils.js";
 import {
   GenerateNewShareResult,
   IModule,
@@ -11,14 +13,13 @@ import {
   ShareStoreMap,
 } from "@tkey/common-types";
 import { utf8ToBytes } from "@toruslabs/metadata-helpers";
-import BN from "bn.js";
 import { keccak256 } from "ethereum-cryptography/keccak";
 
 import SecurityQuestionsError from "./errors";
 import SecurityQuestionStore from "./SecurityQuestionStore";
 
-function answerToUserInputHashBN(answerString: string): BN {
-  return new BN(keccak256(utf8ToBytes(answerString)));
+function answerToUserInputHashBigInt(answerString: string): bigint {
+  return bytesToNumberBE(keccak256(utf8ToBytes(answerString)));
 }
 
 export const SECURITY_QUESTIONS_MODULE_NAME = "securityQuestions";
@@ -41,13 +42,12 @@ class SecurityQuestionsModule implements IModule {
       return generalStore;
     }
     const sqStore = new SecurityQuestionStore(generalStore as SecurityQuestionStoreArgs);
-    const sqIndex = sqStore.shareIndex.toString("hex");
+    const sqIndex = sqStore.shareIndex.toString(16);
 
     // Assumption: If sqIndex doesn't exist, it must have been explicitly deleted.
     if (oldShareStores[sqIndex] && newShareStores[sqIndex]) {
-      const sqAnswer = oldShareStores[sqIndex].share.share.sub(sqStore.nonce);
-      let newNonce = newShareStores[sqIndex].share.share.sub(sqAnswer);
-      newNonce = newNonce.umod(secp256k1.curve.n);
+      const sqAnswer = oldShareStores[sqIndex].share.share - sqStore.nonce;
+      const newNonce = mod(newShareStores[sqIndex].share.share - sqAnswer, secp256k1.Point.CURVE().n);
 
       return new SecurityQuestionStore({
         nonce: newNonce,
@@ -72,10 +72,9 @@ class SecurityQuestionsModule implements IModule {
     const rawSqStore = metadata.getGeneralStoreDomain(this.moduleName);
     if (rawSqStore) throw SecurityQuestionsError.unableToReplace();
     const newSharesDetails = await this.tbSDK.generateNewShare();
-    const newShareStore = newSharesDetails.newShareStores[newSharesDetails.newShareIndex.toString("hex")];
-    const userInputHash = answerToUserInputHashBN(answerString);
-    let nonce = newShareStore.share.share.sub(userInputHash);
-    nonce = nonce.umod(secp256k1.curve.n);
+    const newShareStore = newSharesDetails.newShareStores[newSharesDetails.newShareIndex.toString(16)];
+    const userInputHash = answerToUserInputHashBigInt(answerString);
+    const nonce = mod(newShareStore.share.share - userInputHash, secp256k1.Point.CURVE().n);
     const sqStore = new SecurityQuestionStore({
       nonce,
       questions,
@@ -86,7 +85,7 @@ class SecurityQuestionsModule implements IModule {
     metadata.setGeneralStoreDomain(this.moduleName, sqStore);
 
     await this.tbSDK.addShareDescription(
-      newSharesDetails.newShareIndex.toString("hex"),
+      newSharesDetails.newShareIndex.toString(16),
       JSON.stringify({ module: this.moduleName, questions, dateAdded: Date.now() }),
       false // READ TODO1 (don't sync metadata)
     );
@@ -108,13 +107,12 @@ class SecurityQuestionsModule implements IModule {
     if (!rawSqStore) throw SecurityQuestionsError.unavailable();
 
     const sqStore = new SecurityQuestionStore(rawSqStore as SecurityQuestionStoreArgs);
-    const userInputHash = answerToUserInputHashBN(answerString);
-    let share = sqStore.nonce.add(userInputHash);
-    share = share.umod(secp256k1.curve.n);
+    const userInputHash = answerToUserInputHashBigInt(answerString);
+    const share = mod(sqStore.nonce + userInputHash, secp256k1.Point.CURVE().n);
     const shareStore = new ShareStore(new Share(sqStore.shareIndex, share), sqStore.polynomialID);
     // validate if share is correct
     const derivedPublicShare = shareStore.share.getPublicShare();
-    if (derivedPublicShare.shareCommitment.x.cmp(sqStore.sqPublicShare.shareCommitment.x) !== 0) {
+    if (derivedPublicShare.shareCommitment.x !== sqStore.sqPublicShare.shareCommitment.x) {
       throw SecurityQuestionsError.incorrectAnswer();
     }
 
@@ -131,10 +129,9 @@ class SecurityQuestionsModule implements IModule {
 
     const sqStore = new SecurityQuestionStore(rawSqStore as SecurityQuestionStoreArgs);
 
-    const userInputHash = answerToUserInputHashBN(newAnswerString);
+    const userInputHash = answerToUserInputHashBigInt(newAnswerString);
     const sqShare = this.tbSDK.outputShareStore(sqStore.shareIndex);
-    let nonce = sqShare.share.share.sub(userInputHash);
-    nonce = nonce.umod(secp256k1.curve.n);
+    const nonce = mod(sqShare.share.share - userInputHash, secp256k1.Point.CURVE().n);
 
     const newSqStore = new SecurityQuestionStore({
       nonce,

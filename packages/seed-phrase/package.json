@@ -42,12 +42,9 @@
   },
   "dependencies": {
     "@tkey/common-types": "^16.0.0",
-    "bn.js": "^5.2.1",
     "ethers": "^6.13.5"
   },
-  "devDependencies": {
-    "@types/bn.js": "^5.1.6"
-  },
+  "devDependencies": {},
   "lint-staged": {
     "!(*d).ts": [
       "npm run lint --",

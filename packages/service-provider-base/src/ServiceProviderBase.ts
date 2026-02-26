@@ -12,7 +12,7 @@ import {
   StringifiedType,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { bytesToBase64, hexToBytes } from "@toruslabs/metadata-helpers";
+import { bytesToBase64 } from "@toruslabs/metadata-helpers";
 
 class ServiceProviderBase implements IServiceProvider {
   enableLogging: boolean;
@@ -60,10 +60,11 @@ class ServiceProviderBase implements IServiceProvider {
 
   sign(msg: BNString): string {
     const msgHex = typeof msg === "bigint" ? msg.toString(16) : msg;
-    const sig = secp256k1.sign(msgHex, toPrivKeyECC(this.postboxKey), { prehash: false });
-    const rHex = sig.r.toString(16).padStart(64, "0");
-    const sHex = sig.s.toString(16).padStart(64, "0");
-    return bytesToBase64(hexToBytes(rHex + sHex + "00"));
+    const compactSig = secp256k1.sign(msgHex, toPrivKeyECC(this.postboxKey), { prehash: false });
+    const sigWithV = new Uint8Array(65);
+    sigWithV.set(compactSig);
+    sigWithV[64] = 0;
+    return bytesToBase64(sigWithV);
   }
 
   toJSON(): StringifiedType {
