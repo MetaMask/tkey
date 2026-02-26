@@ -1,5 +1,4 @@
 import { IModule, ITKeyApi } from "@tkey/common-types";
-import BN from "bn.js";
 
 import { english } from "./english";
 import ShareSerializationError from "./errors";
@@ -16,12 +15,12 @@ class ShareSerializationModule implements IModule {
     this.moduleName = SHARE_SERIALIZATION_MODULE_NAME;
   }
 
-  static serializeMnemonic(share: BN): string {
-    return entropyToMnemonic(share.toString("hex").padStart(64, "0"), english);
+  static serializeMnemonic(share: bigint): string {
+    return entropyToMnemonic(share.toString(16).padStart(64, "0"), english);
   }
 
-  static deserializeMnemonic(share: string): BN {
-    return new BN(mnemonicToEntropy(share, english), "hex");
+  static deserializeMnemonic(share: string): bigint {
+    return BigInt(`0x${mnemonicToEntropy(share, english)}`);
   }
 
   setModuleReferences(tbSDK: ITKeyApi): void {
@@ -31,14 +30,14 @@ class ShareSerializationModule implements IModule {
 
   async initialize(): Promise<void> {}
 
-  async serialize(share: BN, type: string): Promise<unknown> {
+  async serialize(share: bigint, type: string): Promise<unknown> {
     if (type === "mnemonic") {
       return ShareSerializationModule.serializeMnemonic(share);
     }
     throw ShareSerializationError.typeNotSupported();
   }
 
-  async deserialize(serializedShare: unknown, type: string): Promise<BN> {
+  async deserialize(serializedShare: unknown, type: string): Promise<bigint> {
     if (type === "mnemonic") return ShareSerializationModule.deserializeMnemonic(serializedShare as string);
     throw ShareSerializationError.typeNotSupported();
   }
