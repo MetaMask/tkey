@@ -3,7 +3,6 @@ import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { NodeDetailManager } from "@toruslabs/fetch-node-details";
 import { utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256, Torus, TorusKey } from "@toruslabs/torus.js";
-import BN from "bn.js";
 
 import { LoginParams, SfaServiceProviderArgs, VerifierParams, Web3AuthOptions } from "./interfaces";
 
@@ -14,7 +13,7 @@ class SfaServiceProvider extends ServiceProviderBase {
 
   public torusKey: TorusKey;
 
-  public migratableKey: BN | null = null; // Migration of key from SFA to tKey
+  public migratableKey: bigint | null = null;
 
   private nodeDetailManagerInstance: NodeDetailManager;
 
@@ -46,7 +45,7 @@ class SfaServiceProvider extends ServiceProviderBase {
     return sfaSP;
   }
 
-  async connect(params: LoginParams): Promise<BN> {
+  async connect(params: LoginParams): Promise<bigint> {
     const { authConnectionId, userId, idToken, groupedAuthConnectionId } = params;
     const verifier = groupedAuthConnectionId || authConnectionId;
     const verifierId = userId;
@@ -80,10 +79,10 @@ class SfaServiceProvider extends ServiceProviderBase {
     if (!torusKey.metadata.upgraded) {
       const { finalKeyData, oAuthKeyData } = torusKey;
       const privKey = finalKeyData.privKey || oAuthKeyData.privKey;
-      this.migratableKey = new BN(privKey, "hex");
+      this.migratableKey = BigInt(`0x${privKey}`);
     }
     const postboxKey = Torus.getPostboxKey(torusKey);
-    this.postboxKey = new BN(postboxKey, 16);
+    this.postboxKey = BigInt(`0x${postboxKey}`);
     return this.postboxKey;
   }
 

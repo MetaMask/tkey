@@ -4,30 +4,29 @@ import {
   encrypt as encryptUtils,
   EncryptedMessage,
   getPubKeyECC,
+  getPubKeyPoint,
   IServiceProvider,
   PubKeyType,
+  secp256k1,
   ServiceProviderArgs,
   StringifiedType,
-  toPrivKeyEC,
   toPrivKeyECC,
 } from "@tkey/common-types";
 import { bytesToBase64, hexToBytes } from "@toruslabs/metadata-helpers";
-import BN from "bn.js";
-import { curve } from "elliptic";
 
 class ServiceProviderBase implements IServiceProvider {
   enableLogging: boolean;
 
   // For easy serialization
-  postboxKey: BN;
+  postboxKey: bigint;
 
   serviceProviderName: string;
 
-  migratableKey: BN | null = null;
+  migratableKey: bigint | null = null;
 
   constructor({ enableLogging = false, postboxKey }: ServiceProviderArgs) {
     this.enableLogging = enableLogging;
-    this.postboxKey = new BN(postboxKey, "hex");
+    this.postboxKey = BigInt(`0x${postboxKey}`);
     this.serviceProviderName = "ServiceProviderBase";
   }
 
@@ -47,8 +46,9 @@ class ServiceProviderBase implements IServiceProvider {
     return decryptUtils(toPrivKeyECC(this.postboxKey), msg);
   }
 
-  retrievePubKeyPoint(): curve.base.BasePoint {
-    return toPrivKeyEC(this.postboxKey).getPublic();
+  retrievePubKeyPoint(): { x: bigint; y: bigint } {
+    const pt = getPubKeyPoint(this.postboxKey);
+    return { x: pt.x, y: pt.y };
   }
 
   retrievePubKey(type: PubKeyType): Uint8Array {
@@ -59,15 +59,17 @@ class ServiceProviderBase implements IServiceProvider {
   }
 
   sign(msg: BNString): string {
-    const tmp = new BN(msg, "hex");
-    const sig = toPrivKeyEC(this.postboxKey).sign(tmp.toString("hex"));
-    return bytesToBase64(hexToBytes(sig.r.toString(16, 64) + sig.s.toString(16, 64) + new BN(0).toString(16, 2)));
+    const msgHex = typeof msg === "bigint" ? msg.toString(16) : msg;
+    const sig = secp256k1.sign(msgHex, toPrivKeyECC(this.postboxKey), { prehash: false });
+    const rHex = sig.r.toString(16).padStart(64, "0");
+    const sHex = sig.s.toString(16).padStart(64, "0");
+    return bytesToBase64(hexToBytes(rHex + sHex + "00"));
   }
 
   toJSON(): StringifiedType {
     return {
       enableLogging: this.enableLogging,
-      postboxKey: this.postboxKey.toString("hex"),
+      postboxKey: this.postboxKey.toString(16),
       serviceProviderName: this.serviceProviderName,
     };
   }

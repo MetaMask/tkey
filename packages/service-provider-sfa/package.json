@@ -40,12 +40,9 @@
     "@tkey/service-provider-base": "^16.0.0",
     "@toruslabs/fetch-node-details": "^16.0.0",
     "@toruslabs/metadata-helpers": "^8.1.0",
-    "@toruslabs/torus.js": "^17.0.0",
-    "bn.js": "^5.2.1"
+    "@toruslabs/torus.js": "^17.0.0"
   },
-  "devDependencies": {
-    "@types/bn.js": "^5.1.6"
-  },
+  "devDependencies": {},
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"
   },

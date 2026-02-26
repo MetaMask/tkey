@@ -41,14 +41,9 @@
     "@tkey/common-types": "^16.0.0",
     "@tkey/service-provider-base": "^16.0.0",
     "@toruslabs/customauth": "^22.1.0",
-    "@toruslabs/torus.js": "^17.0.0",
-    "bn.js": "^5.2.1",
-    "elliptic": "^6.6.1"
+    "@toruslabs/torus.js": "^17.0.0"
   },
-  "devDependencies": {
-    "@types/bn.js": "^5.1.6",
-    "@types/elliptic": "^6.4.18"
-  },
+  "devDependencies": {},
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"
   },
