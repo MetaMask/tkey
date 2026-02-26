@@ -3,7 +3,6 @@ import {
   EncryptedMessage,
   FactorEnc,
   getPubKeyPoint,
-  hexToBigInt,
   IMetadata,
   KeyType,
   Point,
