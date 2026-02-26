@@ -40,7 +40,7 @@ export interface ISerializable {
 export interface IPoint extends ISerializable {
   x: BN | null;
   y: BN | null;
-  encode(enc: string, params?: unknown): Buffer;
+  encode(enc: string, params?: unknown): Uint8Array;
 }
 
 export interface IServiceProvider extends ISerializable {
@@ -52,9 +52,9 @@ export interface IServiceProvider extends ISerializable {
 
   migratableKey?: BN | null;
 
-  encrypt(msg: Buffer): Promise<EncryptedMessage>;
-  decrypt(msg: EncryptedMessage): Promise<Buffer>;
-  retrievePubKey(type: PubKeyType): Buffer;
+  encrypt(msg: Uint8Array): Promise<EncryptedMessage>;
+  decrypt(msg: EncryptedMessage): Promise<Uint8Array>;
+  retrievePubKey(type: PubKeyType): Uint8Array;
   retrievePubKeyPoint(): EllipticPoint;
   sign(msg: BNString): string;
 }

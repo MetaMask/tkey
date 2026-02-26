@@ -116,14 +116,14 @@ export interface IMetadata extends ISerializable {
 
 export type InitializeNewKeyResult = {
   secp256k1Key: BN;
-  ed25519Seed?: Buffer;
+  ed25519Seed?: Uint8Array;
   deviceShare?: ShareStore;
   userShare?: ShareStore;
 };
 
 export type ReconstructedKeyResult = {
   secp256k1Key: BN;
-  ed25519Seed?: Buffer;
+  ed25519Seed?: Uint8Array;
   seedPhrase?: BN[];
   allKeys?: BN[];
 };
@@ -293,8 +293,8 @@ export interface ITKeyApi {
   outputShare(shareIndex: BNString, type?: string): Promise<unknown>;
   inputShareStore(shareStore: ShareStore): void;
   deleteShare(shareIndex: BNString): Promise<DeleteShareResult>;
-  encrypt(data: Buffer): Promise<EncryptedMessage>;
-  decrypt(encryptedMesage: EncryptedMessage): Promise<Buffer>;
+  encrypt(data: Uint8Array): Promise<EncryptedMessage>;
+  decrypt(encryptedMesage: EncryptedMessage): Promise<Uint8Array>;
 
   getTKeyStoreItem(moduleName: string, id: string): Promise<TkeyStoreItemType>;
   getTKeyStore(moduleName: string): Promise<TkeyStoreItemType[]>;
@@ -313,7 +313,7 @@ export interface ITKey extends ITKeyApi, ISerializable {
 
   secp256k1Key: BN;
 
-  ed25519Key: Buffer;
+  ed25519Key: Uint8Array;
 
   manualSync: boolean;
 
@@ -337,7 +337,7 @@ export interface ITKey extends ITKeyApi, ISerializable {
 export type TKeyInitArgs = {
   withShare?: ShareStore;
   importKey?: BN;
-  importEd25519Seed?: Buffer;
+  importEd25519Seed?: Uint8Array;
   neverInitializeNewKey?: boolean;
   transitionMetadata?: IMetadata;
   previouslyFetchedCloudMetadata?: IMetadata;

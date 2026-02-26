@@ -24,19 +24,20 @@
     "@tkey/common-types": "^16.0.0",
     "@tkey/core": "^16.0.0",
     "@tkey/service-provider-torus": "^16.0.0",
+    "@tkey/storage-layer-torus": "^16.0.0",
     "@toruslabs/customauth": "^22.1.0",
     "@toruslabs/http-helpers": "^9.0.0",
+    "@toruslabs/metadata-helpers": "^8.1.0",
     "@toruslabs/rss-client": "^2.0.2",
     "@toruslabs/torus.js": "^17.0.0",
     "@types/bn.js": "^5.1.6",
     "bn.js": "^5.2.1",
     "elliptic": "^6.6.1",
-    "ethereum-cryptography": "^3.1.0"
+    "ethereum-cryptography": "^3.1.0",
+    "jsrsasign": "^11.1.0"
   },
   "devDependencies": {
-    "@tkey/storage-layer-torus": "^16.0.0",
     "@types/jsrsasign": "^10.5.15",
-    "jsrsasign": "^11.1.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   },

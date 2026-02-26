@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@tkey/common-types": "^16.0.0",
+    "@toruslabs/metadata-helpers": "^8.1.0",
     "@toruslabs/tweetnacl-js": "^1.0.4",
     "bn.js": "^5.2.1"
   },

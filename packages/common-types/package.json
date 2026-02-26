@@ -45,6 +45,7 @@
   "dependencies": {
     "@toruslabs/customauth": "^22.1.0",
     "@toruslabs/eccrypto": "^6.0.2",
+    "@toruslabs/metadata-helpers": "^8.1.0",
     "@toruslabs/torus.js": "^17.0.0",
     "bn.js": "^5.2.1",
     "elliptic": "^6.6.1",

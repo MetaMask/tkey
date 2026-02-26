@@ -1,5 +1,6 @@
 import { serializeError } from "@toruslabs/customauth";
 import { decrypt as ecDecrypt, encrypt as ecEncrypt, generatePrivate } from "@toruslabs/eccrypto";
+import { bytesToHex, hexToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256, toChecksumAddress } from "@toruslabs/torus.js";
 import BN from "bn.js";
 import { ec as EC } from "elliptic";
@@ -8,28 +9,28 @@ import { EncryptedMessage } from "./baseTypes/commonTypes";
 
 export const secp256k1 = new EC("secp256k1");
 
-// Wrappers around ECC encrypt/decrypt to use the hex serialization
-// TODO: refactor to take BN
-export async function encrypt(publicKey: Buffer, msg: Buffer): Promise<EncryptedMessage> {
-  const encryptedDetails = await ecEncrypt(publicKey, msg);
+// eccrypto boundary: convert Uint8Array <-> Buffer at the edge
+export async function encrypt(publicKey: Uint8Array, msg: Uint8Array): Promise<EncryptedMessage> {
+  const encryptedDetails = await ecEncrypt(Buffer.from(publicKey), Buffer.from(msg));
 
   return {
-    ciphertext: encryptedDetails.ciphertext.toString("hex"),
-    ephemPublicKey: encryptedDetails.ephemPublicKey.toString("hex"),
-    iv: encryptedDetails.iv.toString("hex"),
-    mac: encryptedDetails.mac.toString("hex"),
+    ciphertext: bytesToHex(new Uint8Array(encryptedDetails.ciphertext)),
+    ephemPublicKey: bytesToHex(new Uint8Array(encryptedDetails.ephemPublicKey)),
+    iv: bytesToHex(new Uint8Array(encryptedDetails.iv)),
+    mac: bytesToHex(new Uint8Array(encryptedDetails.mac)),
   };
 }
 
-export async function decrypt(privKey: Buffer, msg: EncryptedMessage): Promise<Buffer> {
+export async function decrypt(privKey: Uint8Array, msg: EncryptedMessage): Promise<Uint8Array> {
   const bufferEncDetails = {
-    ciphertext: Buffer.from(msg.ciphertext, "hex"),
-    ephemPublicKey: Buffer.from(msg.ephemPublicKey, "hex"),
-    iv: Buffer.from(msg.iv, "hex"),
-    mac: Buffer.from(msg.mac, "hex"),
+    ciphertext: Buffer.from(hexToBytes(msg.ciphertext)),
+    ephemPublicKey: Buffer.from(hexToBytes(msg.ephemPublicKey)),
+    iv: Buffer.from(hexToBytes(msg.iv)),
+    mac: Buffer.from(hexToBytes(msg.mac)),
   };
 
-  return ecDecrypt(privKey, bufferEncDetails);
+  const result = await ecDecrypt(Buffer.from(privKey), bufferEncDetails);
+  return new Uint8Array(result);
 }
 
 export function isEmptyObject(obj: unknown): boolean {
@@ -45,7 +46,7 @@ export async function prettyPrintError(error: unknown): Promise<Error> {
   return serializeError(error);
 }
 
-export function generateAddressFromPublicKey(publicKey: Buffer): string {
+export function generateAddressFromPublicKey(publicKey: Uint8Array): string {
   const ethAddressLower = `0x${keccak256(publicKey).slice(64 - 38)}`;
   return toChecksumAddress(ethAddressLower);
 }

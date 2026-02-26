@@ -10,6 +10,7 @@ import {
   ShareStore,
   ShareStoreMap,
 } from "@tkey/common-types";
+import { utf8ToBytes } from "@toruslabs/metadata-helpers";
 import BN from "bn.js";
 import { keccak256 } from "ethereum-cryptography/keccak";
 
@@ -17,7 +18,7 @@ import SecurityQuestionsError from "./errors";
 import SecurityQuestionStore from "./SecurityQuestionStore";
 
 function answerToUserInputHashBN(answerString: string): BN {
-  return new BN(keccak256(Buffer.from(answerString, "utf8")));
+  return new BN(keccak256(utf8ToBytes(answerString)));
 }
 
 export const SECURITY_QUESTIONS_MODULE_NAME = "securityQuestions";

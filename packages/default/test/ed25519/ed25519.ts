@@ -1,6 +1,7 @@
 import { generatePrivateBN } from "@tkey/core";
 import { TorusServiceProvider } from "@tkey/service-provider-torus";
 import { TorusStorageLayer } from "@tkey/storage-layer-torus";
+import { bytesToHex } from "@toruslabs/metadata-helpers";
 import assert from "assert";
 import { randomBytes } from "crypto";
 
@@ -44,12 +45,12 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       await newInstance.reconstructKey();
 
       assert.strictEqual(secp.toString("hex"), newInstance.secp256k1Key.toString("hex"));
-      assert.strictEqual(ed.toString("hex"), newInstance.ed25519Key.toString("hex"));
+      assert.strictEqual(bytesToHex(ed), bytesToHex(newInstance.ed25519Key));
 
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
       try {
-        await instance3.initialize({ importKey: generatePrivateBN(), importEd25519Seed: randomBytes(32) });
+        await instance3.initialize({ importKey: generatePrivateBN(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
         assert.fail("should not be able to reinitialize with import key");
       } catch (error) {}
     });
@@ -72,7 +73,7 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       {
         await tb2.reconstructKey();
         const edExported = tb2.ed25519Key;
-        assert.strictEqual(ed.toString("hex"), edExported.toString("hex"));
+        assert.strictEqual(bytesToHex(ed), bytesToHex(edExported));
       }
 
       const newInstance = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
@@ -87,12 +88,12 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       newInstance.inputShareStore(share.newShareStores[share.newShareIndex.toString("hex")]);
       await newInstance.reconstructKey();
 
-      assert.strictEqual(ed.toString("hex"), newInstance.ed25519Key.toString("hex"));
+      assert.strictEqual(bytesToHex(ed), bytesToHex(newInstance.ed25519Key));
       assert.strictEqual(edPub, newInstance.getEd25519PublicKey());
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
       try {
-        await instance3.initialize({ importKey: generatePrivateBN(), importEd25519Seed: randomBytes(32) });
+        await instance3.initialize({ importKey: generatePrivateBN(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
         assert.fail("should not be able to reinitialize with import key");
       } catch (error) {}
     });
@@ -121,12 +122,12 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       await newInstance.reconstructKey();
 
       assert.strictEqual(secp.toString("hex"), newInstance.secp256k1Key.toString("hex"));
-      assert.strictEqual(ed.toString("hex"), newInstance.ed25519Key.toString("hex"));
+      assert.strictEqual(bytesToHex(ed), bytesToHex(newInstance.ed25519Key));
       assert.strictEqual(edPub, newInstance.getEd25519PublicKey());
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
       try {
-        await instance3.initialize({ importKey: generatePrivateBN(), importEd25519Seed: randomBytes(32) });
+        await instance3.initialize({ importKey: generatePrivateBN(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
         assert.fail("should not be able to reinitialize with import key");
       } catch (error) {}
     });

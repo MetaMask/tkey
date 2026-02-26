@@ -1,4 +1,5 @@
 import { getPublic } from "@toruslabs/eccrypto";
+import { hexToBytes } from "@toruslabs/metadata-helpers";
 import BN from "bn.js";
 import type { curve, ec } from "elliptic";
 
@@ -9,14 +10,14 @@ import Point from "./Point";
 // These functions are here because BN can't be extended
 export const toPrivKeyEC = (bn: BN): ec.KeyPair => secp256k1.keyFromPrivate(bn.toString("hex", 64));
 
-export const toPrivKeyECC = (bn: BNString): Buffer => {
+export const toPrivKeyECC = (bn: BNString): Uint8Array => {
   const tmp = new BN(bn, "hex");
-  return Buffer.from(tmp.toString("hex", 64), "hex");
+  return hexToBytes(tmp.toString("hex", 64));
 };
 
 export const getPubKeyEC = (bn: BN): curve.base.BasePoint => secp256k1.keyFromPrivate(bn.toString("hex", 64)).getPublic();
 
-export const getPubKeyECC = (bn: BN): Buffer => getPublic(toPrivKeyECC(bn));
+export const getPubKeyECC = (bn: BN): Uint8Array => getPublic(Buffer.from(toPrivKeyECC(bn)));
 
 export const getPubKeyPoint = (bn: BN): Point => {
   const pubKeyEc = getPubKeyEC(bn);

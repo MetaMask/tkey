@@ -1,6 +1,7 @@
 import { type StringifiedType } from "@tkey/common-types";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { NodeDetailManager } from "@toruslabs/fetch-node-details";
+import { utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256, Torus, TorusKey } from "@toruslabs/torus.js";
 import BN from "bn.js";
 
@@ -56,7 +57,7 @@ class SfaServiceProvider extends ServiceProviderBase {
     if (groupedAuthConnectionId) {
       verifierParams["verify_params"] = [{ verifier_id: userId, idtoken: finalIdToken }];
       verifierParams["sub_verifier_ids"] = [authConnectionId];
-      aggregateIdToken = keccak256(Buffer.from(finalIdToken, "utf8")).slice(2);
+      aggregateIdToken = keccak256(utf8ToBytes(finalIdToken)).slice(2);
     }
     // fetch node details.
     const { torusNodeEndpoints, torusIndexes, torusNodePub } = await this.nodeDetailManagerInstance.getNodeDetails({ verifier, verifierId });

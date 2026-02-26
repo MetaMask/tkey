@@ -1,3 +1,5 @@
+import { hexToBytes } from "@toruslabs/metadata-helpers";
+import { concatBytes } from "@toruslabs/torus.js";
 import BN from "bn.js";
 
 import { BNString, EllipticCurve, EllipticPoint, IPoint, StringifiedType } from "../baseTypes/commonTypes";
@@ -59,14 +61,19 @@ class Point implements IPoint {
    *
    * complies with EC and elliptic pub key types
    */
-  encode(enc: string): Buffer {
+  encode(enc: string): Uint8Array {
     switch (enc) {
-      case "arr":
-        return Buffer.concat([Buffer.from("0x04", "hex"), Buffer.from(this.x.toString("hex"), "hex"), Buffer.from(this.y.toString("hex"), "hex")]);
+      case "arr": {
+        const prefix = hexToBytes("0x04");
+        const xBytes = hexToBytes(this.x.toString("hex"));
+        const yBytes = hexToBytes(this.y.toString("hex"));
+        const result = concatBytes(prefix, xBytes, yBytes);
+        return result;
+      }
       case "elliptic-compressed": {
         const ec = secp256k1;
         const key = ec.keyFromPublic({ x: this.x.toString("hex"), y: this.y.toString("hex") }, "hex");
-        return Buffer.from(key.getPublic(true, "hex"));
+        return hexToBytes(key.getPublic(true, "hex"));
       }
       default:
         throw new Error("encoding doesnt exist in Point");
@@ -88,14 +95,14 @@ class Point implements IPoint {
    * @param compressed - Whether to use compressed format.
    * @returns The SEC1-encoded point.
    */
-  toSEC1(ec: EllipticCurve, compressed = false): Buffer {
+  toSEC1(ec: EllipticCurve, compressed = false): Uint8Array {
     // "elliptic"@6.5.4 can't encode identity.
     if (this.isIdentity()) {
-      return Buffer.from("00", "hex");
+      return hexToBytes("00");
     }
 
     const p = this.toEllipticPoint(ec);
-    return Buffer.from(p.encode("hex", compressed), "hex");
+    return hexToBytes(p.encode("hex", compressed));
   }
 
   toJSON(): StringifiedType {

@@ -10,7 +10,6 @@ import {
   ONE_KEY_DELETE_NONCE,
   ONE_KEY_NAMESPACE,
   prettyPrintError,
-  secp256k1,
   StringifiedType,
   toPrivKeyEC,
   toPrivKeyECC,
@@ -18,13 +17,14 @@ import {
   TorusStorageLayerArgs,
 } from "@tkey/common-types";
 import { post } from "@toruslabs/http-helpers";
+import { bytesToBase64, bytesToUtf8, hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import base64url from "base64url";
 import BN from "bn.js";
 import { keccak256 } from "ethereum-cryptography/keccak";
 import stringify from "json-stable-stringify";
 
 function signDataWithPrivKey(data: { timestamp: number }, privKey: BN): string {
-  const sig = secp256k1.sign(keccak256(Buffer.from(stringify(data), "utf8")), toPrivKeyECC(privKey), "utf-8");
+  const sig = toPrivKeyEC(privKey).sign(keccak256(utf8ToBytes(stringify(data))));
   return sig.toDER("hex");
 }
 
@@ -53,12 +53,12 @@ class TorusStorageLayer implements IStorageLayer {
     }
 
     // General case, encrypt message
-    const bufferMetadata = Buffer.from(stringify(el));
+    const msgBytes = utf8ToBytes(stringify(el));
     let encryptedDetails: EncryptedMessage;
     if (privKey) {
-      encryptedDetails = await encrypt(getPubKeyECC(privKey), bufferMetadata);
+      encryptedDetails = await encrypt(getPubKeyECC(privKey), msgBytes);
     } else {
-      encryptedDetails = await serviceProvider.encrypt(bufferMetadata);
+      encryptedDetails = await serviceProvider.encrypt(msgBytes);
     }
     const serializedEncryptedDetails = base64url.encode(stringify(encryptedDetails));
     return serializedEncryptedDetails;
@@ -84,14 +84,14 @@ class TorusStorageLayer implements IStorageLayer {
     }
     const encryptedMessage = JSON.parse(base64url.decode(metadataResponse.message));
 
-    let decrypted: Buffer;
+    let decrypted: Uint8Array;
     if (privKey) {
       decrypted = await decrypt(toPrivKeyECC(privKey), encryptedMessage);
     } else {
       decrypted = await serviceProvider.decrypt(encryptedMessage);
     }
 
-    return JSON.parse(decrypted.toString()) as T;
+    return JSON.parse(bytesToUtf8(decrypted)) as T;
   }
 
   /**
@@ -168,10 +168,10 @@ class TorusStorageLayer implements IStorageLayer {
       setTKeyStore.data = "<deleted>";
     }
 
-    const hash = keccak256(Buffer.from(stringify(setTKeyStore), "utf8"));
+    const hash = keccak256(utf8ToBytes(stringify(setTKeyStore)));
     if (privKey) {
       const unparsedSig = toPrivKeyEC(privKey).sign(hash);
-      sig = Buffer.from(unparsedSig.r.toString(16, 64) + unparsedSig.s.toString(16, 64) + new BN(0).toString(16, 2), "hex").toString("base64");
+      sig = bytesToBase64(hexToBytes(unparsedSig.r.toString(16, 64) + unparsedSig.s.toString(16, 64) + new BN(0).toString(16, 2)));
       const pubK = getPubKeyPoint(privKey);
       pubX = pubK.x.toString("hex");
       pubY = pubK.y.toString("hex");
@@ -200,7 +200,7 @@ class TorusStorageLayer implements IStorageLayer {
     if (privKey) {
       signature = signDataWithPrivKey(data, privKey);
     } else {
-      signature = serviceProvider.sign(new BN(keccak256(Buffer.from(stringify(data), "utf8"))));
+      signature = serviceProvider.sign(new BN(keccak256(utf8ToBytes(stringify(data)))));
     }
     const metadataParams = {
       key: toPrivKeyEC(privKey).getPublic("hex"),
@@ -220,7 +220,7 @@ class TorusStorageLayer implements IStorageLayer {
     if (privKey) {
       signature = signDataWithPrivKey(data, privKey);
     } else {
-      signature = serviceProvider.sign(new BN(keccak256(Buffer.from(stringify(data), "utf8"))));
+      signature = serviceProvider.sign(new BN(keccak256(utf8ToBytes(stringify(data)))));
     }
     const metadataParams = {
       key: toPrivKeyEC(privKey).getPublic("hex"),

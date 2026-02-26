@@ -4,13 +4,13 @@ import BN from "bn.js";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const browserCrypto = global.crypto || (global as any).msCrypto || {};
 
-function randomBytes(size: number): Buffer {
+function randomBytes(size: number): Uint8Array {
   if (typeof browserCrypto.getRandomValues === "undefined") {
-    return Buffer.from(browserCrypto.randomBytes(size));
+    return new Uint8Array(browserCrypto.randomBytes(size));
   }
   const arr = new Uint8Array(size);
   browserCrypto.getRandomValues(arr);
-  return Buffer.from(arr);
+  return arr;
 }
 
 export class SECP256K1Format implements IPrivateKeyFormat {

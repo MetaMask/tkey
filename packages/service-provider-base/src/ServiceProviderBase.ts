@@ -11,6 +11,7 @@ import {
   toPrivKeyEC,
   toPrivKeyECC,
 } from "@tkey/common-types";
+import { bytesToBase64, hexToBytes } from "@toruslabs/metadata-helpers";
 import BN from "bn.js";
 import { curve } from "elliptic";
 
@@ -37,12 +38,12 @@ class ServiceProviderBase implements IServiceProvider {
     return new ServiceProviderBase({ enableLogging, postboxKey });
   }
 
-  async encrypt(msg: Buffer): Promise<EncryptedMessage> {
+  async encrypt(msg: Uint8Array): Promise<EncryptedMessage> {
     const publicKey = this.retrievePubKey("ecc");
     return encryptUtils(publicKey, msg);
   }
 
-  async decrypt(msg: EncryptedMessage): Promise<Buffer> {
+  async decrypt(msg: EncryptedMessage): Promise<Uint8Array> {
     return decryptUtils(toPrivKeyECC(this.postboxKey), msg);
   }
 
@@ -50,7 +51,7 @@ class ServiceProviderBase implements IServiceProvider {
     return toPrivKeyEC(this.postboxKey).getPublic();
   }
 
-  retrievePubKey(type: PubKeyType): Buffer {
+  retrievePubKey(type: PubKeyType): Uint8Array {
     if (type === "ecc") {
       return getPubKeyECC(this.postboxKey);
     }
@@ -60,7 +61,7 @@ class ServiceProviderBase implements IServiceProvider {
   sign(msg: BNString): string {
     const tmp = new BN(msg, "hex");
     const sig = toPrivKeyEC(this.postboxKey).sign(tmp.toString("hex"));
-    return Buffer.from(sig.r.toString(16, 64) + sig.s.toString(16, 64) + new BN(0).toString(16, 2), "hex").toString("base64");
+    return bytesToBase64(hexToBytes(sig.r.toString(16, 64) + sig.s.toString(16, 64) + new BN(0).toString(16, 2)));
   }
 
   toJSON(): StringifiedType {

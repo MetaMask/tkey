@@ -1,4 +1,5 @@
 import { generateID, IPrivateKeyFormat, IPrivateKeyStore } from "@tkey/common-types";
+import { base64ToBytes, bytesToBase64, hexToBytes } from "@toruslabs/metadata-helpers";
 import nacl from "@toruslabs/tweetnacl-js";
 import BN from "bn.js";
 
@@ -16,8 +17,8 @@ export class ED25519Format implements IPrivateKeyFormat {
     // Validation as per
     // https://github.com/solana-labs/solana-web3.js/blob/e1567ab/src/keypair.ts#L65
     try {
-      const secretKey = Buffer.from(privateKey.toString("hex"), "hex").toString("base64");
-      const keypair = nacl.sign.keyPair.fromSecretKey(Buffer.from(secretKey, "base64"));
+      const secretKey = bytesToBase64(hexToBytes(privateKey.toString("hex")));
+      const keypair = nacl.sign.keyPair.fromSecretKey(base64ToBytes(secretKey));
       const encoder = new TextEncoder();
       const signData = encoder.encode("@solana/web3.js-validation-v1");
       const signature = nacl.sign.detached(signData, keypair.secretKey);

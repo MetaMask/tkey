@@ -42,6 +42,7 @@
     "@tkey/share-serialization": "^16.0.0",
     "@tkey/share-transfer": "^16.0.0",
     "@tkey/storage-layer-torus": "^16.0.0",
+    "@toruslabs/metadata-helpers": "^8.1.0",
     "bn.js": "^5.2.1"
   },
   "devDependencies": {

@@ -104,23 +104,22 @@ export async function assignTssDkgKeys(opts: {
 }
 
 export function generateKey(keyType: KeyType): {
-  raw: Buffer;
+  raw: Uint8Array;
   scalar: BN;
 } {
   if (keyType === KeyType.secp256k1) {
-    const scalar = getKeyCurve(keyType).genKeyPair().getPrivate();
+    const scalar = new BN(getKeyCurve(keyType).keygen().secretKey);
     return {
-      raw: scalar.toArrayLike(Buffer, "be", 32),
+      raw: new Uint8Array(scalar.toArrayLike(Buffer, "be", 32)),
       scalar,
     };
   } else if (keyType === KeyType.ed25519) {
-    const buf = new Uint32Array(32);
-    crypto.getRandomValues(buf);
-    const raw = Buffer.from(buf);
+    const raw = new Uint8Array(32);
+    crypto.getRandomValues(raw);
     const { scalar } = getEd25519KeyPairFromSeed(raw);
     return {
       raw,
-      scalar,
+      scalar: new BN(scalar.toString(16), 16),
     };
   }
   throw new Error("unsupported key type");

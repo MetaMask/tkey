@@ -21,6 +21,7 @@ import {
   StringifiedType,
   toPrivKeyECC,
 } from "@tkey/common-types";
+import { bytesToHex } from "@toruslabs/metadata-helpers";
 import BN from "bn.js";
 import stringify from "json-stable-stringify";
 
@@ -321,7 +322,7 @@ class Metadata implements IMetadata {
     }
 
     return {
-      pubKey: this.pubKey.toSEC1(secp256k1, true).toString("hex"),
+      pubKey: bytesToHex(this.pubKey.toSEC1(secp256k1, true)),
       polyIDList: serializedPolyIDList,
       scopedStore: this.scopedStore,
       generalStore: this.generalStore,

@@ -45,6 +45,7 @@ import {
   TkeyStoreItemType,
   toPrivKeyECC,
 } from "@tkey/common-types";
+import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { encodeEd25519Point, getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed } from "@toruslabs/torus.js";
 import BN from "bn.js";
 import { getRandomBytes } from "ethereum-cryptography/random";
@@ -93,7 +94,7 @@ class ThresholdKey implements ITKey {
   // secp256k1 key
   private privKey: BN;
 
-  private _ed25519Seed?: Buffer;
+  private _ed25519Seed?: Uint8Array;
 
   constructor(args?: TKeyArgs) {
     const { enableLogging = false, modules = {}, serviceProvider, storageLayer, manualSync = false, serverTimeOffset } = args || {};
@@ -122,7 +123,7 @@ class ThresholdKey implements ITKey {
     return null;
   }
 
-  get ed25519Key(): Buffer | null {
+  get ed25519Key(): Uint8Array | null {
     if (typeof this._ed25519Seed !== "undefined") {
       return this._ed25519Seed;
     }
@@ -133,7 +134,7 @@ class ThresholdKey implements ITKey {
     this.privKey = privKey;
   }
 
-  protected set ed25519Key(seed: Buffer) {
+  protected set ed25519Key(seed: Uint8Array) {
     this._ed25519Seed = seed;
   }
 
@@ -162,7 +163,7 @@ class ThresholdKey implements ITKey {
 
     // this will computed during reconstructKey should we restore here?
     if (privKey) tb.privKey = new BN(privKey, "hex");
-    if (ed25519Key) tb.ed25519Key = Buffer.from(ed25519Key, "hex");
+    if (ed25519Key) tb.ed25519Key = hexToBytes(ed25519Key);
 
     tb.shares = shares;
 
@@ -617,7 +618,7 @@ class ThresholdKey implements ITKey {
     return result?.publicKey;
   }
 
-  async retrieveEd25519Seed(): Promise<Buffer> {
+  async retrieveEd25519Seed(): Promise<Uint8Array> {
     if (!this.metadata) {
       throw CoreError.metadataUndefined();
     }
@@ -1061,12 +1062,12 @@ class ThresholdKey implements ITKey {
     }
   }
 
-  async encrypt(data: Buffer): Promise<EncryptedMessage> {
+  async encrypt(data: Uint8Array): Promise<EncryptedMessage> {
     if (!this.privKey) throw CoreError.privateKeyUnavailable();
     return encrypt(getPubKeyECC(this.privKey), data);
   }
 
-  async decrypt(encryptedMessage: EncryptedMessage): Promise<Buffer> {
+  async decrypt(encryptedMessage: EncryptedMessage): Promise<Uint8Array> {
     if (!this.privKey) throw CoreError.privateKeyUnavailable();
     return decrypt(toPrivKeyECC(this.privKey), encryptedMessage);
   }
@@ -1079,10 +1080,10 @@ class ThresholdKey implements ITKey {
     const decryptedItems = await Promise.all(
       rawTkeyStoreItems.map(async (x) => {
         const decryptedItem = await this.decrypt(x);
-        return JSON.parse(decryptedItem.toString()) as TkeyStoreItemType;
+        return JSON.parse(bytesToUtf8(decryptedItem)) as TkeyStoreItemType;
       })
     );
-    const encryptedData = await this.encrypt(Buffer.from(stringify(data)));
+    const encryptedData = await this.encrypt(utf8ToBytes(stringify(data)));
     const duplicateItemIndex = decryptedItems.findIndex((x) => x.id === data.id);
     if (duplicateItemIndex > -1) {
       rawTkeyStoreItems[duplicateItemIndex] = encryptedData;
@@ -1103,7 +1104,7 @@ class ThresholdKey implements ITKey {
     const decryptedItems = await Promise.all(
       rawTkeyStoreItems.map(async (x) => {
         const decryptedItem = await this.decrypt(x);
-        return JSON.parse(decryptedItem.toString()) as TkeyStoreItemType;
+        return JSON.parse(bytesToUtf8(decryptedItem)) as TkeyStoreItemType;
       })
     );
     const finalItems = decryptedItems.filter((x) => x.id !== id);
@@ -1120,7 +1121,7 @@ class ThresholdKey implements ITKey {
     const decryptedItems = await Promise.all(
       rawTkeyStoreItems.map(async (x) => {
         const decryptedItem = await this.decrypt(x);
-        return JSON.parse(decryptedItem.toString()) as TkeyStoreItemType;
+        return JSON.parse(bytesToUtf8(decryptedItem)) as TkeyStoreItemType;
       })
     );
     return decryptedItems;
@@ -1135,7 +1136,7 @@ class ThresholdKey implements ITKey {
     const decryptedItems = await Promise.all(
       rawTkeyStoreItems.map(async (x) => {
         const decryptedItem = await this.decrypt(x);
-        return JSON.parse(decryptedItem.toString()) as TkeyStoreItemType;
+        return JSON.parse(bytesToUtf8(decryptedItem)) as TkeyStoreItemType;
       })
     );
     const item = decryptedItems.find((x) => x.id === id);
@@ -1174,7 +1175,7 @@ class ThresholdKey implements ITKey {
       shares: this.shares,
       enableLogging: this.enableLogging,
       privKey: this.privKey ? this.privKey.toString("hex") : undefined,
-      ed25519Key: this.ed25519Key ? this.ed25519Key.toString("hex") : undefined,
+      ed25519Key: this.ed25519Key ? bytesToHex(this.ed25519Key) : undefined,
       metadata: this.metadata,
       lastFetchedCloudMetadata: this.lastFetchedCloudMetadata,
       _localMetadataTransitions: this._localMetadataTransitions,
@@ -1323,7 +1324,7 @@ class ThresholdKey implements ITKey {
     const sharesToPush = await Promise.all(
       shareIndexesNeedingEncryption.map(async (shareIndex) => {
         const oldShare = oldPoly.polyEval(new BN(shareIndex, "hex"));
-        const encryptedShare = await encrypt(getPubKeyECC(oldShare), Buffer.from(JSON.stringify(newShareStores[shareIndex])));
+        const encryptedShare = await encrypt(getPubKeyECC(oldShare), utf8ToBytes(JSON.stringify(newShareStores[shareIndex])));
         newScopedStore[getPubKeyPoint(oldShare).x.toString("hex")] = encryptedShare;
         oldShareStores[shareIndex] = new ShareStore(new Share(shareIndex, oldShare), previousPolyID);
         return oldShare;
@@ -1380,7 +1381,7 @@ class ThresholdKey implements ITKey {
     determinedShare?: BN;
     initializeModules?: boolean;
     importedKey?: BN;
-    importEd25519Seed?: Buffer;
+    importEd25519Seed?: Uint8Array;
     delete1OutOf1?: boolean;
   } = {}): Promise<InitializeNewKeyResult> {
     this.lastFetchedCloudMetadata = undefined;
@@ -1461,7 +1462,7 @@ class ThresholdKey implements ITKey {
     return result;
   }
 
-  private async importEd25519Seed(seed: Buffer): Promise<void> {
+  private async importEd25519Seed(seed: Uint8Array): Promise<void> {
     if (!this.privKey) {
       throw CoreError.privateKeyUnavailable();
     }
@@ -1474,19 +1475,18 @@ class ThresholdKey implements ITKey {
 
     this.metadata.setGeneralStoreDomain(ed25519SeedConst, {
       message: await this.encrypt(seed),
-      publicKey: Buffer.from(encodeEd25519Point(keyPair.point)).toString("hex"),
+      publicKey: bytesToHex(encodeEd25519Point(keyPair.point)),
     });
     this._ed25519Seed = seed;
   }
 
-  private async setupEd25519Seed(seed?: Buffer): Promise<void> {
+  private async setupEd25519Seed(seed?: Uint8Array): Promise<void> {
     if (!this.privKey) {
       throw CoreError.privateKeyUnavailable();
     }
     let seedToUse = seed;
     if (!seed) {
-      const newEd25519Seed = await getRandomBytes(32);
-      seedToUse = Buffer.from(newEd25519Seed);
+      seedToUse = await getRandomBytes(32);
     }
     await this.importEd25519Seed(seedToUse);
   }

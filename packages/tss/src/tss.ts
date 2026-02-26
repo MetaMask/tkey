@@ -15,6 +15,7 @@ import {
 } from "@tkey/common-types";
 import { CoreError, TKey } from "@tkey/core";
 import { post } from "@toruslabs/http-helpers";
+import { hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { dotProduct, ecPoint, hexPoint, PointHex, randomSelection, RSSClient } from "@toruslabs/rss-client";
 import { getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed, getKeyCurve, getSecpKeyFromEd25519 } from "@toruslabs/torus.js";
 import BN from "bn.js";
@@ -213,11 +214,12 @@ export class TKeyTSS extends TKey {
     const factorPub = getPubKeyPoint(factorKey, factorKeyCurve);
     const factorEncs = this.getFactorEncs(factorPub);
     const { userEnc, serverEncs, tssIndex, type } = factorEncs;
-    const userDecryption = await decrypt(Buffer.from(factorKey.toString(16, 64), "hex"), userEnc);
+    const factorKeyBytes = hexToBytes(factorKey.toString(16, 64));
+    const userDecryption = await decrypt(factorKeyBytes, userEnc);
     const serverDecryptions = await Promise.all(
       serverEncs.map((factorEnc) => {
         if (factorEnc === null) return null;
-        return decrypt(Buffer.from(factorKey.toString(16, 64), "hex"), factorEnc);
+        return decrypt(factorKeyBytes, factorEnc);
       })
     );
     const tssShareBufs = [userDecryption].concat(serverDecryptions);
@@ -333,7 +335,7 @@ export class TKeyTSS extends TKey {
   async importTssKey(
     params: {
       tag: string;
-      importKey: Buffer;
+      importKey: Uint8Array;
       factorPub: Point;
       newTSSIndex: number;
     },
@@ -378,7 +380,7 @@ export class TKeyTSS extends TKey {
           }
 
           const { scalar } = getEd25519KeyPairFromSeed(importKey);
-          const encKey = Buffer.from(getKeyCurve(KeyType.secp256k1).Point.fromAffine(getSecpKeyFromEd25519(scalar).point).toBytes(true));
+          const encKey = new Uint8Array(getKeyCurve(KeyType.secp256k1).Point.fromAffine(getSecpKeyFromEd25519(scalar).point).toBytes(true));
           const msg = await encrypt(encKey, importKey);
           this.metadata.setGeneralStoreDomain(domainKey, { message: msg });
 
@@ -533,7 +535,7 @@ export class TKeyTSS extends TKey {
    *
    * Reconstructs the TSS private key and exports the ed25519 private key seed.
    */
-  async _UNSAFE_exportTssEd25519Seed(tssOptions: { factorKey: BN; selectedServers?: number[]; authSignatures: string[] }): Promise<Buffer> {
+  async _UNSAFE_exportTssEd25519Seed(tssOptions: { factorKey: BN; selectedServers?: number[]; authSignatures: string[] }): Promise<Uint8Array> {
     const edScalar = await this._UNSAFE_exportTssKey(tssOptions);
 
     // Try to export ed25519 seed. This is only available if import key was being used.
@@ -541,9 +543,9 @@ export class TKeyTSS extends TKey {
     const result = this.metadata.getGeneralStoreDomain(domainKey) as Record<string, EncryptedMessage>;
 
     const decKey = getSecpKeyFromEd25519(BigInt(`0x${edScalar.toString(16)}`)).scalar;
-    const decKeyBuffer = Buffer.from(decKey.toString(16).padStart(64, "0"), "hex");
+    const decKeyBytes = hexToBytes(decKey.toString(16).padStart(64, "0"));
 
-    const seed = await decrypt(decKeyBuffer, result.message);
+    const seed = await decrypt(decKeyBytes, result.message);
     return seed;
   }
 
@@ -802,7 +804,7 @@ export class TKeyTSS extends TKey {
     if (!this._accountSalt) {
       throw Error("account salt undefined");
     }
-    let accountHash = keccak256(Buffer.from(`${index}${this._accountSalt}`));
+    let accountHash = keccak256(utf8ToBytes(`${index}${this._accountSalt}`));
     if (accountHash.length === 66) accountHash = accountHash.slice(2);
     return new BN(accountHash, "hex").umod(this._tssCurve.n);
   }
@@ -871,7 +873,7 @@ export class TKeyTSS extends TKey {
       factorEncs[factorPubID] = {
         tssIndex,
         type: "direct",
-        userEnc: await encrypt(newFactorPub.toSEC1(secp256k1, false), tssShare.toArrayLike(Buffer, "be", 32)),
+        userEnc: await encrypt(newFactorPub.toSEC1(secp256k1, false), new Uint8Array(tssShare.toArrayLike(Buffer, "be", 32))),
         serverEncs: [],
       };
       this.metadata.updateTSSData({
@@ -1005,7 +1007,7 @@ export class TKeyTSS extends TKey {
       factorEncs[factorPubID] = {
         tssIndex: _tssIndex,
         type: "direct",
-        userEnc: await encrypt(f.toSEC1(factorKeyCurve, false), Buffer.from(tss2.toString(16, 64), "hex")),
+        userEnc: await encrypt(f.toSEC1(factorKeyCurve, false), hexToBytes(tss2.toString(16, 64))),
         serverEncs: [],
       };
     }

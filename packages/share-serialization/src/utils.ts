@@ -1,3 +1,4 @@
+import { bytesToHex, hexToBytes } from "@toruslabs/metadata-helpers";
 import { sha256 } from "ethereum-cryptography/sha256";
 
 import ShareSerializationError from "./errors";
@@ -22,7 +23,7 @@ export function bytesToBinary(bytes: number[]): string {
   return bytes.map((x) => lpad(x.toString(2), "0", 8)).join("");
 }
 
-export function deriveChecksumBits(entropyBuffer: Buffer): string {
+export function deriveChecksumBits(entropyBuffer: Uint8Array): string {
   const ENT = entropyBuffer.length * 8;
   const CS = ENT / 32;
   const hash = sha256(entropyBuffer);
@@ -30,10 +31,12 @@ export function deriveChecksumBits(entropyBuffer: Buffer): string {
   return bytesToBinary(Array.from(hash)).slice(0, CS);
 }
 
-export function entropyToMnemonic(entropy: Buffer | string, english: string[]): string {
-  let newEntropy: Buffer;
-  if (!Buffer.isBuffer(entropy)) {
-    newEntropy = Buffer.from(entropy, "hex");
+export function entropyToMnemonic(entropy: Uint8Array | string, english: string[]): string {
+  let newEntropy: Uint8Array;
+  if (typeof entropy === "string") {
+    newEntropy = hexToBytes(entropy);
+  } else {
+    newEntropy = entropy;
   }
 
   // 128 <= ENT <= 256
@@ -97,11 +100,11 @@ export function mnemonicToEntropy(mnemonic: string, english: string[]): string {
     throw ShareSerializationError.invalidEntropy();
   }
 
-  const entropy = Buffer.from(entropyBytes);
+  const entropy = new Uint8Array(entropyBytes);
   const newChecksum = deriveChecksumBits(entropy);
   if (newChecksum !== checksumBits) {
     throw ShareSerializationError.invalidChecksum();
   }
 
-  return entropy.toString("hex");
+  return bytesToHex(entropy);
 }

@@ -1,5 +1,5 @@
 import { EllipticPoint, KeyType, Point } from "@tkey/common-types";
-import assert, { equal, fail, rejects } from "assert";
+import assert, { deepStrictEqual, equal, fail, rejects } from "assert";
 import BN from "bn.js";
 import { ec as EC } from "elliptic";
 
@@ -189,7 +189,7 @@ TEST_KEY_TYPES.forEach((TSS_KEY_TYPE) => {
           factorKey,
           authSignatures: signatures,
         });
-        assert(seed.equals(importTssKey.raw));
+        deepStrictEqual(new Uint8Array(seed), new Uint8Array(importTssKey.raw));
       } else {
         // If not ed25519, then also check exporting with account index.
         const exportedKeyIndex2 = await tb._UNSAFE_exportTssKey({
@@ -290,7 +290,7 @@ TEST_KEY_TYPES.forEach((TSS_KEY_TYPE) => {
           selectedServers: [1, 2, 3],
           authSignatures: signatures,
         });
-        equal(seed.equals(importedKey), true);
+        deepStrictEqual(new Uint8Array(seed), new Uint8Array(importedKey));
       }
 
       const tb2 = new ThresholdKey({ serviceProvider: sp, storageLayer: torusSL, manualSync, tssKeyType: TSS_KEY_TYPE });
@@ -412,7 +412,7 @@ TEST_KEY_TYPES.forEach((TSS_KEY_TYPE) => {
             selectedServers: [3, 4, 5],
             authSignatures: signatures,
           });
-          equal(seed.equals(importedKey), true);
+          deepStrictEqual(new Uint8Array(seed), new Uint8Array(importedKey));
         }
       }
       {
