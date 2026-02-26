@@ -12,7 +12,7 @@ export type ShareMap = {
   [x: string]: Share;
 };
 
-const N = secp256k1.CURVE.n;
+const N = secp256k1.Point.CURVE().n;
 
 class Polynomial implements ISerializable {
   polynomial: bigint[];
