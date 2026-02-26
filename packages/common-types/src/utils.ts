@@ -1,36 +1,32 @@
+import { secp256k1 } from "@noble/curves/secp256k1.js";
+import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { serializeError } from "@toruslabs/customauth";
 import { decrypt as ecDecrypt, encrypt as ecEncrypt, generatePrivate } from "@toruslabs/eccrypto";
 import { bytesToHex, hexToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256, toChecksumAddress } from "@toruslabs/torus.js";
-import BN from "bn.js";
-import { ec as EC } from "elliptic";
 
 import { EncryptedMessage } from "./baseTypes/commonTypes";
 
-export const secp256k1 = new EC("secp256k1");
+export { secp256k1 };
 
-// eccrypto boundary: convert Uint8Array <-> Buffer at the edge
 export async function encrypt(publicKey: Uint8Array, msg: Uint8Array): Promise<EncryptedMessage> {
-  const encryptedDetails = await ecEncrypt(Buffer.from(publicKey), Buffer.from(msg));
+  const encryptedDetails = await ecEncrypt(publicKey, msg);
 
   return {
-    ciphertext: bytesToHex(new Uint8Array(encryptedDetails.ciphertext)),
-    ephemPublicKey: bytesToHex(new Uint8Array(encryptedDetails.ephemPublicKey)),
-    iv: bytesToHex(new Uint8Array(encryptedDetails.iv)),
-    mac: bytesToHex(new Uint8Array(encryptedDetails.mac)),
+    ciphertext: bytesToHex(encryptedDetails.ciphertext),
+    ephemPublicKey: bytesToHex(encryptedDetails.ephemPublicKey),
+    iv: bytesToHex(encryptedDetails.iv),
+    mac: bytesToHex(encryptedDetails.mac),
   };
 }
 
 export async function decrypt(privKey: Uint8Array, msg: EncryptedMessage): Promise<Uint8Array> {
-  const bufferEncDetails = {
-    ciphertext: Buffer.from(hexToBytes(msg.ciphertext)),
-    ephemPublicKey: Buffer.from(hexToBytes(msg.ephemPublicKey)),
-    iv: Buffer.from(hexToBytes(msg.iv)),
-    mac: Buffer.from(hexToBytes(msg.mac)),
-  };
-
-  const result = await ecDecrypt(Buffer.from(privKey), bufferEncDetails);
-  return new Uint8Array(result);
+  return ecDecrypt(privKey, {
+    ciphertext: hexToBytes(msg.ciphertext),
+    ephemPublicKey: hexToBytes(msg.ephemPublicKey),
+    iv: hexToBytes(msg.iv),
+    mac: hexToBytes(msg.mac),
+  });
 }
 
 export function isEmptyObject(obj: unknown): boolean {
@@ -71,9 +67,9 @@ export function normalize(input: number | string): string {
   return `0x${hexString}`;
 }
 
-export function generatePrivateExcludingIndexes(shareIndexes: Array<BN>): BN {
-  const key = new BN(generatePrivate());
-  if (shareIndexes.find((el) => el.eq(key))) {
+export function generatePrivateExcludingIndexes(shareIndexes: bigint[]): bigint {
+  const key = bytesToNumberBE(generatePrivate());
+  if (shareIndexes.find((el) => el === key)) {
     return generatePrivateExcludingIndexes(shareIndexes);
   }
   return key;

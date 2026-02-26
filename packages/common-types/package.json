@@ -43,6 +43,7 @@
     "@babel/runtime": "7.x"
   },
   "dependencies": {
+    "@noble/curves": "^2.0.1",
     "@toruslabs/customauth": "^22.1.0",
     "@toruslabs/eccrypto": "^7.0.0",
     "@toruslabs/metadata-helpers": "^8.1.0",
