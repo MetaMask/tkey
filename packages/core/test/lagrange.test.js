@@ -1,33 +1,33 @@
 import { Polynomial } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
 import { fail } from "assert";
-import BN from "bn.js";
+import { bytesToNumberBE } from "@noble/curves/utils.js";
 
 import { generateRandomPolynomial, lagrangeInterpolation } from "../src/index";
 
 describe("lagrange interpolate", function () {
   it("#should interpolate secret correctly", async function () {
-    const polyArr = [new BN(5), new BN(2)];
+    const polyArr = [5n, 2n];
     const poly = new Polynomial(polyArr);
-    const share1 = poly.polyEval(new BN(1));
-    const share2 = poly.polyEval(new BN(2));
-    const key = lagrangeInterpolation([share1, share2], [new BN(1), new BN(2)]);
-    if (key.cmp(new BN(5)) !== 0) {
+    const share1 = poly.polyEval(1n);
+    const share2 = poly.polyEval(2n);
+    const key = lagrangeInterpolation([share1, share2], [1n, 2n]);
+    if (key !== 5n) {
       fail("poly result should equal 7");
     }
   });
   it("#should interpolate random secrets correctly", async function () {
     const degree = Math.ceil(Math.random() * 10);
-    const secret = new BN(generatePrivate());
+    const secret = bytesToNumberBE(generatePrivate());
     const poly = generateRandomPolynomial(degree, secret);
     const shares = [];
     const indexes = [];
     for (let i = 1; i <= degree + 1; i += 1) {
-      indexes.push(new BN(i));
-      shares.push(poly.polyEval(new BN(i)));
+      indexes.push(BigInt(i));
+      shares.push(poly.polyEval(BigInt(i)));
     }
     const key = lagrangeInterpolation(shares, indexes);
-    if (key.cmp(secret) !== 0) {
+    if (key !== secret) {
       fail("lagranged scalar should equal secret");
     }
   });

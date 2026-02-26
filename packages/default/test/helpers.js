@@ -2,6 +2,7 @@ import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { TorusServiceProvider } from "@tkey/service-provider-torus";
 import { MockStorageLayer, TorusStorageLayer } from "@tkey/storage-layer-torus";
 import { generatePrivate } from "@toruslabs/eccrypto";
+import { bytesToHex } from "@toruslabs/metadata-helpers";
 
 let mocked;
 const isNode = process.release;
@@ -29,7 +30,7 @@ export function initStorageLayer(extraParams) {
 
 export function getServiceProvider(params) {
   const { type, privKeyBN, isEmptyProvider } = params;
-  const PRIVATE_KEY = privKeyBN ? privKeyBN.toString("hex") : generatePrivate().toString("hex");
+  const PRIVATE_KEY = privKeyBN ? privKeyBN.toString(16) : bytesToHex(generatePrivate());
   if (type === "TorusServiceProvider") {
     return new TorusServiceProvider({
       postboxKey: isEmptyProvider ? null : PRIVATE_KEY,
