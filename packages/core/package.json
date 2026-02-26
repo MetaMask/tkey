@@ -34,6 +34,7 @@
     "dist"
   ],
   "dependencies": {
+    "@noble/curves": "^2.0.1",
     "@tkey/common-types": "^16.0.0",
     "@toruslabs/eccrypto": "^6.0.2",
     "@toruslabs/http-helpers": "^9.0.0",
