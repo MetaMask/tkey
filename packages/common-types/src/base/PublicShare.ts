@@ -1,27 +1,25 @@
-import BN from "bn.js";
-
-import { BNString, ISerializable, StringifiedType } from "../baseTypes/commonTypes";
-import Point from "./Point";
+import { ISerializable, StringifiedType } from "../baseTypes/commonTypes";
+import Point, { hexToBigInt } from "./Point";
 
 class PublicShare implements ISerializable {
   shareCommitment: Point;
 
-  shareIndex: BN;
+  shareIndex: bigint;
 
-  constructor(shareIndex: BNString, shareCommitment: Point) {
+  constructor(shareIndex: bigint, shareCommitment: Point) {
     this.shareCommitment = new Point(shareCommitment.x, shareCommitment.y);
-    this.shareIndex = new BN(shareIndex, "hex");
+    this.shareIndex = shareIndex;
   }
 
   static fromJSON(value: StringifiedType): PublicShare {
     const { shareCommitment, shareIndex } = value;
-    return new PublicShare(shareIndex, Point.fromJSON(shareCommitment));
+    return new PublicShare(hexToBigInt(shareIndex), Point.fromJSON(shareCommitment));
   }
 
   toJSON(): StringifiedType {
     return {
       shareCommitment: this.shareCommitment,
-      shareIndex: this.shareIndex.toString("hex"),
+      shareIndex: this.shareIndex.toString(16),
     };
   }
 }

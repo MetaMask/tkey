@@ -1,5 +1,4 @@
 import type { CustomAuthArgs } from "@toruslabs/customauth";
-import BN from "bn.js";
 
 import {
   Point,
@@ -45,12 +44,12 @@ export type RefreshMiddlewareMap = {
 };
 
 export type ReconstructKeyMiddlewareMap = {
-  [moduleName: string]: () => Promise<BN[]>;
+  [moduleName: string]: () => Promise<bigint[]>;
 };
 
 export type ShareSerializationMiddleware = {
-  serialize: (share: BN, type: string) => Promise<unknown>;
-  deserialize: (serializedShare: unknown, type: string) => Promise<BN>;
+  serialize: (share: bigint, type: string) => Promise<unknown>;
+  deserialize: (serializedShare: unknown, type: string) => Promise<bigint>;
 };
 
 export type FactorEncType = "direct" | "hierarchical";
@@ -97,7 +96,7 @@ export interface IMetadata extends ISerializable {
   setScopedStore(domain: string, data: unknown): void;
   getEncryptedShare(shareStore: ShareStore): Promise<ShareStore>;
   getShareDescription(): ShareDescriptionMap;
-  shareToShareStore(share: BN): ShareStore;
+  shareToShareStore(share: bigint): ShareStore;
   addShareDescription(shareIndex: string, description: string): void;
   deleteShareDescription(shareIndex: string, description: string): void;
   updateShareDescription(shareIndex: string, oldDescription: string, newDescription: string): void;
@@ -115,17 +114,17 @@ export interface IMetadata extends ISerializable {
 }
 
 export type InitializeNewKeyResult = {
-  secp256k1Key: BN;
+  secp256k1Key: bigint;
   ed25519Seed?: Uint8Array;
   deviceShare?: ShareStore;
   userShare?: ShareStore;
 };
 
 export type ReconstructedKeyResult = {
-  secp256k1Key: BN;
+  secp256k1Key: bigint;
   ed25519Seed?: Uint8Array;
-  seedPhrase?: BN[];
-  allKeys?: BN[];
+  seedPhrase?: bigint[];
+  allKeys?: bigint[];
 };
 export type MiddlewareExtraKeys = Omit<ReconstructedKeyResult, "secp256k1Key" | "ed25519Seed">;
 
@@ -136,7 +135,7 @@ export type CatchupToLatestShareResult = {
 
 export type GenerateNewShareResult = {
   newShareStores: ShareStoreMap;
-  newShareIndex: BN;
+  newShareIndex: bigint;
 };
 
 export type DeleteShareResult = {
@@ -222,7 +221,7 @@ export type ISQAnswerStore = TkeyStoreItemType & {
 };
 
 export type ISeedPhraseStoreWithKeys = ISeedPhraseStore & {
-  keys: BN[];
+  keys: bigint[];
 };
 
 export type MetamaskSeedPhraseStore = ISeedPhraseStore & {
@@ -230,27 +229,27 @@ export type MetamaskSeedPhraseStore = ISeedPhraseStore & {
 };
 
 export type IPrivateKeyStore = TkeyStoreItemType & {
-  privateKey: BN;
+  privateKey: bigint;
   type: string;
 };
 
 export interface ISeedPhraseFormat {
   type: string;
   validateSeedPhrase(seedPhrase: string): boolean;
-  deriveKeysFromSeedPhrase(seedPhraseStore: ISeedPhraseStore): Promise<BN[]>;
+  deriveKeysFromSeedPhrase(seedPhraseStore: ISeedPhraseStore): Promise<bigint[]>;
   createSeedPhraseStore(seedPhrase?: string): Promise<ISeedPhraseStore>;
 }
 
 export interface IPrivateKeyFormat {
-  privateKey: BN;
+  privateKey: bigint;
   type: string;
-  validatePrivateKey(privateKey: BN): boolean;
-  createPrivateKeyStore(privateKey: BN): IPrivateKeyStore;
+  validatePrivateKey(privateKey: bigint): boolean;
+  createPrivateKeyStore(privateKey: bigint): IPrivateKeyStore;
 }
 
 export interface IAuthMetadata {
   metadata: IMetadata;
-  privKey?: BN;
+  privKey?: bigint;
 }
 
 export interface IMessageMetadata {
@@ -261,14 +260,14 @@ export interface IMessageMetadata {
 export type IAuthMetadatas = IAuthMetadata[];
 export type ShareStores = ShareStore[];
 export type IMessageMetadatas = IMessageMetadata[];
-export type LocalTransitionShares = BN[];
+export type LocalTransitionShares = bigint[];
 export type LocalTransitionData = (IAuthMetadata | IMessageMetadata | ShareStore)[];
 export type LocalMetadataTransitions = [LocalTransitionShares, LocalTransitionData];
 
 export interface ITKeyApi {
   getMetadata(): IMetadata;
   getStorageLayer(): IStorageLayer;
-  initialize(params: { input?: ShareStore; importKey?: BN; neverInitializeNewKey?: boolean }): Promise<KeyDetails>;
+  initialize(params: { input?: ShareStore; importKey?: bigint; neverInitializeNewKey?: boolean }): Promise<KeyDetails>;
   catchupToLatestShare(params: {
     shareStore: ShareStore;
     polyID?: string;
@@ -282,10 +281,10 @@ export interface ITKeyApi {
     moduleName: string,
     middleware: (generalStore: unknown, oldShareStores: ShareStoreMap, newShareStores: ShareStoreMap) => unknown
   ): void;
-  _addReconstructKeyMiddleware(moduleName: string, middleware: () => Promise<Array<BN>>): void;
+  _addReconstructKeyMiddleware(moduleName: string, middleware: () => Promise<Array<bigint>>): void;
   _addShareSerializationMiddleware(
-    serialize: (share: BN, type: string) => Promise<unknown>,
-    deserialize: (serializedShare: unknown, type: string) => Promise<BN>
+    serialize: (share: bigint, type: string) => Promise<unknown>,
+    deserialize: (serializedShare: unknown, type: string) => Promise<bigint>
   ): void;
   generateNewShare(): Promise<GenerateNewShareResult>;
   outputShareStore(shareIndex: BNString, polyID?: string): ShareStore;
@@ -311,7 +310,7 @@ export interface ITKey extends ITKeyApi, ISerializable {
 
   shares: ShareStorePolyIDShareIndexMap;
 
-  secp256k1Key: BN;
+  secp256k1Key: bigint;
 
   ed25519Key: Uint8Array;
 
@@ -325,7 +324,7 @@ export interface ITKey extends ITKeyApi, ISerializable {
 
   _shareSerializationMiddleware: ShareSerializationMiddleware;
 
-  initialize(params: { input?: ShareStore; importKey?: BN; neverInitializeNewKey?: boolean }): Promise<KeyDetails>;
+  initialize(params: { input?: ShareStore; importKey?: bigint; neverInitializeNewKey?: boolean }): Promise<KeyDetails>;
 
   reconstructKey(): Promise<ReconstructedKeyResult>;
 
@@ -336,7 +335,7 @@ export interface ITKey extends ITKeyApi, ISerializable {
 
 export type TKeyInitArgs = {
   withShare?: ShareStore;
-  importKey?: BN;
+  importKey?: bigint;
   importEd25519Seed?: Uint8Array;
   neverInitializeNewKey?: boolean;
   transitionMetadata?: IMetadata;
