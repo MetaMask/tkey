@@ -1,121 +1,98 @@
-import { hexToBytes } from "@toruslabs/metadata-helpers";
-import { concatBytes } from "@toruslabs/torus.js";
-import BN from "bn.js";
+import { concatBytes, hexToBytes, numberToBytesBE } from "@noble/curves/utils.js";
 
-import { BNString, EllipticCurve, EllipticPoint, IPoint, StringifiedType } from "../baseTypes/commonTypes";
+import { IPoint, StringifiedType } from "../baseTypes/commonTypes";
 import { secp256k1 } from "../utils";
 
+export function hexToBigInt(s: string | null | undefined): bigint | null {
+  if (s === null || s === undefined) return null;
+  return s.length > 0 ? BigInt(`0x${s}`) : 0n;
+}
+
 class Point implements IPoint {
-  x: BN | null;
+  x: bigint | null;
 
-  y: BN | null;
+  y: bigint | null;
 
-  constructor(x: BNString, y: BNString) {
-    this.x = new BN(x, "hex");
-    this.y = new BN(y, "hex");
+  constructor(x: bigint | null, y: bigint | null) {
+    this.x = x;
+    this.y = y;
   }
 
-  static fromScalar(s: BN, ec: EllipticCurve): Point {
-    const p = (ec.g as EllipticPoint).mul(s);
-    return Point.fromElliptic(p);
+  static fromScalar(s: bigint): Point {
+    const p = secp256k1.Point.BASE.multiply(s).toAffine();
+    return new Point(p.x, p.y);
   }
 
   /**
    * @deprecated Use `fromSEC1` instead.
    */
   static fromCompressedPub(value: string): Point {
-    const key = secp256k1.keyFromPublic(value, "hex");
-    const pt = key.getPublic();
-    return new Point(pt.getX(), pt.getY());
+    return Point.fromSEC1(value);
   }
 
   static fromJSON(value: StringifiedType): Point {
     const { x, y } = value;
-    return new Point(x, y);
+    return new Point(hexToBigInt(x), hexToBigInt(y));
   }
 
-  static fromElliptic(p: EllipticPoint): Point {
-    if (p.isInfinity()) {
+  static fromAffine(p: { x: bigint; y: bigint }): Point {
+    return new Point(p.x, p.y);
+  }
+
+  static fromSEC1(encodedPoint: string): Point {
+    if (encodedPoint.length === 2 && encodedPoint === "00") {
       return new Point(null, null);
     }
-    return new Point(p.getX(), p.getY());
-  }
 
-  /**
-   * Construct a point from SEC1 format.
-   */
-  static fromSEC1(ec: EllipticCurve, encodedPoint: string): Point {
-    // "elliptic"@6.5.4 can't decode identity.
-    if (encodedPoint.length === 2 && encodedPoint === "00") {
-      const identity = (ec.g as EllipticPoint).mul(new BN(0));
-      return Point.fromElliptic(identity);
-    }
-
-    const key = ec.keyFromPublic(encodedPoint, "hex");
-    const pt = key.getPublic();
-    return Point.fromElliptic(pt);
+    const p = secp256k1.Point.fromHex(encodedPoint).toAffine();
+    return new Point(p.x, p.y);
   }
 
   /**
    * @deprecated Use `toSEC1` instead.
-   *
-   * complies with EC and elliptic pub key types
    */
   encode(enc: string): Uint8Array {
     switch (enc) {
       case "arr": {
-        const prefix = hexToBytes("0x04");
-        const xBytes = hexToBytes(this.x.toString("hex"));
-        const yBytes = hexToBytes(this.y.toString("hex"));
-        const result = concatBytes(prefix, xBytes, yBytes);
-        return result;
+        const prefix = new Uint8Array([0x04]);
+        const xBytes = numberToBytesBE(this.x, 32);
+        const yBytes = numberToBytesBE(this.y, 32);
+        return concatBytes(prefix, xBytes, yBytes);
       }
       case "elliptic-compressed": {
-        const ec = secp256k1;
-        const key = ec.keyFromPublic({ x: this.x.toString("hex"), y: this.y.toString("hex") }, "hex");
-        return hexToBytes(key.getPublic(true, "hex"));
+        return this.toSEC1(true);
       }
       default:
         throw new Error("encoding doesnt exist in Point");
     }
   }
 
-  toEllipticPoint(ec: EllipticCurve): EllipticPoint {
+  toProjectivePoint() {
     if (this.isIdentity()) {
-      return (ec.g as EllipticPoint).mul(new BN(0));
+      return secp256k1.Point.ZERO;
     }
-
-    const keyPair = ec.keyFromPublic({ x: this.x.toString("hex"), y: this.y.toString("hex") }, "hex");
-    return keyPair.getPublic();
+    return secp256k1.Point.fromAffine({ x: this.x, y: this.y });
   }
 
-  /**
-   * Returns this point encoded in SEC1 format.
-   * @param ec - Curve which point is on.
-   * @param compressed - Whether to use compressed format.
-   * @returns The SEC1-encoded point.
-   */
-  toSEC1(ec: EllipticCurve, compressed = false): Uint8Array {
-    // "elliptic"@6.5.4 can't encode identity.
+  toSEC1(compressed = false): Uint8Array {
     if (this.isIdentity()) {
       return hexToBytes("00");
     }
 
-    const p = this.toEllipticPoint(ec);
-    return hexToBytes(p.encode("hex", compressed));
+    return this.toProjectivePoint().toBytes(compressed);
   }
 
   toJSON(): StringifiedType {
     return {
-      x: this.x.toString("hex"),
-      y: this.y.toString("hex"),
+      x: this.x?.toString(16) ?? null,
+      y: this.y?.toString(16) ?? null,
     };
   }
 
   toPointHex() {
     return {
-      x: this.x.toString("hex").padStart(64, "0"),
-      y: this.y.toString("hex").padStart(64, "0"),
+      x: this.x.toString(16).padStart(64, "0"),
+      y: this.y.toString(16).padStart(64, "0"),
     };
   }
 
@@ -127,7 +104,7 @@ class Point implements IPoint {
     if (this.isIdentity()) {
       return p.isIdentity();
     }
-    return this.x.eq(p.x) && this.y.eq(p.y);
+    return this.x === p.x && this.y === p.y;
   }
 }
 
