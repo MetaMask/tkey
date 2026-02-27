@@ -1,4 +1,5 @@
 import {
+  bigIntReplacer,
   decrypt,
   EncryptedMessage,
   FactorEnc,
@@ -304,7 +305,7 @@ class Metadata implements IMetadata {
   }
 
   clone(): Metadata {
-    return Metadata.fromJSON(JSON.parse(stringify(this)));
+    return Metadata.fromJSON(JSON.parse(stringify(this, { replacer: bigIntReplacer })));
   }
 
   toJSON(): StringifiedType {

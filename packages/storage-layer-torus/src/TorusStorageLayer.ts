@@ -1,4 +1,5 @@
 import {
+  bigIntReplacer,
   decrypt,
   encrypt,
   EncryptedMessage,
@@ -53,7 +54,7 @@ class TorusStorageLayer implements IStorageLayer {
     }
 
     // General case, encrypt message
-    const msgBytes = utf8ToBytes(stringify(el));
+    const msgBytes = utf8ToBytes(stringify(el, { replacer: bigIntReplacer }));
     let encryptedDetails: EncryptedMessage;
     if (privKey) {
       encryptedDetails = await encrypt(getPubKeyECC(privKey), msgBytes);
@@ -130,7 +131,7 @@ class TorusStorageLayer implements IStorageLayer {
 
       const FD = new FormData();
       finalMetadataParams.forEach((el, index) => {
-        FD.append(index.toString(), JSON.stringify(el));
+        FD.append(index.toString(), JSON.stringify(el, bigIntReplacer));
       });
       const options: RequestInit = {
         mode: "cors",

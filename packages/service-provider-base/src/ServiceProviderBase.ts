@@ -26,7 +26,7 @@ class ServiceProviderBase implements IServiceProvider {
 
   constructor({ enableLogging = false, postboxKey }: ServiceProviderArgs) {
     this.enableLogging = enableLogging;
-    this.postboxKey = BigInt(`0x${postboxKey}`);
+    this.postboxKey = postboxKey != null ? BigInt(`0x${postboxKey}`) : 0n;
     this.serviceProviderName = "ServiceProviderBase";
   }
 

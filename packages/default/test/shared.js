@@ -2,7 +2,7 @@
 /* eslint-disable mocha/no-exports */
 /* eslint-disable import/no-extraneous-dependencies */
 
-import { getPubKeyPoint, KEY_NOT_FOUND, secp256k1, SHARE_DELETED, ShareStore } from "@tkey/common-types";
+import { bigIntReplacer, getPubKeyPoint, KEY_NOT_FOUND, secp256k1, SHARE_DELETED, ShareStore } from "@tkey/common-types";
 import { Metadata } from "@tkey/core";
 import { ED25519Format, PrivateKeyModule, SECP256K1Format } from "@tkey/private-keys";
 import { SecurityQuestionsModule } from "@tkey/security-questions";
@@ -102,7 +102,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should be able to reconstruct key when initializing with user input, manualSync=${mode}`, async function () {
       let determinedShare = BigInt(keccak256(utf8ToBytes("user answer blublu")));
-      determinedShare = determinedShare % secp256k1.CURVE.n;
+      determinedShare = determinedShare % secp256k1.Point.CURVE().n;
       const resp1 = await tb._initializeNewKey({ determinedShare, initializeModules: true });
       await tb.syncLocalMetadataTransitions();
 
@@ -132,7 +132,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should be able to reconstruct key when initializing a with a share, manualSync=${mode}`, async function () {
       let userInput = BigInt(keccak256(utf8ToBytes("user answer blublu")));
-      userInput = userInput % secp256k1.CURVE.n;
+      userInput = userInput % secp256k1.Point.CURVE().n;
       const resp1 = await tb._initializeNewKey({ userInput, initializeModules: true });
       await tb.syncLocalMetadataTransitions();
 
@@ -147,7 +147,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should be able to reconstruct key after refresh and initializing with a share, manualSync=${mode}`, async function () {
       let userInput = BigInt(keccak256(utf8ToBytes("user answer blublu")));
-      userInput = userInput % secp256k1.CURVE.n;
+      userInput = userInput % secp256k1.Point.CURVE().n;
       const resp1 = await tb._initializeNewKey({ userInput, initializeModules: true });
       const newShares = await tb.generateNewShare();
       await tb.syncLocalMetadataTransitions();
@@ -164,7 +164,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should be able to reconstruct key after refresh and initializing with service provider, manualSync=${mode}`, async function () {
       let userInput = BigInt(keccak256(utf8ToBytes("user answer blublu")));
-      userInput = userInput % secp256k1.CURVE.n;
+      userInput = userInput % secp256k1.Point.CURVE().n;
       const resp1 = await tb._initializeNewKey({ userInput, initializeModules: true });
       const newShares = await tb.generateNewShare();
       await tb.syncLocalMetadataTransitions();
@@ -446,12 +446,12 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should serialize and deserialize correctly without tkeyArgs, manualSync=${mode}`, async function () {
       let userInput = BigInt(keccak256(utf8ToBytes("user answer blublu")));
-      userInput = userInput % secp256k1.CURVE.n;
+      userInput = userInput % secp256k1.Point.CURVE().n;
       const resp1 = await tb._initializeNewKey({ userInput, initializeModules: true });
       await tb.generateNewShare();
       await tb.syncLocalMetadataTransitions();
 
-      const stringified = JSON.stringify(tb);
+      const stringified = JSON.stringify(tb, bigIntReplacer);
       const tb3 = await ThresholdKey.fromJSON(JSON.parse(stringified));
       const finalKey = await tb3.reconstructKey();
       strictEqual(finalKey.secp256k1Key.toString(16), resp1.secp256k1Key.toString(16), "Incorrect serialization");
@@ -459,12 +459,12 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should serialize and deserialize correctly with tkeyArgs, manualSync=${mode}`, async function () {
       let userInput = BigInt(keccak256(utf8ToBytes("user answer blublu")));
-      userInput = userInput % secp256k1.CURVE.n;
+      userInput = userInput % secp256k1.Point.CURVE().n;
       const resp1 = await tb._initializeNewKey({ userInput, initializeModules: true });
       await tb.generateNewShare();
       await tb.syncLocalMetadataTransitions();
 
-      const stringified = JSON.stringify(tb);
+      const stringified = JSON.stringify(tb, bigIntReplacer);
       const tb3 = await ThresholdKey.fromJSON(JSON.parse(stringified), { serviceProvider: customSP, storageLayer: customSL });
       const finalKey = await tb3.reconstructKey();
       strictEqual(finalKey.secp256k1Key.toString(16), resp1.secp256k1Key.toString(16), "Incorrect serialization");
@@ -472,7 +472,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should serialize and deserialize correctly, keeping localTransitions consistent before syncing NewKeyAssign, manualSync=${mode}`, async function () {
       let userInput = BigInt(keccak256(utf8ToBytes("user answer blublu")));
-      userInput = userInput % secp256k1.CURVE.n;
+      userInput = userInput % secp256k1.Point.CURVE().n;
       const resp1 = await tb._initializeNewKey({ userInput, initializeModules: true });
 
       // generate and delete
@@ -481,7 +481,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
       const { newShareStores: shareStores, newShareIndex: shareIndex } = await tb.generateNewShare();
 
-      const stringified = JSON.stringify(tb);
+      const stringified = JSON.stringify(tb, bigIntReplacer);
       const tb2 = await ThresholdKey.fromJSON(JSON.parse(stringified), { serviceProvider: customSP, storageLayer: customSL });
       if (tb2.manualSync !== mode) {
         fail(`manualSync should be ${mode}`);
@@ -500,13 +500,13 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should serialize and deserialize correctly keeping localTransitions afterNewKeyAssign, manualSync=${mode}`, async function () {
       let userInput = BigInt(keccak256(utf8ToBytes("user answer blublu")));
-      userInput = userInput % secp256k1.CURVE.n;
+      userInput = userInput % secp256k1.Point.CURVE().n;
       const resp1 = await tb._initializeNewKey({ userInput, initializeModules: true });
       await tb.syncLocalMetadataTransitions();
       const reconstructedKey = await tb.reconstructKey();
       const { newShareStores: shareStores, newShareIndex: shareIndex } = await tb.generateNewShare();
 
-      const stringified = JSON.stringify(tb);
+      const stringified = JSON.stringify(tb, bigIntReplacer);
       const tb2 = await ThresholdKey.fromJSON(JSON.parse(stringified), { serviceProvider: customSP, storageLayer: customSL });
       const finalKey = await tb2.reconstructKey();
       const shareToVerify = tb2.outputShareStore(shareIndex);
@@ -528,7 +528,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
       await tb3.initialize();
       await tb3.inputShareStoreSafe(newShareStores[newShareIndex.toString(16)]);
 
-      const stringified = JSON.stringify(tb3);
+      const stringified = JSON.stringify(tb3, bigIntReplacer);
       const tb4 = await ThresholdKey.fromJSON(JSON.parse(stringified), { serviceProvider: customSP, storageLayer: customSL, manualSync: mode });
       const finalKeyPostSerialization = await tb4.reconstructKey();
       strictEqual(finalKeyPostSerialization.secp256k1Key.toString(16), resp1.secp256k1Key.toString(16), "Incorrect serialization");
@@ -548,7 +548,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
       await tb2.initialize({ withShare: resp1.deviceShare });
       await tb2.inputShareStoreSafe(newShareStores1[newShareIndex1.toString(16)]);
       await tb2.reconstructKey();
-      const stringified = JSON.stringify(tb2);
+      const stringified = JSON.stringify(tb2, bigIntReplacer);
 
       const tb3 = await ThresholdKey.fromJSON(JSON.parse(stringified));
       const tb3Key = await tb3.reconstructKey();
@@ -557,7 +557,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
 
     it(`#should not be able to updateSDK with newKeyAssign transitions unsynced, manualSync=${mode}`, async function () {
       await tb._initializeNewKey({ initializeModules: true });
-      const stringified = JSON.stringify(tb);
+      const stringified = JSON.stringify(tb, bigIntReplacer);
       const tb2 = await ThresholdKey.fromJSON(JSON.parse(stringified), {});
 
       if (mode) {
@@ -586,7 +586,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
     });
 
     it(`#should get or set with specified private key correctly, manualSync=${mode}`, async function () {
-      const privKey = generatePrivate().toString(16);
+      const privKey = bytesToHex(generatePrivate());
       const privKeyBN = BigInt(`0x${privKey}`);
       const storageLayer = initStorageLayer({ hostUrl: metadataURL });
       const message = { test: Math.random().toString(36).substring(7) };
@@ -749,7 +749,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
         fail("key should be able to be reconstructed");
       }
 
-      const stringified = JSON.stringify(tb2);
+      const stringified = JSON.stringify(tb2, bigIntReplacer);
       const tb3 = await ThresholdKey.fromJSON(JSON.parse(stringified), { serviceProvider: customSP, storageLayer: customSL });
       const finalKeyPostSerialization = await tb3.reconstructKey();
       strictEqual(finalKeyPostSerialization.toString(16), reconstructedKey.toString(16), "Incorrect serialization");
@@ -1598,7 +1598,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
       equal(isUpgraded, false);
 
       const nonceBN = BigInt(`0x${nonce}`);
-      const importKey = ((postboxKeyBN + nonceBN) % secp256k1.CURVE.n).toString(16);
+      const importKey = ((postboxKeyBN + nonceBN) % secp256k1.Point.CURVE().n).toString(16);
 
       const tKey = new ThresholdKey({ serviceProvider, storageLayer: storageLayer2, manualSync: mode });
       await tKey.initialize({

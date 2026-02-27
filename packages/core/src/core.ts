@@ -1,4 +1,5 @@
 import {
+  bigIntReplacer,
   BNString,
   CatchupToLatestShareResult,
   decrypt,
@@ -173,11 +174,19 @@ class ThresholdKey implements ITKey {
     if (privKey) tb.privKey = hexToBigInt(privKey);
     if (ed25519Key) tb.ed25519Key = hexToBytes(ed25519Key);
 
-    tb.shares = shares;
+    const deserializedShares: ShareStorePolyIDShareIndexMap = {};
+    for (const polyID of Object.keys(shares)) {
+      deserializedShares[polyID] = {};
+      for (const shareIndex of Object.keys(shares[polyID])) {
+        deserializedShares[polyID][shareIndex] = ShareStore.fromJSON(shares[polyID][shareIndex]);
+      }
+    }
+    tb.shares = deserializedShares;
 
     // switch to deserialize local metadata transition based on Object.keys() of authMetadata, ShareStore's and, IMessageMetadata
-    const AuthMetadataKeys = Object.keys(JSON.parse(stringify(new AuthMetadata(new Metadata(new Point(0n, 0n)), 0n))));
-    const ShareStoreKeys = Object.keys(JSON.parse(stringify(new ShareStore(new Share(0n, 0n), ""))));
+    const dummyPoint = getPubKeyPoint(1n);
+    const AuthMetadataKeys = Object.keys(JSON.parse(stringify(new AuthMetadata(new Metadata(dummyPoint), 1n), { replacer: bigIntReplacer })));
+    const ShareStoreKeys = Object.keys(JSON.parse(stringify(new ShareStore(new Share(1n, 1n), ""), { replacer: bigIntReplacer })));
     const sampleMessageMetadata: IMessageMetadata = { message: "Sample message", dateAdded: Date.now() };
     const MessageMetadataKeys = Object.keys(sampleMessageMetadata);
 
@@ -194,7 +203,7 @@ class ThresholdKey implements ITKey {
       const keys = Object.keys(_localMetadataTransitions[1][index]);
       if (keys.length === AuthMetadataKeys.length && keys.every((val) => AuthMetadataKeys.includes(val))) {
         const tempAuth = AuthMetadata.fromJSON(_localMetadataTransitions[1][index]);
-        tempAuth.privKey = privKey;
+        tempAuth.privKey = tb.privKey;
         localTransitionData.push(tempAuth);
       } else if (keys.length === ShareStoreKeys.length && keys.every((val) => ShareStoreKeys.includes(val))) {
         localTransitionData.push(ShareStore.fromJSON(_localMetadataTransitions[1][index]));
@@ -223,14 +232,14 @@ class ThresholdKey implements ITKey {
         // TODO: fix for deleted share
         const latestPolyIDOnCloud = tempCloud.getLatestPublicPolynomial().getPolynomialID();
         if (tb.serviceProvider.postboxKey.toString(16) === "0") {
-          const shareIndexesExistInSDK = Object.keys(shares[latestPolyIDOnCloud]);
+          const shareIndexesExistInSDK = Object.keys(tb.shares[latestPolyIDOnCloud]);
           const randomIndex = shareIndexesExistInSDK[Math.floor(Math.random() * (shareIndexesExistInSDK.length - 1))];
           if (shareIndexesExistInSDK.length >= 1) {
-            shareToUseForSerialization = shares[latestPolyIDOnCloud][randomIndex];
+            shareToUseForSerialization = tb.shares[latestPolyIDOnCloud][randomIndex];
           }
         } else {
           // social share index is always1
-          shareToUseForSerialization = shares[latestPolyIDOnCloud]["1"];
+          shareToUseForSerialization = tb.shares[latestPolyIDOnCloud]["1"];
         }
 
         // if tempCloud exist, share must able to catchup to latest share
@@ -339,7 +348,7 @@ class ThresholdKey implements ITKey {
         return this.getKeyDetails();
       }
       // else we continue with catching up share and metadata
-      shareStore = ShareStore.fromJSON(rawServiceProviderShare);
+      shareStore = rawServiceProviderShare instanceof ShareStore ? rawServiceProviderShare : ShareStore.fromJSON(rawServiceProviderShare);
     } else {
       throw CoreError.default("Input is not supported");
     }
@@ -1092,7 +1101,7 @@ class ThresholdKey implements ITKey {
         return JSON.parse(bytesToUtf8(decryptedItem)) as TkeyStoreItemType;
       })
     );
-    const encryptedData = await this.encrypt(utf8ToBytes(stringify(data)));
+    const encryptedData = await this.encrypt(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })));
     const duplicateItemIndex = decryptedItems.findIndex((x) => x.id === data.id);
     if (duplicateItemIndex > -1) {
       rawTkeyStoreItems[duplicateItemIndex] = encryptedData;
@@ -1187,7 +1196,10 @@ class ThresholdKey implements ITKey {
       ed25519Key: this.ed25519Key ? bytesToHex(this.ed25519Key) : undefined,
       metadata: this.metadata,
       lastFetchedCloudMetadata: this.lastFetchedCloudMetadata,
-      _localMetadataTransitions: this._localMetadataTransitions,
+      _localMetadataTransitions: [
+        this._localMetadataTransitions[0].map((x: bigint | undefined) => (x !== undefined ? x.toString(16) : null)),
+        this._localMetadataTransitions[1],
+      ],
       manualSync: this.manualSync,
       serviceProvider: this.serviceProvider,
       storageLayer: this.storageLayer,
@@ -1333,7 +1345,7 @@ class ThresholdKey implements ITKey {
     const sharesToPush = await Promise.all(
       shareIndexesNeedingEncryption.map(async (shareIndex) => {
         const oldShare = oldPoly.polyEval(hexToBigInt(shareIndex));
-        const encryptedShare = await encrypt(getPubKeyECC(oldShare), utf8ToBytes(JSON.stringify(newShareStores[shareIndex])));
+        const encryptedShare = await encrypt(getPubKeyECC(oldShare), utf8ToBytes(JSON.stringify(newShareStores[shareIndex], bigIntReplacer)));
         newScopedStore[getPubKeyPoint(oldShare).x.toString(16)] = encryptedShare;
         oldShareStores[shareIndex] = new ShareStore(new Share(hexToBigInt(shareIndex), oldShare), previousPolyID);
         return oldShare;

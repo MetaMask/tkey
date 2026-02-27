@@ -1,4 +1,5 @@
 import {
+  bigIntReplacer,
   generateID,
   getPubKeyPoint,
   IServiceProvider,
@@ -61,7 +62,7 @@ class MockStorageLayer implements IStorageLayer {
     let usedKey: bigint;
     if (!privKey) usedKey = serviceProvider.retrievePubKeyPoint().x;
     else usedKey = getPubKeyPoint(privKey).x;
-    this.dataMap[usedKey.toString(16)] = stringify(input);
+    this.dataMap[usedKey.toString(16)] = stringify(input, { replacer: bigIntReplacer });
     return { message: "success" };
   }
 
@@ -71,7 +72,7 @@ class MockStorageLayer implements IStorageLayer {
       let usedKey: bigint;
       if (!privKey || !privKey[index]) usedKey = serviceProvider.retrievePubKeyPoint().x;
       else usedKey = getPubKeyPoint(privKey[index]).x;
-      this.dataMap[usedKey.toString(16)] = stringify(el);
+      this.dataMap[usedKey.toString(16)] = stringify(el, { replacer: bigIntReplacer });
     });
 
     return { message: "success" };

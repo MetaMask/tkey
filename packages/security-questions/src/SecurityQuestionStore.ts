@@ -14,7 +14,7 @@ class SecurityQuestionStore implements ISerializable {
   constructor({ nonce, shareIndex, sqPublicShare, polynomialID, questions }: SecurityQuestionStoreArgs) {
     this.nonce = typeof nonce === "bigint" ? nonce : BigInt(`0x${nonce}`);
     this.shareIndex = typeof shareIndex === "bigint" ? shareIndex : BigInt(`0x${shareIndex}`);
-    this.sqPublicShare = new PublicShare(sqPublicShare.shareIndex, sqPublicShare.shareCommitment);
+    this.sqPublicShare = sqPublicShare instanceof PublicShare ? sqPublicShare : PublicShare.fromJSON(sqPublicShare);
     this.polynomialID = polynomialID;
     this.questions = questions;
   }

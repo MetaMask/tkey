@@ -42,6 +42,10 @@ export async function prettyPrintError(error: unknown): Promise<Error> {
   return serializeError(error);
 }
 
+export function bigIntReplacer(this: unknown, _key: string | number, value: unknown): unknown {
+  return typeof value === "bigint" ? value.toString(16) : value;
+}
+
 export function generateAddressFromPublicKey(publicKey: Uint8Array): string {
   const ethAddressLower = `0x${keccak256(publicKey).slice(64 - 38)}`;
   return toChecksumAddress(ethAddressLower);
