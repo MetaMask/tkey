@@ -16,8 +16,14 @@ import { bytesToHex, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { getOrSetNonce, keccak256 } from "@toruslabs/torus.js";
 import { deepEqual, deepStrictEqual, equal, fail, notEqual, notStrictEqual, strict, strictEqual, throws } from "assert";
 import { bytesToNumberBE } from "@noble/curves/utils.js";
-import { JsonRpcProvider } from "ethers";
+import { createPublicClient, http } from "viem";
+import { mainnet } from "viem/chains";
 import { createSandbox } from "sinon";
+
+function createEthProvider(rpcUrl) {
+  const client = createPublicClient({ chain: mainnet, transport: http(rpcUrl) });
+  return { getBalance: (address) => client.getBalance({ address }) };
+}
 
 import { TKeyDefault as ThresholdKey } from "../src/index";
 import { ed25519Tests } from "./ed25519/ed25519";
@@ -958,7 +964,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
     let ed25519privateKeyFormat;
 
     beforeEach("Setup ThresholdKey", async function () {
-      metamaskSeedPhraseFormat = new MetamaskSeedPhraseFormat(new JsonRpcProvider(process.env.TEST_RPC_TARGET));
+      metamaskSeedPhraseFormat = new MetamaskSeedPhraseFormat(createEthProvider(process.env.TEST_RPC_TARGET));
       secp256k1Format = new SECP256K1Format();
       ed25519privateKeyFormat = new ED25519Format();
       tb = new ThresholdKey({
@@ -1014,7 +1020,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
       strictEqual(returnedSeed[1].seedPhrase, seedPhraseToSet2);
 
       const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(
-        new JsonRpcProvider(process.env.TEST_RPC_TARGET)
+        createEthProvider(process.env.TEST_RPC_TARGET)
       );
       const tb2 = new ThresholdKey({
         serviceProvider: customSP,
@@ -1170,7 +1176,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
       await tb.syncLocalMetadataTransitions();
 
       const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(
-        new JsonRpcProvider(process.env.TEST_RPC_TARGET)
+        createEthProvider(process.env.TEST_RPC_TARGET)
       );
       const tb2 = new ThresholdKey({
         serviceProvider: customSP,

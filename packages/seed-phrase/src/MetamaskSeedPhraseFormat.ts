@@ -1,14 +1,28 @@
-import { generateID, ISeedPhraseFormat, ISeedPhraseStore, MetamaskSeedPhraseStore } from "@tkey/common-types";
-import { HDNodeWallet, Mnemonic, Provider, randomBytes } from "ethers";
+import { bytesToHex, randomBytes } from "@noble/curves/utils.js";
+import { HDKey } from "@scure/bip32";
+import { entropyToMnemonic, mnemonicToSeedSync, validateMnemonic } from "@scure/bip39";
+import { wordlist } from "@scure/bip39/wordlists/english";
+import {
+  generateAddressFromPublicKey,
+  generateID,
+  getPubKeyECC,
+  ISeedPhraseFormat,
+  ISeedPhraseStore,
+  MetamaskSeedPhraseStore,
+} from "@tkey/common-types";
+
+export interface EthProvider {
+  getBalance(address: string): Promise<bigint>;
+}
 
 class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
   type: string;
 
-  provider: Provider;
+  provider: EthProvider;
 
   hdPathString: string;
 
-  constructor(ethProvider: Provider) {
+  constructor(ethProvider: EthProvider) {
     this.type = "HD Key Tree";
     this.hdPathString = "m/44'/60'/0'/0";
     this.provider = ethProvider;
@@ -20,19 +34,20 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
     if (wordCount % 3 !== 0 || wordCount > 24 || wordCount < 12) {
       return false;
     }
-    return Mnemonic.isValidMnemonic(parsedSeedPhrase);
+    return validateMnemonic(parsedSeedPhrase, wordlist);
   }
 
   async deriveKeysFromSeedPhrase(seedPhraseStore: ISeedPhraseStore): Promise<bigint[]> {
     const mmStore = seedPhraseStore as MetamaskSeedPhraseStore;
     const { seedPhrase } = mmStore;
-    const hdkey = HDNodeWallet.fromSeed(Mnemonic.fromPhrase(seedPhrase).computeSeed());
+    const seed = mnemonicToSeedSync(seedPhrase);
+    const hdkey = HDKey.fromMasterSeed(seed);
     const numOfWallets = mmStore.numberOfWallets;
     const wallets: bigint[] = [];
-    const root = hdkey.derivePath(this.hdPathString);
+    const root = hdkey.derive(this.hdPathString);
     for (let i = 0; i < numOfWallets; i += 1) {
       const child = root.deriveChild(i);
-      const wallet = BigInt(child.privateKey);
+      const wallet = BigInt(`0x${bytesToHex(child.privateKey)}`);
       wallets.push(wallet);
     }
     return wallets;
@@ -41,20 +56,29 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
   async createSeedPhraseStore(seedPhrase?: string): Promise<MetamaskSeedPhraseStore> {
     let numberOfWallets = 0;
     let lastBalance: bigint;
-    const mnemonic = seedPhrase ? Mnemonic.fromPhrase(seedPhrase) : Mnemonic.fromEntropy(randomBytes(32));
-    const hdkey = HDNodeWallet.fromSeed(mnemonic.computeSeed());
-    const root = hdkey.derivePath(this.hdPathString);
+    let phrase: string;
+    if (seedPhrase) {
+      phrase = seedPhrase;
+    } else {
+      phrase = entropyToMnemonic(randomBytes(32), wordlist);
+    }
+    const seed = mnemonicToSeedSync(phrase);
+    const hdkey = HDKey.fromMasterSeed(seed);
+    const root = hdkey.derive(this.hdPathString);
     // seek out the first zero balance
     while (lastBalance !== BigInt(0)) {
-      const wallet = root.deriveChild(numberOfWallets);
-      lastBalance = await this.provider.getBalance(wallet.address);
+      const child = root.deriveChild(numberOfWallets);
+      const privKeyBigInt = BigInt(`0x${bytesToHex(child.privateKey)}`);
+      const uncompressedPubKey = getPubKeyECC(privKeyBigInt).slice(1);
+      const address = generateAddressFromPublicKey(uncompressedPubKey);
+      lastBalance = await this.provider.getBalance(address);
       numberOfWallets += 1;
     }
 
     const obj = {
       id: generateID(),
       type: this.type,
-      seedPhrase: mnemonic.phrase,
+      seedPhrase: phrase,
       numberOfWallets,
     };
     return obj;
