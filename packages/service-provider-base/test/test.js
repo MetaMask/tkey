@@ -9,7 +9,7 @@ describe("ServiceProvider", function () {
   it("#should encrypt and decrypt correctly", async function () {
     const privKey = PRIVATE_KEY;
     const tmp = 123n;
-    const message = hexToBytes(tmp.toString(16).padStart(15, "0"));
+    const message = hexToBytes(tmp.toString(16).padStart(16, "0"));
     const tsp = new ServiceProviderBase({ postboxKey: privKey });
     const encDeets = await tsp.encrypt(message);
     const result = await tsp.decrypt(encDeets);

@@ -72,7 +72,7 @@ export class TSSTorusServiceProvider extends TorusServiceProvider {
     });
 
     return {
-      pubKey: new Point(tssServerPub.finalKeyData.X, tssServerPub.finalKeyData.Y),
+      pubKey: new Point(BigInt(`0x${tssServerPub.finalKeyData.X}`), BigInt(`0x${tssServerPub.finalKeyData.Y}`)),
       nodeIndexes: tssServerPub.nodesData.nodeIndexes || [],
     };
   }
