@@ -42,13 +42,12 @@
     "@tkey/share-serialization": "^16.0.0",
     "@tkey/share-transfer": "^16.0.0",
     "@tkey/storage-layer-torus": "^16.0.0",
-    "@toruslabs/metadata-helpers": "^8.1.0",
-    "bn.js": "^5.2.1"
+    "@toruslabs/metadata-helpers": "^8.1.0"
   },
   "devDependencies": {
     "@tkey/private-keys": "^16.0.0",
     "@tkey/seed-phrase": "^16.0.0",
-    "@toruslabs/eccrypto": "^6.0.2",
+    "@toruslabs/eccrypto": "^7.0.0",
     "@toruslabs/http-helpers": "^9.0.0"
   },
   "peerDependencies": {

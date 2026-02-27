@@ -1,3 +1,4 @@
+import { randomBytes } from "@noble/curves/utils.js";
 import {
   bigIntReplacer,
   BNString,
@@ -48,7 +49,6 @@ import {
 } from "@tkey/common-types";
 import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { encodeEd25519Point, getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed } from "@toruslabs/torus.js";
-import { getRandomBytes } from "ethereum-cryptography/random";
 import stringify from "json-stable-stringify";
 
 import AuthMetadata from "./authMetadata";
@@ -1507,7 +1507,7 @@ class ThresholdKey implements ITKey {
     }
     let seedToUse = seed;
     if (!seed) {
-      seedToUse = await getRandomBytes(32);
+      seedToUse = randomBytes(32);
     }
     await this.importEd25519Seed(seedToUse);
   }

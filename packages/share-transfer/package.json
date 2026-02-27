@@ -39,9 +39,9 @@
   },
   "dependencies": {
     "@tkey/common-types": "^16.0.0",
-    "@toruslabs/eccrypto": "^6.0.2",
+    "@toruslabs/eccrypto": "^7.0.0",
     "@toruslabs/http-helpers": "^9.0.0",
-    "@noble/curves": "^1.8.1",
+    "@noble/curves": "^2.0.1",
     "@toruslabs/metadata-helpers": "^8.1.0"
   },
   "devDependencies": {},

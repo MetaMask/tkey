@@ -40,7 +40,7 @@
   "devDependencies": {},
   "dependencies": {
     "@tkey/common-types": "^16.0.0",
-    "@noble/curves": "^1.8.1"
+    "@noble/curves": "^2.0.1"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"
