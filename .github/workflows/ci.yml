@@ -29,6 +29,10 @@ jobs:
 
       - name: Test Development
         run: npm run test
+        env:
+          TEST_INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}
 
       - name: Test Production
         run: npm run test-production
+        env:
+          TEST_INFURA_KEY: ${{ secrets.TEST_INFURA_KEY }}

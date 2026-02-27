@@ -958,7 +958,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
     let ed25519privateKeyFormat;
 
     beforeEach("Setup ThresholdKey", async function () {
-      metamaskSeedPhraseFormat = new MetamaskSeedPhraseFormat(new JsonRpcProvider("https://mainnet.infura.io/v3/bca735fdbba0408bb09471e86463ae68"));
+      metamaskSeedPhraseFormat = new MetamaskSeedPhraseFormat(new JsonRpcProvider(process.env.TEST_INFURA_KEY));
       secp256k1Format = new SECP256K1Format();
       ed25519privateKeyFormat = new ED25519Format();
       tb = new ThresholdKey({
@@ -1014,7 +1014,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
       strictEqual(returnedSeed[1].seedPhrase, seedPhraseToSet2);
 
       const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(
-        new JsonRpcProvider("https://mainnet.infura.io/v3/bca735fdbba0408bb09471e86463ae68")
+        new JsonRpcProvider(process.env.TEST_INFURA_KEY)
       );
       const tb2 = new ThresholdKey({
         serviceProvider: customSP,
@@ -1170,7 +1170,7 @@ export const sharedTestCases = (mode, torusSP, storageLayer) => {
       await tb.syncLocalMetadataTransitions();
 
       const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(
-        new JsonRpcProvider("https://mainnet.infura.io/v3/bca735fdbba0408bb09471e86463ae68")
+        new JsonRpcProvider(process.env.TEST_INFURA_KEY)
       );
       const tb2 = new ThresholdKey({
         serviceProvider: customSP,
