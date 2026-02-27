@@ -1,3 +1,4 @@
+import "dotenv/config";
 import "@noble/curves/secp256k1.js";
 import "@noble/curves/ed25519.js";
 import "@noble/curves/utils.js";
