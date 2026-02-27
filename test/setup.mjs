@@ -10,9 +10,17 @@ import currentPkg from "../package.json" with { type: "json" };
 
 const runtimeVersion = currentPkg.peerDependencies["@babel/runtime"];
 
+const nativeBtoa = globalThis.btoa;
+const nativeAtob = globalThis.atob;
+const NativeFormData = globalThis.FormData;
+
 JSDOM(``, {
   url: "http://localhost",
 });
+
+globalThis.btoa = nativeBtoa;
+globalThis.atob = nativeAtob;
+globalThis.FormData = NativeFormData;
 
 Register({
   presets: [["@babel/env", { bugfixes: true, targets: { node: "current" } }], "@babel/typescript"],
