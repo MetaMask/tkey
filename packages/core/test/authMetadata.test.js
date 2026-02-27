@@ -1,12 +1,12 @@
 import { generatePrivateExcludingIndexes, getPubKeyPoint } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
 import { deepStrictEqual } from "assert";
-import { bytesToNumberBE } from "@noble/curves/utils.js";
+import { bytesToHex, bytesToNumberBE } from "@noble/curves/utils.js";
 import stringify from "json-stable-stringify";
 
 import { AuthMetadata, generateRandomPolynomial, Metadata } from "../src/index";
 
-const PRIVATE_KEY = generatePrivate().toString("hex");
+const PRIVATE_KEY = bytesToHex(generatePrivate());
 
 describe("AuthMetadata", function () {
   it("#should authenticate and  serialize and deserialize into JSON seamlessly", async function () {
