@@ -1,7 +1,7 @@
+import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { getPubKeyPoint, Polynomial } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
 import { fail } from "assert";
-import { bytesToNumberBE } from "@noble/curves/utils.js";
 
 import { generateRandomPolynomial, polyCommitmentEval } from "../src/index";
 

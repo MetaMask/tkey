@@ -1,5 +1,5 @@
-import { TorusServiceProvider } from "@tkey/service-provider-torus";
 import { bytesToHex } from "@noble/curves/utils.js";
+import { TorusServiceProvider } from "@tkey/service-provider-torus";
 import { generatePrivate } from "@toruslabs/eccrypto";
 
 import { getMetadataUrl, initStorageLayer } from "./helpers";

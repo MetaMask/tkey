@@ -1,7 +1,7 @@
-import { generatePrivate } from "@toruslabs/eccrypto";
-import { fail } from "assert";
 import { bytesToNumberBE } from "@noble/curves/utils.js";
+import { generatePrivate } from "@toruslabs/eccrypto";
 import { bytesToHex } from "@toruslabs/metadata-helpers";
+import { fail } from "assert";
 
 import { getPubKeyPoint, Point, Polynomial } from "../src/base";
 import { secp256k1 } from "../src/utils";
