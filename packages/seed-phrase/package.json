@@ -44,8 +44,7 @@
     "@noble/curves": "^2.0.1",
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
-    "@tkey/common-types": "^16.0.0",
-    "@toruslabs/torus.js": "^17.0.0"
+    "@tkey/common-types": "^16.0.0"
   },
   "devDependencies": {},
   "lint-staged": {

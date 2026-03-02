@@ -36,7 +36,6 @@
   "dependencies": {
     "@tkey/common-types": "^16.0.0",
     "@tkey/core": "^16.0.0",
-    "@tkey/security-questions": "^16.0.0",
     "@tkey/service-provider-base": "^16.0.0",
     "@tkey/service-provider-torus": "^16.0.0",
     "@tkey/share-serialization": "^16.0.0",
@@ -47,6 +46,7 @@
   "devDependencies": {
     "@tkey/private-keys": "^16.0.0",
     "@tkey/seed-phrase": "^16.0.0",
+    "@tkey/security-questions": "^16.0.0",
     "@toruslabs/eccrypto": "^7.0.0",
     "@toruslabs/http-helpers": "^9.0.0",
     "viem": "^2.46.3"
