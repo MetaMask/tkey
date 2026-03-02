@@ -18,8 +18,7 @@ import {
   TorusStorageLayerArgs,
 } from "@tkey/common-types";
 import { post } from "@toruslabs/http-helpers";
-import { bytesToBase64, bytesToHex, bytesToUtf8, utf8ToBytes } from "@toruslabs/metadata-helpers";
-import base64url from "base64url";
+import { bytesToBase64, bytesToHex, bytesToUtf8, decodeBase64Url, encodeBase64Url, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256 } from "ethereum-cryptography/keccak";
 import stringify from "json-stable-stringify";
 
@@ -61,7 +60,7 @@ class TorusStorageLayer implements IStorageLayer {
     } else {
       encryptedDetails = await serviceProvider.encrypt(msgBytes);
     }
-    const serializedEncryptedDetails = base64url.encode(stringify(encryptedDetails));
+    const serializedEncryptedDetails = encodeBase64Url(stringify(encryptedDetails));
     return serializedEncryptedDetails;
   }
 
@@ -83,7 +82,7 @@ class TorusStorageLayer implements IStorageLayer {
     if (metadataResponse.message === "") {
       return { message: KEY_NOT_FOUND } as T;
     }
-    const encryptedMessage = JSON.parse(base64url.decode(metadataResponse.message));
+    const encryptedMessage = JSON.parse(decodeBase64Url(metadataResponse.message));
 
     let decrypted: Uint8Array;
     if (privKey) {
