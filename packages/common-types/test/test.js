@@ -23,7 +23,7 @@ describe("Point", function () {
     const point = getPubKeyPoint(secret);
     const result = point.toSEC1(true);
     if (bytesToHex(result).slice(2) !== point.x.toString(16).padStart(64, "0")) {
-      fail(`elliptic format x should be equal ${secret} ${bytesToHex(result)} ${point.x.toString(16)} ${secret % secp256k1.CURVE.n}`);
+      fail(`elliptic format x should be equal ${secret} ${bytesToHex(result)} ${point.x.toString(16)} ${secret % secp256k1.Point.CURVE().n}`);
     }
   });
 
