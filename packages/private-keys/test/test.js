@@ -14,9 +14,7 @@ describe("ed25519", function () {
   it("#should use the same ed25519 private key if supplied", async function () {
     const keyFormat = new ED25519Format();
     const privateKeyStore = keyFormat.createPrivateKeyStore(
-      BigInt(
-        "0x7a3118ccdd405b2750271f51cc8fe237d9863584173aec3fa4579d40e5b4951215351c3d54ef416e49567b79c42fd985fcda60a6da9a794e4e844ac8dec47e98"
-      )
+      BigInt("0x7a3118ccdd405b2750271f51cc8fe237d9863584173aec3fa4579d40e5b4951215351c3d54ef416e49567b79c42fd985fcda60a6da9a794e4e844ac8dec47e98")
     );
     if (!privateKeyStore) {
       fail("unable to create ed25519 key");
