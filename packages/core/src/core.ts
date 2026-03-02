@@ -1,7 +1,6 @@
 import { randomBytes } from "@noble/curves/utils.js";
 import {
   bigIntReplacer,
-  BigIntString,
   CatchupToLatestShareResult,
   decrypt,
   DeleteShareResult,
@@ -571,16 +570,15 @@ class ThresholdKey implements ITKey {
     return lagrangeInterpolatePolynomial(pointsArr);
   }
 
-  async deleteShare(shareIndex: BigIntString): Promise<DeleteShareResult> {
+  async deleteShare(shareIndex: bigint): Promise<DeleteShareResult> {
     if (!this.metadata) {
       throw CoreError.metadataUndefined();
     }
     if (!this.privKey) {
       throw CoreError.privateKeyUnavailable();
     }
-    const shareIndexToDelete = typeof shareIndex === "string" ? hexToBigInt(shareIndex) : shareIndex;
-    const shareToDelete = this.outputShareStore(shareIndexToDelete);
-    if (shareIndexToDelete === 1n) {
+    const shareToDelete = this.outputShareStore(shareIndex);
+    if (shareIndex === 1n) {
       throw new CoreError(1001, "Unable to delete service provider share");
     }
 
@@ -590,7 +588,7 @@ class ThresholdKey implements ITKey {
     const existingShareIndexes = this.metadata.getShareIndexesForPolynomial(previousPolyID);
     const newShareIndexes: string[] = [];
     existingShareIndexes.forEach((el) => {
-      if (hexToBigInt(el) !== shareIndexToDelete) {
+      if (hexToBigInt(el) !== shareIndex) {
         newShareIndexes.push(el);
       }
     });
@@ -725,7 +723,7 @@ class ThresholdKey implements ITKey {
     // TODO: fix edge cases where shares are deleted in the newer polynomials
     // TODO: maybe assign this.shares directly rather than output and inputsharestore.
     const shareStoresForLastValidPolyID = Object.keys(this.shares[lastValidPolyID]).map((x) =>
-      tb.inputShareStoreSafe(this.outputShareStore(x, lastValidPolyID))
+      tb.inputShareStoreSafe(this.outputShareStore(hexToBigInt(x), lastValidPolyID))
     );
     await Promise.all(shareStoresForLastValidPolyID);
     return tb;
@@ -789,31 +787,26 @@ class ThresholdKey implements ITKey {
     }
   }
 
-  outputShareStore(shareIndex: BigIntString, polyID?: string): ShareStore {
+  outputShareStore(shareIndex: bigint, polyID?: string): ShareStore {
     if (!this.metadata) {
       throw CoreError.metadataUndefined();
     }
-    let shareIndexParsed: bigint;
-    if (typeof shareIndex === "bigint") {
-      shareIndexParsed = shareIndex;
-    } else if (typeof shareIndex === "string") {
-      shareIndexParsed = hexToBigInt(shareIndex);
-    }
+    const shareIndexHex = shareIndex.toString(16);
     let polyIDToSearch: string;
     if (polyID) {
       polyIDToSearch = polyID;
     } else {
       polyIDToSearch = this.metadata.getLatestPublicPolynomial().getPolynomialID();
     }
-    if (!this.metadata.getShareIndexesForPolynomial(polyIDToSearch).includes(shareIndexParsed.toString(16))) {
+    if (!this.metadata.getShareIndexesForPolynomial(polyIDToSearch).includes(shareIndexHex)) {
       throw new CoreError(1002, "no such share index created");
     }
-    const shareFromStore = this.shares[polyIDToSearch][shareIndexParsed.toString(16)];
+    const shareFromStore = this.shares[polyIDToSearch][shareIndexHex];
     if (shareFromStore) return shareFromStore;
     const poly = this.reconstructLatestPoly();
-    const shareMap = poly.generateShares([shareIndexParsed]);
+    const shareMap = poly.generateShares([shareIndex]);
 
-    return new ShareStore(shareMap[shareIndexParsed.toString(16)], polyIDToSearch);
+    return new ShareStore(shareMap[shareIndexHex], polyIDToSearch);
   }
 
   getCurrentShareIndexes(): string[] {
@@ -949,7 +942,7 @@ class ThresholdKey implements ITKey {
     if (shareIndexesExistInSDK.length >= 1) {
       randomShareStore = this.shares[latestPolyIDOnCloud][randomIndex];
     } else {
-      randomShareStore = this.outputShareStore(randomIndex, latestPolyIDOnCloud);
+      randomShareStore = this.outputShareStore(hexToBigInt(randomIndex), latestPolyIDOnCloud);
     }
     const latestRes = await this.catchupToLatestShare({ shareStore: randomShareStore });
     const latestMetadata = latestRes.shareMetadata;
@@ -1162,7 +1155,7 @@ class ThresholdKey implements ITKey {
   }
 
   // Import export shares
-  async outputShare(shareIndex: BigIntString, type?: string): Promise<unknown> {
+  async outputShare(shareIndex: bigint, type?: string): Promise<unknown> {
     const { share } = this.outputShareStore(shareIndex).share;
     if (!type) return share;
 

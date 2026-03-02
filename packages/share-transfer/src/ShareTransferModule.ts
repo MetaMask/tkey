@@ -4,6 +4,7 @@ import {
   encrypt,
   getPubKeyECC,
   getPubKeyPoint,
+  hexToBigInt,
   IModule,
   ITKeyApi,
   ITkeyError,
@@ -155,7 +156,7 @@ class ShareTransferModule implements IModule {
       const latestPolynomialId = latestPolynomial.getPolynomialID();
       const indexes = metadata.getShareIndexesForPolynomial(latestPolynomialId);
       const filtered = indexes.filter((el) => !availableShareIndexes.includes(el));
-      const share = this.tbSDK.outputShareStore(filtered[0]);
+      const share = this.tbSDK.outputShareStore(hexToBigInt(filtered[0]));
       shareBytes = utf8ToBytes(JSON.stringify(share));
     }
     const shareRequest = new ShareRequest(shareTransferStore[encPubKeyX]);
@@ -164,7 +165,7 @@ class ShareTransferModule implements IModule {
     this.currentEncKey = undefined;
   }
 
-  async approveRequestWithShareIndex(encPubKeyX: string, shareIndex: string): Promise<void> {
+  async approveRequestWithShareIndex(encPubKeyX: string, shareIndex: bigint): Promise<void> {
     const deviceShare = this.tbSDK.outputShareStore(shareIndex);
     return this.approveRequest(encPubKeyX, deviceShare);
   }

@@ -74,7 +74,7 @@ v16 removes all legacy cryptography dependencies in favor of modern, audited alt
 
 - **Private keys and share values** are now `bigint` instead of `BN`. Replace `new BN(hex, 16)` with `BigInt(\`0x${hex}\`)`.
 - **Public keys and encrypted data** are now `Uint8Array` instead of `Buffer`. Use `hexToBytes` / `bytesToHex` from `@toruslabs/metadata-helpers` for conversions.
-- **`BNString` type** has been renamed to **`BigIntString`** and is `bigint | string` (was `BN | string`).
+- **`BNString` type** has been removed. APIs now use `bigint` directly (was `BN | string`).
 - **JSON serialization** of objects containing `bigint` requires the `bigIntReplacer` from `@tkey/common-types`:
   ```js
   import { bigIntReplacer } from "@tkey/common-types";

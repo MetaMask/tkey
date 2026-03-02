@@ -1,5 +1,4 @@
 import {
-  BigIntString,
   decrypt as decryptUtils,
   encrypt as encryptUtils,
   EncryptedMessage,
@@ -12,7 +11,7 @@ import {
   StringifiedType,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { bytesToBase64, hexToBytes } from "@toruslabs/metadata-helpers";
+import { bytesToBase64 } from "@toruslabs/metadata-helpers";
 
 class ServiceProviderBase implements IServiceProvider {
   enableLogging: boolean;
@@ -58,9 +57,8 @@ class ServiceProviderBase implements IServiceProvider {
     throw new Error("Unsupported pub key type");
   }
 
-  sign(msg: BigIntString): string {
-    const msgHex = typeof msg === "bigint" ? msg.toString(16).padStart(64, "0") : msg;
-    const recoveredSig = secp256k1.sign(hexToBytes(msgHex), toPrivKeyECC(this.postboxKey), { prehash: false, format: "recovered" });
+  sign(msg: Uint8Array): string {
+    const recoveredSig = secp256k1.sign(msg, toPrivKeyECC(this.postboxKey), { prehash: false, format: "recovered" });
     const sigWithV = new Uint8Array(65);
     sigWithV.set(recoveredSig.slice(1, 65), 0); // r + s
     sigWithV[64] = recoveredSig[0]; // v

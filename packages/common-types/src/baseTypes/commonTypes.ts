@@ -7,8 +7,6 @@ export type PolynomialID = string;
 
 export type PolyIDAndShares = [PolynomialID, string[]];
 
-export type BigIntString = string | bigint;
-
 export interface EncryptedMessage {
   ciphertext: string;
   ephemPublicKey: string;
@@ -51,7 +49,7 @@ export interface IServiceProvider extends ISerializable {
   decrypt(msg: EncryptedMessage): Promise<Uint8Array>;
   retrievePubKey(type: PubKeyType): Uint8Array;
   retrievePubKeyPoint(): { x: bigint; y: bigint };
-  sign(msg: BigIntString): string;
+  sign(msg: Uint8Array): string;
 }
 export type TorusStorageLayerAPIParams = {
   pub_key_X: string;

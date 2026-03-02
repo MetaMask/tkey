@@ -180,7 +180,7 @@ class TorusStorageLayer implements IStorageLayer {
       pubY = pubK.y.toString(16);
     } else {
       const point = serviceProvider.retrievePubKeyPoint();
-      sig = serviceProvider.sign(bytesToHex(hash));
+      sig = serviceProvider.sign(hash);
       pubX = point.x.toString(16);
       pubY = point.y.toString(16);
     }
@@ -203,7 +203,7 @@ class TorusStorageLayer implements IStorageLayer {
     if (privKey) {
       signature = signDataWithPrivKey(data, privKey);
     } else {
-      signature = serviceProvider.sign(bytesToHex(keccak256(utf8ToBytes(stringify(data)))));
+      signature = serviceProvider.sign(keccak256(utf8ToBytes(stringify(data))));
     }
     const metadataParams = {
       key: bytesToHex(getPubKeyECC(privKey)),
@@ -223,7 +223,7 @@ class TorusStorageLayer implements IStorageLayer {
     if (privKey) {
       signature = signDataWithPrivKey(data, privKey);
     } else {
-      signature = serviceProvider.sign(bytesToHex(keccak256(utf8ToBytes(stringify(data)))));
+      signature = serviceProvider.sign(keccak256(utf8ToBytes(stringify(data))));
     }
     const metadataParams = {
       key: bytesToHex(getPubKeyECC(privKey)),
