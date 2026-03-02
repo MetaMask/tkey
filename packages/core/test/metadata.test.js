@@ -1,7 +1,7 @@
+import { bytesToHex, bytesToNumberBE } from "@noble/curves/utils.js";
 import { getPubKeyPoint } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
 import { deepStrictEqual } from "assert";
-import { bytesToHex, bytesToNumberBE } from "@noble/curves/utils.js";
 import stringify from "json-stable-stringify";
 
 import { generateRandomPolynomial, Metadata } from "../src/index";
