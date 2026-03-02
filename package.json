@@ -38,7 +38,6 @@
     "@toruslabs/eslint-config-typescript": "^5.0.0",
     "@toruslabs/torus-scripts": "^8.0.0",
     "@types/assert": "^1.5.11",
-
     "@types/mocha": "^10.0.10",
     "@types/node": "^22",
     "assert": "^2.1.0",
