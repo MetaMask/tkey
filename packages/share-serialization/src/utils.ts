@@ -23,10 +23,10 @@ export function bytesToBinary(bytes: number[]): string {
   return bytes.map((x) => lpad(x.toString(2), "0", 8)).join("");
 }
 
-export function deriveChecksumBits(entropyBuffer: Uint8Array): string {
-  const ENT = entropyBuffer.length * 8;
+export function deriveChecksumBits(entropy: Uint8Array): string {
+  const ENT = entropy.length * 8;
   const CS = ENT / 32;
-  const hash = sha256(entropyBuffer);
+  const hash = sha256(entropy);
 
   return bytesToBinary(Array.from(hash)).slice(0, CS);
 }
