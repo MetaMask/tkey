@@ -1,19 +1,18 @@
-import { concatBytes, hexToBytes, numberToBytesBE } from "@noble/curves/utils.js";
+import { concatBytes, numberToBytesBE } from "@noble/curves/utils.js";
 
 import { IPoint, StringifiedType } from "../baseTypes/commonTypes";
 import { secp256k1 } from "../utils";
 
-export function hexToBigInt(s: string | null | undefined): bigint | null {
-  if (s === null || s === undefined) return null;
+export function hexToBigInt(s: string): bigint {
   return s.length > 0 ? BigInt(`0x${s}`) : 0n;
 }
 
 class Point implements IPoint {
-  x: bigint | null;
+  x: bigint;
 
-  y: bigint | null;
+  y: bigint;
 
-  constructor(x: bigint | null, y: bigint | null) {
+  constructor(x: bigint, y: bigint) {
     this.x = x;
     this.y = y;
   }
@@ -40,10 +39,6 @@ class Point implements IPoint {
   }
 
   static fromSEC1(encodedPoint: string): Point {
-    if (encodedPoint.length === 2 && encodedPoint === "00") {
-      return new Point(null, null);
-    }
-
     const p = secp256k1.Point.fromHex(encodedPoint).toAffine();
     return new Point(p.x, p.y);
   }
@@ -68,24 +63,17 @@ class Point implements IPoint {
   }
 
   toProjectivePoint() {
-    if (this.isIdentity()) {
-      return secp256k1.Point.ZERO;
-    }
     return secp256k1.Point.fromAffine({ x: this.x, y: this.y });
   }
 
   toSEC1(compressed = false): Uint8Array {
-    if (this.isIdentity()) {
-      return hexToBytes("00");
-    }
-
     return this.toProjectivePoint().toBytes(compressed);
   }
 
   toJSON(): StringifiedType {
     return {
-      x: this.x?.toString(16) ?? null,
-      y: this.y?.toString(16) ?? null,
+      x: this.x.toString(16),
+      y: this.y.toString(16),
     };
   }
 
@@ -96,14 +84,7 @@ class Point implements IPoint {
     };
   }
 
-  isIdentity(): boolean {
-    return this.x === null && this.y === null;
-  }
-
   equals(p: Point): boolean {
-    if (this.isIdentity()) {
-      return p.isIdentity();
-    }
     return this.x === p.x && this.y === p.y;
   }
 }

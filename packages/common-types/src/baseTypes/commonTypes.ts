@@ -31,8 +31,8 @@ export interface ISerializable {
 }
 
 export interface IPoint extends ISerializable {
-  x: bigint | null;
-  y: bigint | null;
+  x: bigint;
+  y: bigint;
   encode(enc: string, params?: unknown): Uint8Array;
 }
 
