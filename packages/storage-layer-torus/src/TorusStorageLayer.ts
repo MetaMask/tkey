@@ -171,10 +171,10 @@ class TorusStorageLayer implements IStorageLayer {
 
     const hash = keccak256(utf8ToBytes(stringify(setTKeyStore)));
     if (privKey) {
-      const compactSig = secp256k1.sign(hash, toPrivKeyECC(privKey), { prehash: false });
+      const recoveredSig = secp256k1.sign(hash, toPrivKeyECC(privKey), { prehash: false, format: "recovered" });
       const sigWithV = new Uint8Array(65);
-      sigWithV.set(compactSig);
-      sigWithV[64] = 0;
+      sigWithV.set(recoveredSig.slice(1, 65), 0); // r + s
+      sigWithV[64] = recoveredSig[0]; // v
       sig = bytesToBase64(sigWithV);
       const pubK = getPubKeyPoint(privKey);
       pubX = pubK.x.toString(16);

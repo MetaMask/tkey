@@ -60,10 +60,10 @@ class ServiceProviderBase implements IServiceProvider {
 
   sign(msg: BNString): string {
     const msgHex = typeof msg === "bigint" ? msg.toString(16).padStart(64, "0") : msg;
-    const compactSig = secp256k1.sign(hexToBytes(msgHex), toPrivKeyECC(this.postboxKey), { prehash: false });
+    const recoveredSig = secp256k1.sign(hexToBytes(msgHex), toPrivKeyECC(this.postboxKey), { prehash: false, format: "recovered" });
     const sigWithV = new Uint8Array(65);
-    sigWithV.set(compactSig);
-    sigWithV[64] = 0;
+    sigWithV.set(recoveredSig.slice(1, 65), 0); // r + s
+    sigWithV[64] = recoveredSig[0]; // v
     return bytesToBase64(sigWithV);
   }
 
