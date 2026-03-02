@@ -14,7 +14,7 @@ import {
   ShareStorePolyIDShareIndexMap,
 } from "../base";
 import {
-  BNString,
+  BigIntString,
   EncryptedMessage,
   ISerializable,
   IServiceProvider,
@@ -166,9 +166,9 @@ export type TKeyArgs = {
 };
 
 export interface SecurityQuestionStoreArgs {
-  nonce: BNString;
+  nonce: BigIntString;
 
-  shareIndex: BNString;
+  shareIndex: BigIntString;
 
   sqPublicShare: PublicShare;
 
@@ -186,7 +186,7 @@ export interface TkeyStoreArgs {
 }
 
 export interface ShareTransferStorePointerArgs {
-  pointer: BNString;
+  pointer: BigIntString;
 }
 
 export type BufferObj = {
@@ -287,11 +287,11 @@ export interface ITKeyApi {
     deserialize: (serializedShare: unknown, type: string) => Promise<bigint>
   ): void;
   generateNewShare(): Promise<GenerateNewShareResult>;
-  outputShareStore(shareIndex: BNString, polyID?: string): ShareStore;
+  outputShareStore(shareIndex: BigIntString, polyID?: string): ShareStore;
   inputShare(share: unknown, type?: string): Promise<void>;
-  outputShare(shareIndex: BNString, type?: string): Promise<unknown>;
+  outputShare(shareIndex: BigIntString, type?: string): Promise<unknown>;
   inputShareStore(shareStore: ShareStore): void;
-  deleteShare(shareIndex: BNString): Promise<DeleteShareResult>;
+  deleteShare(shareIndex: BigIntString): Promise<DeleteShareResult>;
   encrypt(data: Uint8Array): Promise<EncryptedMessage>;
   decrypt(encryptedMesage: EncryptedMessage): Promise<Uint8Array>;
 

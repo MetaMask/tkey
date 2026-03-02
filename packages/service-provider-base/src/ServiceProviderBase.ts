@@ -1,5 +1,5 @@
 import {
-  BNString,
+  BigIntString,
   decrypt as decryptUtils,
   encrypt as encryptUtils,
   EncryptedMessage,
@@ -58,7 +58,7 @@ class ServiceProviderBase implements IServiceProvider {
     throw new Error("Unsupported pub key type");
   }
 
-  sign(msg: BNString): string {
+  sign(msg: BigIntString): string {
     const msgHex = typeof msg === "bigint" ? msg.toString(16).padStart(64, "0") : msg;
     const recoveredSig = secp256k1.sign(hexToBytes(msgHex), toPrivKeyECC(this.postboxKey), { prehash: false, format: "recovered" });
     const sigWithV = new Uint8Array(65);

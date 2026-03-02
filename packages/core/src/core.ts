@@ -1,7 +1,7 @@
 import { randomBytes } from "@noble/curves/utils.js";
 import {
   bigIntReplacer,
-  BNString,
+  BigIntString,
   CatchupToLatestShareResult,
   decrypt,
   DeleteShareResult,
@@ -571,7 +571,7 @@ class ThresholdKey implements ITKey {
     return lagrangeInterpolatePolynomial(pointsArr);
   }
 
-  async deleteShare(shareIndex: BNString): Promise<DeleteShareResult> {
+  async deleteShare(shareIndex: BigIntString): Promise<DeleteShareResult> {
     if (!this.metadata) {
       throw CoreError.metadataUndefined();
     }
@@ -789,7 +789,7 @@ class ThresholdKey implements ITKey {
     }
   }
 
-  outputShareStore(shareIndex: BNString, polyID?: string): ShareStore {
+  outputShareStore(shareIndex: BigIntString, polyID?: string): ShareStore {
     if (!this.metadata) {
       throw CoreError.metadataUndefined();
     }
@@ -1162,7 +1162,7 @@ class ThresholdKey implements ITKey {
   }
 
   // Import export shares
-  async outputShare(shareIndex: BNString, type?: string): Promise<unknown> {
+  async outputShare(shareIndex: BigIntString, type?: string): Promise<unknown> {
     const { share } = this.outputShareStore(shareIndex).share;
     if (!type) return share;
 
