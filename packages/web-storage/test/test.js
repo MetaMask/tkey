@@ -87,7 +87,7 @@ manualSyncModes.forEach((mode) => {
       await tb._initializeNewKey({ initializeModules: true });
       const reconstructedKey = await tb.reconstructKey();
       const newShare = await tb.generateNewShare();
-      await tb.deleteShare(newShare.newShareIndex.toString(16));
+      await tb.deleteShare(newShare.newShareIndex);
       await tb.syncLocalMetadataTransitions();
 
       await tb2.initialize();
@@ -101,7 +101,7 @@ manualSyncModes.forEach((mode) => {
       await tb.reconstructKey();
       // console.log("%O", tb.shares);
       await tb.generateNewShare();
-      await tb.deleteShare(resp1.deviceShare.share.shareIndex.toString(16));
+      await tb.deleteShare(resp1.deviceShare.share.shareIndex);
       await tb.syncLocalMetadataTransitions();
 
       // console.log("%O", tb.shares);
@@ -123,7 +123,7 @@ manualSyncModes.forEach((mode) => {
       const reconstructedKey = await tb.reconstructKey();
       // console.log("%O", tb.shares);
       const newShare = await tb.generateNewShare();
-      await tb.deleteShare(resp1.deviceShare.share.shareIndex.toString(16));
+      await tb.deleteShare(resp1.deviceShare.share.shareIndex);
       await tb.syncLocalMetadataTransitions();
 
       await tb2.initialize();
