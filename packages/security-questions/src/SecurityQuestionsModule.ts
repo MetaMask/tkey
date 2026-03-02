@@ -11,15 +11,16 @@ import {
   Share,
   ShareStore,
   ShareStoreMap,
+  stripHexPrefix,
 } from "@tkey/common-types";
-import { utf8ToBytes } from "@toruslabs/metadata-helpers";
-import { keccak256 } from "ethereum-cryptography/keccak";
+import { hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
+import { keccak256 } from "@toruslabs/torus.js";
 
 import SecurityQuestionsError from "./errors";
 import SecurityQuestionStore from "./SecurityQuestionStore";
 
 function answerToUserInputHashBigInt(answerString: string): bigint {
-  return bytesToNumberBE(keccak256(utf8ToBytes(answerString)));
+  return bytesToNumberBE(hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(answerString)))));
 }
 
 export const SECURITY_QUESTIONS_MODULE_NAME = "securityQuestions";

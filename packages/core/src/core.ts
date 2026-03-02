@@ -11,6 +11,7 @@ import {
   generatePrivateExcludingIndexes,
   getPubKeyECC,
   getPubKeyPoint,
+  hexToBigInt,
   IMessageMetadata,
   IMetadata,
   InitializeNewKeyResult,
@@ -61,10 +62,6 @@ import {
 import Metadata from "./metadata";
 
 const ed25519SeedConst = "ed25519Seed";
-
-function hexToBigInt(s: string): bigint {
-  return BigInt(`0x${s}`);
-}
 
 // TODO: handle errors for get and set with retries
 

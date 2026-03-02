@@ -13,17 +13,18 @@ import {
   prettyPrintError,
   secp256k1,
   StringifiedType,
+  stripHexPrefix,
   toPrivKeyECC,
   TorusStorageLayerAPIParams,
   TorusStorageLayerArgs,
 } from "@tkey/common-types";
 import { post } from "@toruslabs/http-helpers";
-import { bytesToBase64, bytesToHex, bytesToUtf8, decodeBase64Url, encodeBase64Url, utf8ToBytes } from "@toruslabs/metadata-helpers";
-import { keccak256 } from "ethereum-cryptography/keccak";
+import { bytesToBase64, bytesToHex, bytesToUtf8, decodeBase64Url, encodeBase64Url, hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
+import { keccak256 } from "@toruslabs/torus.js";
 import stringify from "json-stable-stringify";
 
 function signDataWithPrivKey(data: { timestamp: number }, privKey: bigint): string {
-  const hash = keccak256(utf8ToBytes(stringify(data)));
+  const hash = hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data)))));
   const sig = secp256k1.sign(hash, toPrivKeyECC(privKey), { prehash: false, format: "der" });
   return bytesToHex(sig);
 }
@@ -168,7 +169,7 @@ class TorusStorageLayer implements IStorageLayer {
       setTKeyStore.data = "<deleted>";
     }
 
-    const hash = keccak256(utf8ToBytes(stringify(setTKeyStore)));
+    const hash = hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(setTKeyStore)))));
     if (privKey) {
       const recoveredSig = secp256k1.sign(hash, toPrivKeyECC(privKey), { prehash: false, format: "recovered" });
       const sigWithV = new Uint8Array(65);
@@ -203,7 +204,7 @@ class TorusStorageLayer implements IStorageLayer {
     if (privKey) {
       signature = signDataWithPrivKey(data, privKey);
     } else {
-      signature = serviceProvider.sign(keccak256(utf8ToBytes(stringify(data))));
+      signature = serviceProvider.sign(hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data))))));
     }
     const metadataParams = {
       key: bytesToHex(getPubKeyECC(privKey)),
@@ -223,7 +224,7 @@ class TorusStorageLayer implements IStorageLayer {
     if (privKey) {
       signature = signDataWithPrivKey(data, privKey);
     } else {
-      signature = serviceProvider.sign(keccak256(utf8ToBytes(stringify(data))));
+      signature = serviceProvider.sign(hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data))))));
     }
     const metadataParams = {
       key: bytesToHex(getPubKeyECC(privKey)),
