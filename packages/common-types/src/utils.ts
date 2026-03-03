@@ -56,26 +56,6 @@ export function generateAddressFromPublicKey(publicKey: Uint8Array): string {
   return toChecksumAddress(ethAddressLower);
 }
 
-export function normalize(input: number | string): string {
-  if (!input) {
-    return undefined;
-  }
-  let hexString;
-
-  if (typeof input === "number") {
-    hexString = input.toString(16);
-    if (hexString.length % 2) {
-      hexString = `0${hexString}`;
-    }
-  }
-
-  if (typeof input === "string") {
-    hexString = input.toLowerCase();
-  }
-
-  return `0x${hexString}`;
-}
-
 export function generatePrivateExcludingIndexes(shareIndexes: bigint[]): bigint {
   const key = bytesToNumberBE(generatePrivate());
   if (shareIndexes.find((el) => el === key)) {
