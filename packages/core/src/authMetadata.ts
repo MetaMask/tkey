@@ -24,6 +24,8 @@ class AuthMetadata implements IAuthMetadata {
     if (!m.pubKey) throw CoreError.metadataPubKeyUnavailable();
 
     const msgHash = hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })))));
+    // keep lowS: false for backward compatibility with old @tkey/core@16.0.0
+    // lowS: true work for both lowS and highS signatures
     if (!secp256k1.verify(hexToBytes(sig), msgHash, m.pubKey.toSEC1(true), { prehash: false, format: "der", lowS: false })) {
       throw CoreError.default("Signature not valid for returning metadata");
     }
