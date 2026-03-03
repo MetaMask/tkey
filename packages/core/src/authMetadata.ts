@@ -24,7 +24,7 @@ class AuthMetadata implements IAuthMetadata {
     if (!m.pubKey) throw CoreError.metadataPubKeyUnavailable();
 
     const msgHash = hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })))));
-    if (!secp256k1.verify(hexToBytes(sig), msgHash, m.pubKey.toSEC1(true), { prehash: false, format: "der" })) {
+    if (!secp256k1.verify(hexToBytes(sig), msgHash, m.pubKey.toSEC1(true), { prehash: false, format: "der", lowS: false })) {
       throw CoreError.default("Signature not valid for returning metadata");
     }
     return new AuthMetadata(m);
