@@ -270,7 +270,6 @@ class Metadata implements IMetadata {
 
   shareToShareStore(share: bigint): ShareStore {
     const pubkey = getPubKeyPoint(share);
-    let returnShare: ShareStore;
 
     for (let i = this.polyIDList.length - 1; i >= 0; i -= 1) {
       const el = this.polyIDList[i][0];
@@ -298,10 +297,7 @@ class Metadata implements IMetadata {
         }
       }
     }
-    if (!returnShare) {
-      throw CoreError.fromCode(1307);
-    }
-    return returnShare;
+    throw CoreError.fromCode(1307);
   }
 
   clone(): Metadata {
