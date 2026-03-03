@@ -156,6 +156,7 @@ class ShareTransferModule implements IModule {
       const latestPolynomialId = latestPolynomial.getPolynomialID();
       const indexes = metadata.getShareIndexesForPolynomial(latestPolynomialId);
       const filtered = indexes.filter((el) => !availableShareIndexes.includes(el));
+      if (filtered.length === 0) throw ShareTransferError.default("no share index available to approve request");
       const share = this.tbSDK.outputShareStore(hexToBigInt(filtered[0]));
       shareBytes = utf8ToBytes(JSON.stringify(share));
     }

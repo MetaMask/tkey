@@ -4,7 +4,8 @@ import { IPoint, StringifiedType } from "../baseTypes/commonTypes";
 import { secp256k1 } from "../utils";
 
 export function hexToBigInt(s: string): bigint {
-  return s.length > 0 ? BigInt(`0x${s}`) : 0n;
+  if (s.length === 0) throw new Error("hexToBigInt: empty string is invalid");
+  return BigInt(`0x${s}`);
 }
 
 class Point implements IPoint {
