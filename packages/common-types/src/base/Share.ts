@@ -1,5 +1,5 @@
 import { ISerializable, StringifiedType } from "../baseTypes/commonTypes";
-import { getPubKeyPoint } from "./BNUtils";
+import { getPubKeyPoint } from "./keyUtils";
 import { hexToBigInt } from "./Point";
 import PublicShare from "./PublicShare";
 

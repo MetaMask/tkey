@@ -2,12 +2,11 @@ import { mod } from "@noble/curves/abstract/modular.js";
 
 import { ISerializable, PolynomialID, StringifiedType } from "../baseTypes/commonTypes";
 import { secp256k1 } from "../utils";
-import { getPubKeyPoint } from "./BNUtils";
+import { getPubKeyPoint } from "./keyUtils";
 import Point, { hexToBigInt } from "./Point";
 import PublicPolynomial from "./PublicPolynomial";
 import Share from "./Share";
 
-// @flow
 export type ShareMap = {
   [x: string]: Share;
 };

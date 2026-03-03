@@ -28,7 +28,6 @@ export type EncryptedShareStore = {
   [shareCommitment: string]: ShareStore;
 };
 
-// @flow
 export type ShareStoreMap = {
   [shareIndex: string]: ShareStore;
 };

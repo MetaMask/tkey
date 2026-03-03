@@ -24,8 +24,6 @@ export interface IModule {
   initialize(): Promise<void>;
 }
 
-// @flow
-
 export type ModuleMap = {
   [moduleName: string]: IModule;
 };
@@ -180,6 +178,7 @@ export interface ShareTransferStorePointerArgs {
   pointer: bigint | string;
 }
 
+/** Legacy shape for Buffer when serialized (e.g. JSON). Used for migration-period compat when deserializing encPubKey. */
 export type BufferObj = {
   type: string;
   data: number[];

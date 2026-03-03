@@ -55,9 +55,6 @@ class Point implements IPoint {
         const yBytes = numberToBytesBE(this.y, 32);
         return concatBytes(prefix, xBytes, yBytes);
       }
-      case "elliptic-compressed": {
-        return this.toSEC1(true);
-      }
       default:
         throw new Error("encoding doesnt exist in Point");
     }

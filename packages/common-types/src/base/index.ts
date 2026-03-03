@@ -1,4 +1,4 @@
-export * from "./BNUtils";
+export * from "./keyUtils";
 export * from "./Error";
 export * from "./OneKey";
 export { hexToBigInt, default as Point } from "./Point";

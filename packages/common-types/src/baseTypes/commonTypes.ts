@@ -2,7 +2,6 @@ import type { CustomAuthArgs } from "@toruslabs/customauth";
 
 export type PubKeyType = "ecc";
 
-// @flow
 export type PolynomialID = string;
 
 export type PolyIDAndShares = [PolynomialID, string[]];

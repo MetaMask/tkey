@@ -41,7 +41,6 @@ class PublicPolynomial implements ISerializable {
   }
 }
 
-// @flow
 export type PublicPolynomialMap = {
   [polynomialID: string]: PublicPolynomial;
 };

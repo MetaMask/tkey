@@ -30,7 +30,6 @@ type PublicShareShareIndexMap = {
   [shareIndex: string]: PublicShare;
 };
 
-// @flow
 export type PublicSharePolyIDShareIndexMap = {
   [polynomialID: string]: PublicShareShareIndexMap;
 };
