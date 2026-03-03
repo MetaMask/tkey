@@ -196,18 +196,22 @@ class TorusStorageLayer implements IStorageLayer {
 
   async acquireWriteLock(params: { serviceProvider?: IServiceProvider; privKey?: bigint }): Promise<{ status: number; id?: string }> {
     const { serviceProvider, privKey } = params;
+    if (!serviceProvider && !privKey) throw new Error("acquireWriteLock: either privKey or serviceProvider must be provided");
     const data = {
       timestamp: Math.floor(this.serverTimeOffset + Date.now() / 1000),
     };
 
     let signature: string;
+    let key: string;
     if (privKey) {
       signature = signDataWithPrivKey(data, privKey);
+      key = bytesToHex(getPubKeyECC(privKey));
     } else {
       signature = serviceProvider.sign(hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data))))));
+      key = bytesToHex(serviceProvider.retrievePubKey("ecc"));
     }
     const metadataParams = {
-      key: bytesToHex(getPubKeyECC(privKey)),
+      key,
       data,
       signature,
     };
@@ -216,18 +220,22 @@ class TorusStorageLayer implements IStorageLayer {
 
   async releaseWriteLock(params: { id: string; serviceProvider?: IServiceProvider; privKey?: bigint }): Promise<{ status: number }> {
     const { serviceProvider, privKey, id } = params;
+    if (!serviceProvider && !privKey) throw new Error("releaseWriteLock: either privKey or serviceProvider must be provided");
     const data = {
       timestamp: Math.floor(this.serverTimeOffset + Date.now() / 1000),
     };
 
     let signature: string;
+    let key: string;
     if (privKey) {
       signature = signDataWithPrivKey(data, privKey);
+      key = bytesToHex(getPubKeyECC(privKey));
     } else {
       signature = serviceProvider.sign(hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data))))));
+      key = bytesToHex(serviceProvider.retrievePubKey("ecc"));
     }
     const metadataParams = {
-      key: bytesToHex(getPubKeyECC(privKey)),
+      key,
       data,
       signature,
       id,
