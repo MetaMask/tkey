@@ -1,13 +1,18 @@
 import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { serializeError } from "@toruslabs/customauth";
-import { decrypt as ecDecrypt, encrypt as ecEncrypt, generatePrivate } from "@toruslabs/eccrypto";
+import { decrypt as ecDecrypt, encrypt as ecEncrypt } from "@toruslabs/eccrypto";
 import { bytesToHex, hexToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256, toChecksumAddress } from "@toruslabs/torus.js";
 
 import { EncryptedMessage } from "./baseTypes/commonTypes";
 
 export { secp256k1 };
+
+/** Returns 32 random bytes suitable for use as a secp256k1 private key. */
+export function generatePrivate(): Uint8Array {
+  return secp256k1.utils.randomSecretKey();
+}
 
 export async function encrypt(publicKey: Uint8Array, msg: Uint8Array): Promise<EncryptedMessage> {
   const encryptedDetails = await ecEncrypt(publicKey, msg);

@@ -2,6 +2,7 @@ import { bytesToNumberBE } from "@noble/curves/utils.js";
 import {
   decrypt,
   encrypt,
+  generatePrivate,
   getPubKeyECC,
   getPubKeyPoint,
   hexToBigInt,
@@ -13,7 +14,6 @@ import {
   ShareTransferStorePointerArgs,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { generatePrivate } from "@toruslabs/eccrypto";
 import { bytesToUtf8, utf8ToBytes } from "@toruslabs/metadata-helpers";
 
 import ShareTransferError from "./errors";
