@@ -6,17 +6,17 @@ jobs:
   test:
     strategy:
       matrix:
-        node: ["22.x"]
+        node: ["24.x"]
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
           cache: "npm"
@@ -29,6 +29,10 @@ jobs:
 
       - name: Test Development
         run: npm run test
+        env:
+          TEST_RPC_TARGET: ${{ secrets.TEST_RPC_TARGET }}
 
       - name: Test Production
         run: npm run test-production
+        env:
+          TEST_RPC_TARGET: ${{ secrets.TEST_RPC_TARGET }}

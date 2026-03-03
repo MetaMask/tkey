@@ -2,16 +2,15 @@ import { StringifiedType, TorusServiceProviderArgs } from "@tkey/common-types";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { CustomAuth, CustomAuthArgs, CustomAuthLoginParams, InitParams, TorusLoginResponse } from "@toruslabs/customauth";
 import { Torus, TorusKey } from "@toruslabs/torus.js";
-import BN from "bn.js";
 
 class TorusServiceProvider extends ServiceProviderBase {
   customAuthInstance: CustomAuth;
 
-  singleLoginKey: BN;
+  singleLoginKey: bigint;
 
   public torusKey: TorusKey;
 
-  public migratableKey: BN | null = null; // Migration of key from SFA to tKey
+  public migratableKey: bigint | null = null;
 
   customAuthArgs: CustomAuthArgs;
 
@@ -51,10 +50,10 @@ class TorusServiceProvider extends ServiceProviderBase {
       if (!obj.metadata.upgraded) {
         const { finalKeyData, oAuthKeyData } = obj;
         const privKey = finalKeyData.privKey || oAuthKeyData.privKey;
-        this.migratableKey = new BN(privKey, "hex");
+        this.migratableKey = BigInt(`0x${privKey}`);
       }
 
-      this.postboxKey = new BN(localPrivKey, "hex");
+      this.postboxKey = BigInt(`0x${localPrivKey}`);
     }
 
     return obj;

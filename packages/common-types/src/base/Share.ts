@@ -1,22 +1,21 @@
-import BN from "bn.js";
-
-import { BNString, ISerializable, StringifiedType } from "../baseTypes/commonTypes";
-import { getPubKeyPoint } from "./BNUtils";
+import { ISerializable, StringifiedType } from "../baseTypes/commonTypes";
+import { getPubKeyPoint } from "./keyUtils";
+import { hexToBigInt } from "./Point";
 import PublicShare from "./PublicShare";
 
 class Share implements ISerializable {
-  share: BN;
+  share: bigint;
 
-  shareIndex: BN;
+  shareIndex: bigint;
 
-  constructor(shareIndex: BNString, share: BNString) {
-    this.share = new BN(share, "hex");
-    this.shareIndex = new BN(shareIndex, "hex");
+  constructor(shareIndex: bigint, share: bigint) {
+    this.share = share;
+    this.shareIndex = shareIndex;
   }
 
   static fromJSON(value: StringifiedType): Share {
     const { share, shareIndex } = value;
-    return new Share(shareIndex, share);
+    return new Share(hexToBigInt(shareIndex), hexToBigInt(share));
   }
 
   getPublicShare(): PublicShare {
@@ -25,8 +24,8 @@ class Share implements ISerializable {
 
   toJSON(): StringifiedType {
     return {
-      share: this.share.toString("hex"),
-      shareIndex: this.shareIndex.toString("hex"),
+      share: this.share.toString(16),
+      shareIndex: this.shareIndex.toString(16),
     };
   }
 }

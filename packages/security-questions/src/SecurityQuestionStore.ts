@@ -1,10 +1,9 @@
 import { ISerializable, PolynomialID, PublicShare, SecurityQuestionStoreArgs, StringifiedType } from "@tkey/common-types";
-import BN from "bn.js";
 
 class SecurityQuestionStore implements ISerializable {
-  nonce: BN;
+  nonce: bigint;
 
-  shareIndex: BN;
+  shareIndex: bigint;
 
   sqPublicShare: PublicShare;
 
@@ -13,9 +12,9 @@ class SecurityQuestionStore implements ISerializable {
   questions: string;
 
   constructor({ nonce, shareIndex, sqPublicShare, polynomialID, questions }: SecurityQuestionStoreArgs) {
-    this.nonce = new BN(nonce, "hex");
-    this.shareIndex = new BN(shareIndex, "hex");
-    this.sqPublicShare = new PublicShare(sqPublicShare.shareIndex, sqPublicShare.shareCommitment);
+    this.nonce = typeof nonce === "bigint" ? nonce : BigInt(`0x${nonce}`);
+    this.shareIndex = typeof shareIndex === "bigint" ? shareIndex : BigInt(`0x${shareIndex}`);
+    this.sqPublicShare = sqPublicShare instanceof PublicShare ? sqPublicShare : PublicShare.fromJSON(sqPublicShare);
     this.polynomialID = polynomialID;
     this.questions = questions;
   }
@@ -23,8 +22,8 @@ class SecurityQuestionStore implements ISerializable {
   static fromJSON(value: StringifiedType): SecurityQuestionStore {
     const { nonce, shareIndex, sqPublicShare, polynomialID, questions } = value;
     return new SecurityQuestionStore({
-      nonce: new BN(nonce, "hex"),
-      shareIndex: new BN(shareIndex, "hex"),
+      nonce,
+      shareIndex,
       sqPublicShare: PublicShare.fromJSON(sqPublicShare),
       polynomialID,
       questions,
@@ -33,8 +32,8 @@ class SecurityQuestionStore implements ISerializable {
 
   toJSON(): StringifiedType {
     return {
-      nonce: this.nonce.toString("hex"),
-      shareIndex: this.shareIndex.toString("hex"),
+      nonce: this.nonce.toString(16),
+      shareIndex: this.shareIndex.toString(16),
       sqPublicShare: this.sqPublicShare,
       polynomialID: this.polynomialID,
       questions: this.questions,

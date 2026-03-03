@@ -1,7 +1,7 @@
 import { BufferObj, EncryptedMessage, ShareRequestArgs } from "@tkey/common-types";
 
 class ShareRequest {
-  encPubKey: Buffer;
+  encPubKey: Uint8Array;
 
   encShareInTransit: EncryptedMessage;
 
@@ -16,11 +16,12 @@ class ShareRequest {
   timestamp: number;
 
   constructor({ encPubKey, encShareInTransit, availableShareIndexes, userAgent, userIp, timestamp }: ShareRequestArgs) {
-    const testEncPubKey = encPubKey as BufferObj;
-    if (testEncPubKey.type === "Buffer") {
-      this.encPubKey = Buffer.from(testEncPubKey.data);
+    if (encPubKey instanceof Uint8Array) {
+      this.encPubKey = encPubKey;
+    } else if ((encPubKey as BufferObj).type === "Buffer") {
+      this.encPubKey = new Uint8Array((encPubKey as BufferObj).data);
     } else {
-      this.encPubKey = encPubKey as unknown as Buffer;
+      this.encPubKey = Uint8Array.from(Object.values(encPubKey as ArrayLike<number>));
     }
     this.availableShareIndexes = availableShareIndexes;
     this.encShareInTransit = encShareInTransit;

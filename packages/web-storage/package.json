@@ -7,8 +7,8 @@
   "license": "MIT",
   "main": "dist/lib.cjs/index.js",
   "module": "dist/lib.esm/index.js",
-  "unpkg": "dist/webStorage.umd.min.js",
-  "jsdelivr": "dist/webStorage.umd.min.js",
+  "unpkg": "dist/lib.esm/index.js",
+  "jsdelivr": "dist/lib.esm/index.js",
   "types": "dist/lib.cjs/types/index.d.ts",
   "sideEffects": false,
   "files": [
@@ -43,9 +43,7 @@
     "@babel/runtime": "7.x"
   },
   "dependencies": {
-    "@tkey/common-types": "^16.0.0",
-    "@types/bn.js": "^5.1.6",
-    "bn.js": "^5.2.1"
+    "@tkey/common-types": "^16.0.0"
   },
   "devDependencies": {
     "@tkey/core": "^16.0.0",
@@ -63,8 +61,8 @@
     ]
   },
   "engines": {
-    "node": ">=20.x",
-    "npm": ">=9.x"
+    "node": ">=22.x",
+    "npm": ">=10.x"
   },
   "gitHead": "4ff88f7fe92b8c85bd0bfde069cde2e56005faca"
 }

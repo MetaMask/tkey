@@ -1,32 +1,31 @@
 import {
-  BNString,
   decrypt as decryptUtils,
   encrypt as encryptUtils,
   EncryptedMessage,
   getPubKeyECC,
+  getPubKeyPoint,
   IServiceProvider,
   PubKeyType,
+  secp256k1,
   ServiceProviderArgs,
   StringifiedType,
-  toPrivKeyEC,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import BN from "bn.js";
-import { curve } from "elliptic";
+import { bytesToBase64 } from "@toruslabs/metadata-helpers";
 
 class ServiceProviderBase implements IServiceProvider {
   enableLogging: boolean;
 
   // For easy serialization
-  postboxKey: BN;
+  postboxKey: bigint;
 
   serviceProviderName: string;
 
-  migratableKey: BN | null = null;
+  migratableKey: bigint | null = null;
 
   constructor({ enableLogging = false, postboxKey }: ServiceProviderArgs) {
     this.enableLogging = enableLogging;
-    this.postboxKey = new BN(postboxKey, "hex");
+    this.postboxKey = postboxKey != null ? BigInt(`0x${postboxKey}`) : 0n;
     this.serviceProviderName = "ServiceProviderBase";
   }
 
@@ -37,36 +36,39 @@ class ServiceProviderBase implements IServiceProvider {
     return new ServiceProviderBase({ enableLogging, postboxKey });
   }
 
-  async encrypt(msg: Buffer): Promise<EncryptedMessage> {
+  async encrypt(msg: Uint8Array): Promise<EncryptedMessage> {
     const publicKey = this.retrievePubKey("ecc");
     return encryptUtils(publicKey, msg);
   }
 
-  async decrypt(msg: EncryptedMessage): Promise<Buffer> {
+  async decrypt(msg: EncryptedMessage): Promise<Uint8Array> {
     return decryptUtils(toPrivKeyECC(this.postboxKey), msg);
   }
 
-  retrievePubKeyPoint(): curve.base.BasePoint {
-    return toPrivKeyEC(this.postboxKey).getPublic();
+  retrievePubKeyPoint(): { x: bigint; y: bigint } {
+    const pt = getPubKeyPoint(this.postboxKey);
+    return { x: pt.x, y: pt.y };
   }
 
-  retrievePubKey(type: PubKeyType): Buffer {
+  retrievePubKey(type: PubKeyType): Uint8Array {
     if (type === "ecc") {
       return getPubKeyECC(this.postboxKey);
     }
     throw new Error("Unsupported pub key type");
   }
 
-  sign(msg: BNString): string {
-    const tmp = new BN(msg, "hex");
-    const sig = toPrivKeyEC(this.postboxKey).sign(tmp.toString("hex"));
-    return Buffer.from(sig.r.toString(16, 64) + sig.s.toString(16, 64) + new BN(0).toString(16, 2), "hex").toString("base64");
+  sign(msg: Uint8Array): string {
+    const recoveredSig = secp256k1.sign(msg, toPrivKeyECC(this.postboxKey), { prehash: false, format: "recovered" });
+    const sigWithV = new Uint8Array(65);
+    sigWithV.set(recoveredSig.slice(1, 65), 0); // r + s
+    sigWithV[64] = recoveredSig[0]; // v
+    return bytesToBase64(sigWithV);
   }
 
   toJSON(): StringifiedType {
     return {
       enableLogging: this.enableLogging,
-      postboxKey: this.postboxKey.toString("hex"),
+      postboxKey: this.postboxKey.toString(16),
       serviceProviderName: this.serviceProviderName,
     };
   }

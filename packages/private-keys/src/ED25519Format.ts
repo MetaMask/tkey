@@ -1,39 +1,35 @@
+import { ed25519 } from "@noble/curves/ed25519.js";
+import { bytesToNumberBE, concatBytes, equalBytes, numberToBytesBE } from "@noble/curves/utils.js";
 import { generateID, IPrivateKeyFormat, IPrivateKeyStore } from "@tkey/common-types";
-import nacl from "@toruslabs/tweetnacl-js";
-import BN from "bn.js";
 
 export class ED25519Format implements IPrivateKeyFormat {
-  privateKey: BN;
+  privateKey: bigint;
 
   type: string;
 
-  constructor(privateKey: BN) {
+  constructor(privateKey: bigint) {
     this.privateKey = privateKey;
     this.type = "ed25519";
   }
 
-  validatePrivateKey(privateKey: BN): boolean {
-    // Validation as per
-    // https://github.com/solana-labs/solana-web3.js/blob/e1567ab/src/keypair.ts#L65
+  validatePrivateKey(privateKey: bigint): boolean {
     try {
-      const secretKey = Buffer.from(privateKey.toString("hex"), "hex").toString("base64");
-      const keypair = nacl.sign.keyPair.fromSecretKey(Buffer.from(secretKey, "base64"));
-      const encoder = new TextEncoder();
-      const signData = encoder.encode("@solana/web3.js-validation-v1");
-      const signature = nacl.sign.detached(signData, keypair.secretKey);
-      if (nacl.sign.detached.verify(signData, signature, keypair.publicKey)) {
-        return true;
-      }
+      const keyBytes = numberToBytesBE(privateKey, 64);
+      const seed = keyBytes.slice(0, 32);
+      const storedPubKey = keyBytes.slice(32);
+      const derivedPubKey = ed25519.getPublicKey(seed);
+      return equalBytes(derivedPubKey, storedPubKey);
     } catch {
       return false;
     }
-    return false;
   }
 
-  createPrivateKeyStore(privateKey?: BN): IPrivateKeyStore {
-    let privKey: BN;
+  createPrivateKeyStore(privateKey?: bigint): IPrivateKeyStore {
+    let privKey: bigint;
     if (!privateKey) {
-      privKey = new BN(nacl.sign.keyPair().secretKey);
+      const seed = ed25519.utils.randomSecretKey();
+      const pubKey = ed25519.getPublicKey(seed);
+      privKey = bytesToNumberBE(concatBytes(seed, pubKey));
     } else {
       if (!this.validatePrivateKey(privateKey)) {
         throw Error("Invalid Private Key");

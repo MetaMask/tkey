@@ -1,8 +1,11 @@
+import { bytesToNumberBE } from "@noble/curves/utils.js";
 import {
   decrypt,
   encrypt,
+  generatePrivate,
   getPubKeyECC,
   getPubKeyPoint,
+  hexToBigInt,
   IModule,
   ITKeyApi,
   ITkeyError,
@@ -11,8 +14,7 @@ import {
   ShareTransferStorePointerArgs,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { generatePrivate } from "@toruslabs/eccrypto";
-import BN from "bn.js";
+import { bytesToUtf8, utf8ToBytes } from "@toruslabs/metadata-helpers";
 
 import ShareTransferError from "./errors";
 import ShareRequest from "./ShareRequest";
@@ -30,7 +32,7 @@ class ShareTransferModule implements IModule {
 
   tbSDK: ITKeyApi;
 
-  currentEncKey: BN;
+  currentEncKey: bigint;
 
   requestStatusCheckId: number;
 
@@ -51,7 +53,7 @@ class ShareTransferModule implements IModule {
 
     // This is needed to avoid MIM during share deletion.
     if (numberOfNewShares <= numberOfOldShares) {
-      const shareTransferStorePointer: ShareTransferStorePointer = { pointer: new BN(generatePrivate()) };
+      const shareTransferStorePointer: ShareTransferStorePointer = { pointer: bytesToNumberBE(generatePrivate()) };
       return shareTransferStorePointer;
     }
 
@@ -72,7 +74,7 @@ class ShareTransferModule implements IModule {
     const rawShareTransferStorePointer = metadata.getGeneralStoreDomain(this.moduleName) as ShareTransferStorePointerArgs;
     let shareTransferStorePointer: ShareTransferStorePointer;
     if (!rawShareTransferStorePointer) {
-      shareTransferStorePointer = { pointer: new BN(generatePrivate()) };
+      shareTransferStorePointer = { pointer: bytesToNumberBE(generatePrivate()) };
       metadata.setGeneralStoreDomain(this.moduleName, shareTransferStorePointer);
       // await this.tbSDK.syncShareMetadata(); // Requires threshold shares
       // OPTIMIZATION TO NOT SYNC METADATA TWICE ON INIT, WILL FAIL IF TKEY DOES NOT HAVE MODULE AS DEFAULT
@@ -86,10 +88,10 @@ class ShareTransferModule implements IModule {
     availableShareIndexes: Array<string>,
     callback?: (err?: ITkeyError, shareStore?: ShareStore) => void
   ): Promise<string> {
-    if (this.currentEncKey) throw ShareTransferError.requestExists(`${this.currentEncKey.toString("hex")}`);
-    this.currentEncKey = new BN(generatePrivate());
+    if (this.currentEncKey) throw ShareTransferError.requestExists(`${this.currentEncKey.toString(16)}`);
+    this.currentEncKey = bytesToNumberBE(generatePrivate());
     const [newShareTransferStore, userIp] = await Promise.all([this.getShareTransferStore(), getClientIp()]);
-    const encPubKeyX = getPubKeyPoint(this.currentEncKey).x.toString("hex");
+    const encPubKeyX = getPubKeyPoint(this.currentEncKey).x.toString(16);
     newShareTransferStore[encPubKeyX] = new ShareRequest({
       encPubKey: getPubKeyECC(this.currentEncKey),
       encShareInTransit: undefined,
@@ -108,7 +110,7 @@ class ShareTransferModule implements IModule {
             if (!this.currentEncKey) throw ShareTransferError.missingEncryptionKey();
             if (latestShareTransferStore[encPubKeyX].encShareInTransit) {
               const shareStoreBuf = await decrypt(toPrivKeyECC(this.currentEncKey), latestShareTransferStore[encPubKeyX].encShareInTransit);
-              const receivedShare = ShareStore.fromJSON(JSON.parse(shareStoreBuf.toString()));
+              const receivedShare = ShareStore.fromJSON(JSON.parse(bytesToUtf8(shareStoreBuf)));
               await this.tbSDK.inputShareStoreSafe(receivedShare, true);
               this._cleanUpCurrentRequest();
               callback(null, receivedShare);
@@ -143,9 +145,9 @@ class ShareTransferModule implements IModule {
     const shareTransferStore = await this.getShareTransferStore();
     if (!shareTransferStore[encPubKeyX]) throw ShareTransferError.missingEncryptionKey();
 
-    let bufferedShare: Buffer;
+    let shareBytes: Uint8Array;
     if (shareStore) {
-      bufferedShare = Buffer.from(JSON.stringify(shareStore));
+      shareBytes = utf8ToBytes(JSON.stringify(shareStore));
     } else {
       const store = new ShareRequest(shareTransferStore[encPubKeyX]);
       const { availableShareIndexes } = store;
@@ -154,16 +156,17 @@ class ShareTransferModule implements IModule {
       const latestPolynomialId = latestPolynomial.getPolynomialID();
       const indexes = metadata.getShareIndexesForPolynomial(latestPolynomialId);
       const filtered = indexes.filter((el) => !availableShareIndexes.includes(el));
-      const share = this.tbSDK.outputShareStore(filtered[0]);
-      bufferedShare = Buffer.from(JSON.stringify(share));
+      if (filtered.length === 0) throw ShareTransferError.default("no share index available to approve request");
+      const share = this.tbSDK.outputShareStore(hexToBigInt(filtered[0]));
+      shareBytes = utf8ToBytes(JSON.stringify(share));
     }
     const shareRequest = new ShareRequest(shareTransferStore[encPubKeyX]);
-    shareTransferStore[encPubKeyX].encShareInTransit = await encrypt(shareRequest.encPubKey, bufferedShare);
+    shareTransferStore[encPubKeyX].encShareInTransit = await encrypt(shareRequest.encPubKey, shareBytes);
     await this.setShareTransferStore(shareTransferStore);
     this.currentEncKey = undefined;
   }
 
-  async approveRequestWithShareIndex(encPubKeyX: string, shareIndex: string): Promise<void> {
+  async approveRequestWithShareIndex(encPubKeyX: string, shareIndex: bigint): Promise<void> {
     const deviceShare = this.tbSDK.outputShareStore(shareIndex);
     return this.approveRequest(encPubKeyX, deviceShare);
   }
@@ -195,7 +198,7 @@ class ShareTransferModule implements IModule {
               reject(ShareTransferError.userCancelledRequest());
             } else if (latestShareTransferStore[encPubKeyX].encShareInTransit) {
               const shareStoreBuf = await decrypt(toPrivKeyECC(this.currentEncKey), latestShareTransferStore[encPubKeyX].encShareInTransit);
-              const receivedShare = ShareStore.fromJSON(JSON.parse(shareStoreBuf.toString()));
+              const receivedShare = ShareStore.fromJSON(JSON.parse(bytesToUtf8(shareStoreBuf)));
               await this.tbSDK.inputShareStoreSafe(receivedShare, true);
               if (deleteRequestAfterCompletion) {
                 await this.deleteShareTransferStore(encPubKeyX);
@@ -224,7 +227,7 @@ class ShareTransferModule implements IModule {
 
   async resetShareTransferStore(): Promise<void> {
     const metadata = this.tbSDK.getMetadata();
-    const shareTransferStorePointer = { pointer: new BN(generatePrivate()) };
+    const shareTransferStorePointer = { pointer: bytesToNumberBE(generatePrivate()) };
     metadata.setGeneralStoreDomain(this.moduleName, shareTransferStorePointer);
     await this.tbSDK._syncShareMetadata();
   }

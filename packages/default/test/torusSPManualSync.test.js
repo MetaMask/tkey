@@ -1,10 +1,11 @@
+import { bytesToHex } from "@noble/curves/utils.js";
 import { TorusServiceProvider } from "@tkey/service-provider-torus";
 import { generatePrivate } from "@toruslabs/eccrypto";
 
 import { getMetadataUrl, initStorageLayer } from "./helpers";
 import { sharedTestCases } from "./shared";
 
-const PRIVATE_KEY = generatePrivate().toString("hex");
+const PRIVATE_KEY = bytesToHex(generatePrivate());
 const torusSp = new TorusServiceProvider({
   postboxKey: PRIVATE_KEY,
   customAuthArgs: {

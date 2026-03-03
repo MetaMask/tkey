@@ -1,5 +1,4 @@
 import { IModule, IPrivateKeyFormat, IPrivateKeyStore, ITKeyApi } from "@tkey/common-types";
-import BN from "bn.js";
 
 import PrivateKeysError from "./errors";
 
@@ -24,7 +23,7 @@ class PrivateKeyModule implements IModule {
 
   async initialize(): Promise<void> {}
 
-  async setPrivateKey(privateKeyType: string, privateKey?: BN): Promise<void> {
+  async setPrivateKey(privateKeyType: string, privateKey?: bigint): Promise<void> {
     const format = this.privateKeyFormats.find((el) => el.type === privateKeyType);
     if (!format) {
       throw PrivateKeysError.notSupported();
@@ -40,12 +39,11 @@ class PrivateKeyModule implements IModule {
     return this.tbSDK.getTKeyStore(this.moduleName) as Promise<IPrivateKeyStore[]>;
   }
 
-  async getAccounts(): Promise<BN[]> {
+  async getAccounts(): Promise<bigint[]> {
     try {
-      // Get all private keys
       const privateKeys = await this.getPrivateKeys();
-      return privateKeys.reduce((acc: BN[], x) => {
-        acc.push(BN.isBN(x.privateKey) ? x.privateKey : new BN(x.privateKey, "hex"));
+      return privateKeys.reduce((acc: bigint[], x) => {
+        acc.push(typeof x.privateKey === "bigint" ? x.privateKey : BigInt(`0x${x.privateKey}`));
         return acc;
       }, []);
     } catch {

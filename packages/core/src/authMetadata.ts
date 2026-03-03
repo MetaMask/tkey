@@ -1,6 +1,6 @@
-import { IAuthMetadata, secp256k1, StringifiedType, stripHexPrefix, toPrivKeyEC } from "@tkey/common-types";
+import { bigIntReplacer, IAuthMetadata, secp256k1, StringifiedType, stripHexPrefix, toPrivKeyECC } from "@tkey/common-types";
+import { bytesToHex, hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256 } from "@toruslabs/torus.js";
-import BN from "bn.js";
 import stringify from "json-stable-stringify";
 
 import CoreError from "./errors";
@@ -9,9 +9,9 @@ import Metadata from "./metadata";
 class AuthMetadata implements IAuthMetadata {
   metadata: Metadata;
 
-  privKey: BN;
+  privKey: bigint;
 
-  constructor(metadata: Metadata, privKey?: BN) {
+  constructor(metadata: Metadata, privKey?: bigint) {
     this.metadata = metadata;
     this.privKey = privKey;
   }
@@ -23,8 +23,10 @@ class AuthMetadata implements IAuthMetadata {
     const m = Metadata.fromJSON(data);
     if (!m.pubKey) throw CoreError.metadataPubKeyUnavailable();
 
-    const keyPair = secp256k1.keyFromPublic(m.pubKey.toSEC1(secp256k1));
-    if (!keyPair.verify(stripHexPrefix(keccak256(Buffer.from(stringify(data), "utf8"))), sig)) {
+    const msgHash = hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })))));
+    // keep lowS: false for backward compatibility with old @tkey/core@16.0.0
+    // lowS: true work for both lowS and highS signatures
+    if (!secp256k1.verify(hexToBytes(sig), msgHash, m.pubKey.toSEC1(true), { prehash: false, format: "der", lowS: false })) {
       throw CoreError.default("Signature not valid for returning metadata");
     }
     return new AuthMetadata(m);
@@ -34,12 +36,12 @@ class AuthMetadata implements IAuthMetadata {
     const data = this.metadata;
 
     if (!this.privKey) throw CoreError.privKeyUnavailable();
-    const k = toPrivKeyEC(this.privKey);
-    const sig = k.sign(stripHexPrefix(keccak256(Buffer.from(stringify(data), "utf8"))));
+    const msgHash = hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })))));
+    const sig = secp256k1.sign(msgHash, toPrivKeyECC(this.privKey), { prehash: false, format: "der" });
 
     return {
       data,
-      sig: sig.toDER("hex"),
+      sig: bytesToHex(sig),
     };
   }
 }

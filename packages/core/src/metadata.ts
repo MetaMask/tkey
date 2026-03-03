@@ -1,4 +1,5 @@
 import {
+  bigIntReplacer,
   decrypt,
   EncryptedMessage,
   FactorEnc,
@@ -13,7 +14,6 @@ import {
   PublicPolynomialMap,
   PublicShare,
   PublicSharePolyIDShareIndexMap,
-  secp256k1,
   Share,
   ShareDescriptionMap,
   ShareMap,
@@ -21,7 +21,7 @@ import {
   StringifiedType,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import BN from "bn.js";
+import { bytesToHex, bytesToUtf8 } from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
 
 import CoreError from "./errors";
@@ -91,7 +91,7 @@ class Metadata implements IMetadata {
 
   static fromJSON(value: StringifiedType): Metadata {
     const { pubKey, polyIDList, generalStore, tkeyStore, scopedStore, nonce, tssKeyTypes, tssPolyCommits, tssNonces, factorPubs, factorEncs } = value;
-    const point = Point.fromSEC1(secp256k1, pubKey);
+    const point = Point.fromSEC1(pubKey);
     const metadata = new Metadata(point);
     const unserializedPolyIDList: PolyIDAndShares[] = [];
 
@@ -109,7 +109,7 @@ class Metadata implements IMetadata {
     if (tssPolyCommits) {
       metadata.tssPolyCommits = {};
       for (const key in tssPolyCommits) {
-        metadata.tssPolyCommits[key] = (tssPolyCommits as Record<string, Point[]>)[key].map((obj) => new Point(obj.x, obj.y));
+        metadata.tssPolyCommits[key] = (tssPolyCommits as Record<string, Point[]>)[key].map((obj) => Point.fromJSON(obj));
       }
     }
     if (tssNonces) {
@@ -121,7 +121,7 @@ class Metadata implements IMetadata {
     if (factorPubs) {
       metadata.factorPubs = {};
       for (const key in factorPubs) {
-        metadata.factorPubs[key] = (factorPubs as Record<string, Point[]>)[key].map((obj) => new Point(obj.x, obj.y));
+        metadata.factorPubs[key] = (factorPubs as Record<string, Point[]>)[key].map((obj) => Point.fromJSON(obj));
       }
     }
     if (factorEncs) metadata.factorEncs = factorEncs;
@@ -167,7 +167,7 @@ class Metadata implements IMetadata {
     if (!(polynomialID in this.publicShares)) {
       this.publicShares[polynomialID] = {};
     }
-    this.publicShares[polynomialID][publicShare.shareIndex.toString("hex")] = publicShare;
+    this.publicShares[polynomialID][publicShare.shareIndex.toString(16)] = publicShare;
   }
 
   setGeneralStoreDomain(key: string, obj: unknown): void {
@@ -201,13 +201,13 @@ class Metadata implements IMetadata {
     if (Array.isArray(shares)) {
       for (let i = 0; i < shares.length; i += 1) {
         this.addPublicShare(publicPolynomial.getPolynomialID(), shares[i].getPublicShare());
-        shareIndexArr.push(shares[i].shareIndex.toString("hex"));
+        shareIndexArr.push(shares[i].shareIndex.toString(16));
       }
     } else {
       for (const k in shares) {
         if (Object.prototype.hasOwnProperty.call(shares, k)) {
           this.addPublicShare(publicPolynomial.getPolynomialID(), shares[k].getPublicShare());
-          shareIndexArr.push(shares[k].shareIndex.toString("hex"));
+          shareIndexArr.push(shares[k].shareIndex.toString(16));
         }
       }
     }
@@ -224,12 +224,12 @@ class Metadata implements IMetadata {
     if (!encryptedShareStore) {
       throw CoreError.encryptedShareStoreUnavailable(`${shareStore}`);
     }
-    const encryptedShare = encryptedShareStore[pubShare.shareCommitment.x.toString("hex")];
+    const encryptedShare = encryptedShareStore[pubShare.shareCommitment.x.toString(16)];
     if (!encryptedShare) {
       throw CoreError.encryptedShareStoreUnavailable(`${shareStore}`);
     }
     const rawDecrypted = await decrypt(toPrivKeyECC(shareStore.share.share), encryptedShare as EncryptedMessage);
-    return ShareStore.fromJSON(JSON.parse(rawDecrypted.toString()));
+    return ShareStore.fromJSON(JSON.parse(bytesToUtf8(rawDecrypted)));
   }
 
   getShareDescription(): ShareDescriptionMap {
@@ -268,9 +268,8 @@ class Metadata implements IMetadata {
     }
   }
 
-  shareToShareStore(share: BN): ShareStore {
+  shareToShareStore(share: bigint): ShareStore {
     const pubkey = getPubKeyPoint(share);
-    let returnShare: ShareStore;
 
     for (let i = this.polyIDList.length - 1; i >= 0; i -= 1) {
       const el = this.polyIDList[i][0];
@@ -287,22 +286,22 @@ class Metadata implements IMetadata {
 
         // if not reconstruct
         if (!pubShare) {
-          pubShare = new PublicShare(shareIndex, polyCommitmentEval(this.publicPolynomials[el].polynomialCommitments, new BN(shareIndex, "hex")));
+          pubShare = new PublicShare(
+            BigInt(`0x${shareIndex}`),
+            polyCommitmentEval(this.publicPolynomials[el].polynomialCommitments, BigInt(`0x${shareIndex}`))
+          );
         }
-        if (pubShare.shareCommitment.x.eq(pubkey.x) && pubShare.shareCommitment.y.eq(pubkey.y)) {
+        if (pubShare.shareCommitment.x === pubkey.x && pubShare.shareCommitment.y === pubkey.y) {
           const tempShare = new Share(pubShare.shareIndex, share);
           return new ShareStore(tempShare, el);
         }
       }
     }
-    if (!returnShare) {
-      throw CoreError.fromCode(1307);
-    }
-    return returnShare;
+    throw CoreError.fromCode(1307);
   }
 
   clone(): Metadata {
-    return Metadata.fromJSON(JSON.parse(stringify(this)));
+    return Metadata.fromJSON(JSON.parse(stringify(this, { replacer: bigIntReplacer })));
   }
 
   toJSON(): StringifiedType {
@@ -311,7 +310,11 @@ class Metadata implements IMetadata {
     for (let i = 0; i < this.polyIDList.length; i += 1) {
       const polyID = this.polyIDList[i][0];
       const shareIndexes = this.polyIDList[i][1];
-      const sortedShareIndexes = shareIndexes.sort((a: string, b: string) => new BN(a, "hex").cmp(new BN(b, "hex")));
+      const sortedShareIndexes = shareIndexes.sort((a: string, b: string) => {
+        const aBig = BigInt(`0x${a}`);
+        const bBig = BigInt(`0x${b}`);
+        return aBig < bBig ? -1 : aBig > bBig ? 1 : 0;
+      });
       const serializedPolyID = polyID
         .split(`|`)
         .concat("0x0")
@@ -321,7 +324,7 @@ class Metadata implements IMetadata {
     }
 
     return {
-      pubKey: this.pubKey.toSEC1(secp256k1, true).toString("hex"),
+      pubKey: bytesToHex(this.pubKey.toSEC1(true)),
       polyIDList: serializedPolyIDList,
       scopedStore: this.scopedStore,
       generalStore: this.generalStore,

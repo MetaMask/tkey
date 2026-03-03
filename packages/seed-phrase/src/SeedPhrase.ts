@@ -1,5 +1,4 @@
 import { IModule, ISeedPhraseFormat, ISeedPhraseStore, ISeedPhraseStoreWithKeys, ITKeyApi } from "@tkey/common-types";
-import BN from "bn.js";
 
 import SeedPhraseError from "./errors";
 
@@ -57,7 +56,6 @@ class SeedPhraseModule implements IModule {
 
   async getSeedPhrasesWithAccounts(): Promise<ISeedPhraseStoreWithKeys[]> {
     try {
-      // Get seed phrases for all available formats from TKeyStore
       const seedPhrases = await this.getSeedPhrases();
       return await Promise.all(
         seedPhrases.map(async (x) => {
@@ -71,9 +69,8 @@ class SeedPhraseModule implements IModule {
     }
   }
 
-  async getAccounts(): Promise<BN[]> {
+  async getAccounts(): Promise<bigint[]> {
     try {
-      // Get seed phrases for all available formats from TKeyStore
       const seedPhrases = await this.getSeedPhrases();
       const responses = await Promise.all(
         seedPhrases.map(async (x) => {

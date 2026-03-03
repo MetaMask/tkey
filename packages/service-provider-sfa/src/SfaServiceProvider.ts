@@ -1,8 +1,8 @@
 import { type StringifiedType } from "@tkey/common-types";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { NodeDetailManager } from "@toruslabs/fetch-node-details";
+import { utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { keccak256, Torus, TorusKey } from "@toruslabs/torus.js";
-import BN from "bn.js";
 
 import { LoginParams, SfaServiceProviderArgs, VerifierParams, Web3AuthOptions } from "./interfaces";
 
@@ -13,7 +13,7 @@ class SfaServiceProvider extends ServiceProviderBase {
 
   public torusKey: TorusKey;
 
-  public migratableKey: BN | null = null; // Migration of key from SFA to tKey
+  public migratableKey: bigint | null = null;
 
   private nodeDetailManagerInstance: NodeDetailManager;
 
@@ -45,7 +45,7 @@ class SfaServiceProvider extends ServiceProviderBase {
     return sfaSP;
   }
 
-  async connect(params: LoginParams): Promise<BN> {
+  async connect(params: LoginParams): Promise<bigint> {
     const { authConnectionId, userId, idToken, groupedAuthConnectionId } = params;
     const verifier = groupedAuthConnectionId || authConnectionId;
     const verifierId = userId;
@@ -56,7 +56,7 @@ class SfaServiceProvider extends ServiceProviderBase {
     if (groupedAuthConnectionId) {
       verifierParams["verify_params"] = [{ verifier_id: userId, idtoken: finalIdToken }];
       verifierParams["sub_verifier_ids"] = [authConnectionId];
-      aggregateIdToken = keccak256(Buffer.from(finalIdToken, "utf8")).slice(2);
+      aggregateIdToken = keccak256(utf8ToBytes(finalIdToken)).slice(2);
     }
     // fetch node details.
     const { torusNodeEndpoints, torusIndexes, torusNodePub } = await this.nodeDetailManagerInstance.getNodeDetails({ verifier, verifierId });
@@ -79,10 +79,10 @@ class SfaServiceProvider extends ServiceProviderBase {
     if (!torusKey.metadata.upgraded) {
       const { finalKeyData, oAuthKeyData } = torusKey;
       const privKey = finalKeyData.privKey || oAuthKeyData.privKey;
-      this.migratableKey = new BN(privKey, "hex");
+      this.migratableKey = BigInt(`0x${privKey}`);
     }
     const postboxKey = Torus.getPostboxKey(torusKey);
-    this.postboxKey = new BN(postboxKey, 16);
+    this.postboxKey = BigInt(`0x${postboxKey}`);
     return this.postboxKey;
   }
 

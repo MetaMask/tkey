@@ -80,20 +80,20 @@ manualSyncModes.forEach((mode) => {
       await tb2.initialize();
       await tb2.modules[WEB_STORAGE_MODULE_NAME].inputShareFromWebStorage();
       const secondKey = await tb2.reconstructKey();
-      strictEqual(reconstructedKey.secp256k1Key.toString("hex"), secondKey.secp256k1Key.toString("hex"), "Must be equal");
+      strictEqual(reconstructedKey.secp256k1Key.toString(16), secondKey.secp256k1Key.toString(16), "Must be equal");
     });
 
     it(`#should be able to input share from web storage after external share deletion, manualSync=${mode}`, async function () {
       await tb._initializeNewKey({ initializeModules: true });
       const reconstructedKey = await tb.reconstructKey();
       const newShare = await tb.generateNewShare();
-      await tb.deleteShare(newShare.newShareIndex.toString("hex"));
+      await tb.deleteShare(newShare.newShareIndex);
       await tb.syncLocalMetadataTransitions();
 
       await tb2.initialize();
       await tb2.modules[WEB_STORAGE_MODULE_NAME].inputShareFromWebStorage();
       const secondKey = await tb2.reconstructKey();
-      strictEqual(reconstructedKey.secp256k1Key.toString("hex"), secondKey.secp256k1Key.toString("hex"), "Must be equal");
+      strictEqual(reconstructedKey.secp256k1Key.toString(16), secondKey.secp256k1Key.toString(16), "Must be equal");
     });
 
     it(`#should not be able to input share from web storage after deletion, manualSync=${mode}`, async function () {
@@ -101,7 +101,7 @@ manualSyncModes.forEach((mode) => {
       await tb.reconstructKey();
       // console.log("%O", tb.shares);
       await tb.generateNewShare();
-      await tb.deleteShare(resp1.deviceShare.share.shareIndex.toString("hex"));
+      await tb.deleteShare(resp1.deviceShare.share.shareIndex);
       await tb.syncLocalMetadataTransitions();
 
       // console.log("%O", tb.shares);
@@ -123,7 +123,7 @@ manualSyncModes.forEach((mode) => {
       const reconstructedKey = await tb.reconstructKey();
       // console.log("%O", tb.shares);
       const newShare = await tb.generateNewShare();
-      await tb.deleteShare(resp1.deviceShare.share.shareIndex.toString("hex"));
+      await tb.deleteShare(resp1.deviceShare.share.shareIndex);
       await tb.syncLocalMetadataTransitions();
 
       await tb2.initialize();
@@ -139,9 +139,9 @@ manualSyncModes.forEach((mode) => {
       );
 
       // console.log("%O", tb2.shares);
-      await tb2.inputShareStore(newShare.newShareStores[newShare.newShareIndex.toString("hex")]);
+      await tb2.inputShareStore(newShare.newShareStores[newShare.newShareIndex.toString(16)]);
       const secondKey = await tb2.reconstructKey();
-      strictEqual(reconstructedKey.secp256k1Key.toString("hex"), secondKey.secp256k1Key.toString("hex"), "Must be equal");
+      strictEqual(reconstructedKey.secp256k1Key.toString(16), secondKey.secp256k1Key.toString(16), "Must be equal");
     });
 
     it(`#should be able to add custom device share info, manualSync=${mode}`, async function () {
@@ -185,10 +185,10 @@ manualSyncModes.forEach((mode) => {
       const newDeviceShareInfo = {
         device_name: "my home's laptop",
       };
-      await tb2.modules[WEB_STORAGE_MODULE_NAME].storeDeviceShare(newShareStores1[newShareIndex1.toString("hex")], newDeviceShareInfo);
+      await tb2.modules[WEB_STORAGE_MODULE_NAME].storeDeviceShare(newShareStores1[newShareIndex1.toString(16)], newDeviceShareInfo);
       const deviceShareDesc3 = await tb2.metadata.getShareDescription();
       deepStrictEqual(
-        JSON.parse(JSON.parse(deviceShareDesc3[newShareIndex1.toString("hex")]).customDeviceInfo),
+        JSON.parse(JSON.parse(deviceShareDesc3[newShareIndex1.toString(16)]).customDeviceInfo),
         newDeviceShareInfo,
         "new device share info should be correct"
       );

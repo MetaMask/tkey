@@ -1,5 +1,4 @@
 import type { CustomAuthArgs } from "@toruslabs/customauth";
-import BN from "bn.js";
 
 import {
   Point,
@@ -14,16 +13,7 @@ import {
   ShareStoreMap,
   ShareStorePolyIDShareIndexMap,
 } from "../base";
-import {
-  BNString,
-  EncryptedMessage,
-  ISerializable,
-  IServiceProvider,
-  IStorageLayer,
-  PolyIDAndShares,
-  PolynomialID,
-  ShareDescriptionMap,
-} from "./commonTypes";
+import { EncryptedMessage, ISerializable, IServiceProvider, IStorageLayer, PolyIDAndShares, PolynomialID, ShareDescriptionMap } from "./commonTypes";
 
 export interface IModule {
   moduleName: string;
@@ -34,8 +24,6 @@ export interface IModule {
   initialize(): Promise<void>;
 }
 
-// @flow
-
 export type ModuleMap = {
   [moduleName: string]: IModule;
 };
@@ -45,12 +33,12 @@ export type RefreshMiddlewareMap = {
 };
 
 export type ReconstructKeyMiddlewareMap = {
-  [moduleName: string]: () => Promise<BN[]>;
+  [moduleName: string]: () => Promise<bigint[]>;
 };
 
 export type ShareSerializationMiddleware = {
-  serialize: (share: BN, type: string) => Promise<unknown>;
-  deserialize: (serializedShare: unknown, type: string) => Promise<BN>;
+  serialize: (share: bigint, type: string) => Promise<unknown>;
+  deserialize: (serializedShare: unknown, type: string) => Promise<bigint>;
 };
 
 export type FactorEncType = "direct" | "hierarchical";
@@ -97,7 +85,7 @@ export interface IMetadata extends ISerializable {
   setScopedStore(domain: string, data: unknown): void;
   getEncryptedShare(shareStore: ShareStore): Promise<ShareStore>;
   getShareDescription(): ShareDescriptionMap;
-  shareToShareStore(share: BN): ShareStore;
+  shareToShareStore(share: bigint): ShareStore;
   addShareDescription(shareIndex: string, description: string): void;
   deleteShareDescription(shareIndex: string, description: string): void;
   updateShareDescription(shareIndex: string, oldDescription: string, newDescription: string): void;
@@ -115,17 +103,17 @@ export interface IMetadata extends ISerializable {
 }
 
 export type InitializeNewKeyResult = {
-  secp256k1Key: BN;
-  ed25519Seed?: Buffer;
+  secp256k1Key: bigint;
+  ed25519Seed?: Uint8Array;
   deviceShare?: ShareStore;
   userShare?: ShareStore;
 };
 
 export type ReconstructedKeyResult = {
-  secp256k1Key: BN;
-  ed25519Seed?: Buffer;
-  seedPhrase?: BN[];
-  allKeys?: BN[];
+  secp256k1Key: bigint;
+  ed25519Seed?: Uint8Array;
+  seedPhrase?: bigint[];
+  allKeys?: bigint[];
 };
 export type MiddlewareExtraKeys = Omit<ReconstructedKeyResult, "secp256k1Key" | "ed25519Seed">;
 
@@ -136,7 +124,7 @@ export type CatchupToLatestShareResult = {
 
 export type GenerateNewShareResult = {
   newShareStores: ShareStoreMap;
-  newShareIndex: BN;
+  newShareIndex: bigint;
 };
 
 export type DeleteShareResult = {
@@ -167,9 +155,9 @@ export type TKeyArgs = {
 };
 
 export interface SecurityQuestionStoreArgs {
-  nonce: BNString;
+  nonce: bigint | string;
 
-  shareIndex: BNString;
+  shareIndex: bigint | string;
 
   sqPublicShare: PublicShare;
 
@@ -187,9 +175,10 @@ export interface TkeyStoreArgs {
 }
 
 export interface ShareTransferStorePointerArgs {
-  pointer: BNString;
+  pointer: bigint | string;
 }
 
+/** Legacy shape for Buffer when serialized (e.g. JSON). Used for migration-period compat when deserializing encPubKey. */
 export type BufferObj = {
   type: string;
   data: number[];
@@ -222,7 +211,7 @@ export type ISQAnswerStore = TkeyStoreItemType & {
 };
 
 export type ISeedPhraseStoreWithKeys = ISeedPhraseStore & {
-  keys: BN[];
+  keys: bigint[];
 };
 
 export type MetamaskSeedPhraseStore = ISeedPhraseStore & {
@@ -230,27 +219,27 @@ export type MetamaskSeedPhraseStore = ISeedPhraseStore & {
 };
 
 export type IPrivateKeyStore = TkeyStoreItemType & {
-  privateKey: BN;
+  privateKey: bigint;
   type: string;
 };
 
 export interface ISeedPhraseFormat {
   type: string;
   validateSeedPhrase(seedPhrase: string): boolean;
-  deriveKeysFromSeedPhrase(seedPhraseStore: ISeedPhraseStore): Promise<BN[]>;
+  deriveKeysFromSeedPhrase(seedPhraseStore: ISeedPhraseStore): Promise<bigint[]>;
   createSeedPhraseStore(seedPhrase?: string): Promise<ISeedPhraseStore>;
 }
 
 export interface IPrivateKeyFormat {
-  privateKey: BN;
+  privateKey: bigint;
   type: string;
-  validatePrivateKey(privateKey: BN): boolean;
-  createPrivateKeyStore(privateKey: BN): IPrivateKeyStore;
+  validatePrivateKey(privateKey: bigint): boolean;
+  createPrivateKeyStore(privateKey: bigint): IPrivateKeyStore;
 }
 
 export interface IAuthMetadata {
   metadata: IMetadata;
-  privKey?: BN;
+  privKey?: bigint;
 }
 
 export interface IMessageMetadata {
@@ -261,14 +250,14 @@ export interface IMessageMetadata {
 export type IAuthMetadatas = IAuthMetadata[];
 export type ShareStores = ShareStore[];
 export type IMessageMetadatas = IMessageMetadata[];
-export type LocalTransitionShares = BN[];
+export type LocalTransitionShares = bigint[];
 export type LocalTransitionData = (IAuthMetadata | IMessageMetadata | ShareStore)[];
 export type LocalMetadataTransitions = [LocalTransitionShares, LocalTransitionData];
 
 export interface ITKeyApi {
   getMetadata(): IMetadata;
   getStorageLayer(): IStorageLayer;
-  initialize(params: { input?: ShareStore; importKey?: BN; neverInitializeNewKey?: boolean }): Promise<KeyDetails>;
+  initialize(params: { input?: ShareStore; importKey?: bigint; neverInitializeNewKey?: boolean }): Promise<KeyDetails>;
   catchupToLatestShare(params: {
     shareStore: ShareStore;
     polyID?: string;
@@ -282,19 +271,19 @@ export interface ITKeyApi {
     moduleName: string,
     middleware: (generalStore: unknown, oldShareStores: ShareStoreMap, newShareStores: ShareStoreMap) => unknown
   ): void;
-  _addReconstructKeyMiddleware(moduleName: string, middleware: () => Promise<Array<BN>>): void;
+  _addReconstructKeyMiddleware(moduleName: string, middleware: () => Promise<Array<bigint>>): void;
   _addShareSerializationMiddleware(
-    serialize: (share: BN, type: string) => Promise<unknown>,
-    deserialize: (serializedShare: unknown, type: string) => Promise<BN>
+    serialize: (share: bigint, type: string) => Promise<unknown>,
+    deserialize: (serializedShare: unknown, type: string) => Promise<bigint>
   ): void;
   generateNewShare(): Promise<GenerateNewShareResult>;
-  outputShareStore(shareIndex: BNString, polyID?: string): ShareStore;
+  outputShareStore(shareIndex: bigint, polyID?: string): ShareStore;
   inputShare(share: unknown, type?: string): Promise<void>;
-  outputShare(shareIndex: BNString, type?: string): Promise<unknown>;
+  outputShare(shareIndex: bigint, type?: string): Promise<unknown>;
   inputShareStore(shareStore: ShareStore): void;
-  deleteShare(shareIndex: BNString): Promise<DeleteShareResult>;
-  encrypt(data: Buffer): Promise<EncryptedMessage>;
-  decrypt(encryptedMesage: EncryptedMessage): Promise<Buffer>;
+  deleteShare(shareIndex: bigint): Promise<DeleteShareResult>;
+  encrypt(data: Uint8Array): Promise<EncryptedMessage>;
+  decrypt(encryptedMesage: EncryptedMessage): Promise<Uint8Array>;
 
   getTKeyStoreItem(moduleName: string, id: string): Promise<TkeyStoreItemType>;
   getTKeyStore(moduleName: string): Promise<TkeyStoreItemType[]>;
@@ -311,9 +300,9 @@ export interface ITKey extends ITKeyApi, ISerializable {
 
   shares: ShareStorePolyIDShareIndexMap;
 
-  secp256k1Key: BN;
+  secp256k1Key: bigint;
 
-  ed25519Key: Buffer;
+  ed25519Key: Uint8Array;
 
   manualSync: boolean;
 
@@ -325,7 +314,7 @@ export interface ITKey extends ITKeyApi, ISerializable {
 
   _shareSerializationMiddleware: ShareSerializationMiddleware;
 
-  initialize(params: { input?: ShareStore; importKey?: BN; neverInitializeNewKey?: boolean }): Promise<KeyDetails>;
+  initialize(params: { input?: ShareStore; importKey?: bigint; neverInitializeNewKey?: boolean }): Promise<KeyDetails>;
 
   reconstructKey(): Promise<ReconstructedKeyResult>;
 
@@ -336,8 +325,8 @@ export interface ITKey extends ITKeyApi, ISerializable {
 
 export type TKeyInitArgs = {
   withShare?: ShareStore;
-  importKey?: BN;
-  importEd25519Seed?: Buffer;
+  importKey?: bigint;
+  importEd25519Seed?: Uint8Array;
   neverInitializeNewKey?: boolean;
   transitionMetadata?: IMetadata;
   previouslyFetchedCloudMetadata?: IMetadata;

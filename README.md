@@ -6,6 +6,8 @@
 
 tKey is the underlying SDK used to implement [Web3Auth Plug n Play](https://github.com/web3auth/web3auth). This package can also be used to self host Web3Auth in your own system. tKey stands for Threshold Key, which refers to the management keys & shares generated using threshold cryptography.
 
+> **v16 Breaking Change:** All cryptographic primitives have been migrated from `bn.js`/`elliptic`/`Buffer` to native `bigint`/`@noble/curves`/`Uint8Array`. See the [Migration Guide](#migration-guide) below.
+
 ## The `tKey` SDK
 
 The `tKey` SDK manages private keys by generating shares of it using Shamir Secret Sharing. For example, for a 2 out of 3 (2/3) setup, we give the
@@ -28,6 +30,8 @@ For more information, check out the [technical overview](https://hackmd.io/Tej2t
 - Typescript compatible. Includes Type definitions
 - Fully composable API
 - Module support (Include only those modules which you require)
+- Modern cryptography via [`@noble/curves`](https://github.com/paulmillr/noble-curves) (secp256k1, ed25519)
+- Zero dependency on `Buffer` — uses native `Uint8Array`
 - [Audited](https://github.com/tkey/audit)
 
 ## Packages
@@ -40,7 +44,7 @@ For more information, check out the [technical overview](https://hackmd.io/Tej2t
 | `@tkey/core`                   | [![npm version](https://img.shields.io/npm/v/@tkey/core?label=%22%22)](https://www.npmjs.com/package/@tkey/core/v/latest)                                     | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/core?label=%22%22)](https://bundlephobia.com/result?p=@tkey/core@latest)                                     | Core functionalities for creating a tkey                        |
 | 🐕‍🦺 **Service Provider**        |
 | `@tkey/service-provider-torus` | [![npm version](https://img.shields.io/npm/v/@tkey/service-provider-torus?label=%22%22)](https://www.npmjs.com/package/@tkey/service-provider-torus/v/latest) | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/service-provider-torus?label=%22%22)](https://bundlephobia.com/result?p=@tkey/service-provider-torus@latest) | `@service-provider-base` with DirectAuth functionality          |
-| 🗳 **Storage Layer**            |
+| 🗳 **Storage Layer**           |
 | `@tkey/storage-layer-torus`    | [![npm version](https://img.shields.io/npm/v/@tkey/storage-layer-torus?label=%22%22)](https://www.npmjs.com/package/@tkey/storage-layer-torus/v/latest)       | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/storage-layer-torus?label=%22%22)](https://bundlephobia.com/result?p=@tkey/storage-layer-torus@latest)       | get/set metadata for various shares                             |
 | 🔌 **Modules**                 |
 | `@tkey/chrome-storage`         | [![npm version](https://img.shields.io/npm/v/@tkey/chrome-storage?label=%22%22)](https://www.npmjs.com/package/@tkey/chrome-storage/v/latest)                 | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/chrome-storage?label=%22%22)](https://bundlephobia.com/result?p=@tkey/chrome-storage@latest)                 | Add/remove a share from chrome extension storage                |
@@ -53,12 +57,37 @@ For more information, check out the [technical overview](https://hackmd.io/Tej2t
 | 🐉 **Low-Level**               |
 | `@tkey/common-types`           | [![npm version](https://img.shields.io/npm/v/@tkey/common-types?label=%22%22)](https://www.npmjs.com/package/@tkey/common-types/v/latest)                     | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/common-types?label=%22%22)](https://bundlephobia.com/result?p=@tkey/common-types@latest)                     | Shared [TypeScript](https://www.typescriptlang.org/) Types      |
 
+## Migration Guide
+
+### v16: `bigint` / `@noble/curves` / `Uint8Array`
+
+v16 removes all legacy cryptography dependencies in favor of modern, audited alternatives:
+
+| Before                    | After                     |
+| ------------------------- | ------------------------- |
+| `bn.js` (`BN`)            | Native `bigint`           |
+| `elliptic`                | `@noble/curves/secp256k1` |
+| `@toruslabs/tweetnacl-js` | `@noble/curves/ed25519`   |
+| `Buffer`                  | `Uint8Array`              |
+
+**What you need to change:**
+
+- **Private keys and share values** are now `bigint` instead of `BN`. Replace `new BN(hex, 16)` with `BigInt(\`0x${hex}\`)`.
+- **Public keys and encrypted data** are now `Uint8Array` instead of `Buffer`. Use `hexToBytes` / `bytesToHex` from `@toruslabs/metadata-helpers` for conversions.
+- **`BNString` type** has been removed. APIs now use `bigint` directly (was `BN | string`).
+- **JSON serialization** of objects containing `bigint` requires the `bigIntReplacer` from `@tkey/common-types`:
+  ```js
+  import { bigIntReplacer } from "@tkey/common-types";
+  JSON.stringify(thresholdKey, bigIntReplacer);
+  ```
+- **`@tkey/tss`** has been removed from this package and will be migrated separately.
+
 ## Building the SDK Locally
 
 ### Requirements
 
 - This package requires a peer dependency of `@babel/runtime`
-- Node 18+
+- Node 22+
 
 ### Installation
 

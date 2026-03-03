@@ -1,6 +1,5 @@
 import { CustomError } from "ts-custom-error";
 
-// @flow
 export interface ITkeyError extends CustomError {
   name: string;
   code: number;

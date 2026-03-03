@@ -29,18 +29,18 @@ export default class ChromeExtensionStorageModule implements IModule {
     if (customDeviceInfo) {
       shareDescription.customDeviceInfo = JSON.stringify(customDeviceInfo);
     }
-    await this.tbSDK.addShareDescription(deviceShareStore.share.shareIndex.toString("hex"), JSON.stringify(shareDescription), true);
+    await this.tbSDK.addShareDescription(deviceShareStore.share.shareIndex.toString(16), JSON.stringify(shareDescription), true);
   }
 
   async storeShareOnChromeExtensionStorage(share: ShareStore): Promise<void> {
     const metadata = this.tbSDK.getMetadata();
-    const key = metadata.pubKey.x.toString("hex"); // tbkey public
+    const key = metadata.pubKey.x.toString(16); // tbkey public
     return storage.sync.set({ [key]: JSON.stringify(share) });
   }
 
   async getStoreFromChromeExtensionStorage(): Promise<ShareStore> {
     const metadata = this.tbSDK.getMetadata();
-    const key = metadata.pubKey.x.toString("hex"); // tbkey public
+    const key = metadata.pubKey.x.toString(16); // tbkey public
     const result = await storage.sync.get(key);
     const verifierIdObj: ShareStore = JSON.parse(result[key] as string);
     await this.tbSDK.inputShareStoreSafe(verifierIdObj);

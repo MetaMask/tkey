@@ -21,4 +21,10 @@ export default [
       },
     },
   },
+  {
+    files: ["test/**/*.test.js", "test/**/*.test.ts"],
+    rules: {
+      "import/no-extraneous-dependencies": "off",
+    },
+  },
 ];
