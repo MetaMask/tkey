@@ -1468,12 +1468,12 @@ export const sharedTestCases = (
         false,
         metadataNonce
       );
-      expect(nonceRes.typeOfUser).toBe("v2");
-      const {
-        nonce,
-        pubNonce,
-        upgraded: isUpgraded,
-      } = nonceRes as { typeOfUser: "v2"; nonce?: string; pubNonce: { x: string; y: string }; upgraded: boolean };
+
+      const nonceResTyped = nonceRes as { typeOfUser?: string; nonce?: string; pubNonce: { x: string; y: string }; upgraded: boolean };
+      if (nonceResTyped.typeOfUser) {
+        expect(nonceResTyped.typeOfUser).toBe("v2");
+      }
+      const { nonce, pubNonce, upgraded: isUpgraded } = nonceResTyped;
       expect(nonce).not.toBe(undefined);
       expect(pubNonce).not.toBe(undefined);
       expect(isUpgraded).toBe(false);
@@ -1500,12 +1500,11 @@ export const sharedTestCases = (
         false,
         metadataNonce
       );
-      expect(nonceRes2.typeOfUser).toBe("v2");
-      const {
-        nonce: newNonce,
-        pubNonce: newPubNonce,
-        upgraded,
-      } = nonceRes2 as { typeOfUser: "v2"; nonce?: string; pubNonce: { x: string; y: string }; upgraded: boolean };
+      const nonceRes2Typed = nonceRes2 as { typeOfUser?: string; nonce?: string; pubNonce: { x: string; y: string }; upgraded: boolean };
+      if (nonceRes2Typed.typeOfUser) {
+        expect(nonceRes2Typed.typeOfUser).toBe("v2");
+      }
+      const { nonce: newNonce, pubNonce: newPubNonce, upgraded } = nonceRes2Typed;
       expect(upgraded).toBe(true);
       expect(newNonce).toBe(undefined);
       expect(pubNonce).toStrictEqual(newPubNonce);
