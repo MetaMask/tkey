@@ -22,9 +22,12 @@ export default [
     },
   },
   {
-    files: ["test/**/*.test.js", "test/**/*.test.ts"],
+    files: ["test/**/*.js", "test/**/*.ts", "test/**/*.mts", "**/test/**/*.js", "**/test/**/*.ts", "**/test/**/*.mts"],
     rules: {
       "import/no-extraneous-dependencies": "off",
+      "prefer-arrow-callback": "off",
+      "func-names": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
     },
   },
 ];

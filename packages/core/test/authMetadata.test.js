@@ -1,6 +1,5 @@
 import { bytesToHex } from "@noble/curves/utils.js";
 import { bigIntReplacer, generatePrivate, generatePrivateExcludingIndexes, getPubKeyPoint } from "@tkey/common-types";
-import { deepStrictEqual, throws } from "assert";
 import stringify from "json-stable-stringify";
 
 import { AuthMetadata, generateRandomPolynomial, Metadata } from "../src/index";
@@ -85,7 +84,7 @@ describe("AuthMetadata", function () {
     const stringified = stringify(a);
     const metadataSerialized = Metadata.fromJSON(JSON.parse(stringify(metadata)));
     const final = AuthMetadata.fromJSON(JSON.parse(stringified));
-    deepStrictEqual(final.metadata, metadataSerialized, "Must be equal");
+    expect(final.metadata).toStrictEqual(metadataSerialized);
   });
 
   it("#should round-trip: stringify -> parse -> fromJSON preserves metadata fields", function () {
@@ -94,10 +93,10 @@ describe("AuthMetadata", function () {
     const auth = new AuthMetadata(metadata, privKeyBN);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
     const restored = AuthMetadata.fromJSON(parsed);
-    deepStrictEqual(restored.metadata.pubKey.x, metadata.pubKey.x, "pubKey.x must match");
-    deepStrictEqual(restored.metadata.pubKey.y, metadata.pubKey.y, "pubKey.y must match");
-    deepStrictEqual(restored.metadata.nonce, metadata.nonce, "nonce must match");
-    deepStrictEqual(restored.metadata.generalStore, metadata.generalStore, "generalStore must match");
+    expect(restored.metadata.pubKey.x).toStrictEqual(metadata.pubKey.x);
+    expect(restored.metadata.pubKey.y).toStrictEqual(metadata.pubKey.y);
+    expect(restored.metadata.nonce).toStrictEqual(metadata.nonce);
+    expect(restored.metadata.generalStore).toStrictEqual(metadata.generalStore);
   });
 
   it("#should round-trip multiple times without corruption", function () {
@@ -112,10 +111,8 @@ describe("AuthMetadata", function () {
     const parsed2 = JSON.parse(stringify(auth2, { replacer: bigIntReplacer }));
     const restored2 = AuthMetadata.fromJSON(parsed2);
 
-    deepStrictEqual(
-      stringify(restored1.metadata, { replacer: bigIntReplacer }),
-      stringify(restored2.metadata, { replacer: bigIntReplacer }),
-      "double round-trip must be stable"
+    expect(stringify(restored1.metadata, { replacer: bigIntReplacer })).toStrictEqual(
+      stringify(restored2.metadata, { replacer: bigIntReplacer })
     );
   });
 
@@ -125,7 +122,7 @@ describe("AuthMetadata", function () {
     const auth = new AuthMetadata(metadata, privKeyBN);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
     parsed.sig = parsed.sig.slice(0, -2) + "00";
-    throws(() => AuthMetadata.fromJSON(parsed), /not valid|invalid/i, "tampered sig must be rejected");
+    expect(() => AuthMetadata.fromJSON(parsed)).toThrow(/not valid|invalid/i);
   });
 
   it("#should reject signature from wrong key", function () {
@@ -134,19 +131,19 @@ describe("AuthMetadata", function () {
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata, otherKey);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
-    throws(() => AuthMetadata.fromJSON(parsed), /not valid|invalid/i, "wrong key sig must be rejected");
+    expect(() => AuthMetadata.fromJSON(parsed)).toThrow(/not valid|invalid/i);
   });
 
   it("#should throw when toJSON called without privKey", function () {
     const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata);
-    throws(() => auth.toJSON(), /privkey unavailable/i, "toJSON without privKey must throw");
+    expect(() => auth.toJSON()).toThrow(/privkey unavailable/i);
   });
 
   it("#should throw when fromJSON called with missing data", function () {
-    throws(() => AuthMetadata.fromJSON({}), /metadata/i, "missing data must throw");
-    throws(() => AuthMetadata.fromJSON({ data: null }), /metadata/i, "null data must throw");
+    expect(() => AuthMetadata.fromJSON({})).toThrow(/metadata/i);
+    expect(() => AuthMetadata.fromJSON({ data: null })).toThrow(/metadata/i);
   });
 
   it("#should preserve polyIDList through round-trip", function () {
@@ -155,10 +152,10 @@ describe("AuthMetadata", function () {
     const auth = new AuthMetadata(metadata, privKeyBN);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
     const restored = AuthMetadata.fromJSON(parsed);
-    deepStrictEqual(restored.metadata.polyIDList.length, metadata.polyIDList.length, "polyIDList length must match");
+    expect(restored.metadata.polyIDList.length).toStrictEqual(metadata.polyIDList.length);
     for (let i = 0; i < metadata.polyIDList.length; i++) {
-      deepStrictEqual(restored.metadata.polyIDList[i][0], metadata.polyIDList[i][0], `polyID[${i}] must match`);
-      deepStrictEqual(restored.metadata.polyIDList[i][1].sort(), metadata.polyIDList[i][1].sort(), `shareIndexes[${i}] must match`);
+      expect(restored.metadata.polyIDList[i][0]).toStrictEqual(metadata.polyIDList[i][0]);
+      expect(restored.metadata.polyIDList[i][1].sort()).toStrictEqual(metadata.polyIDList[i][1].sort());
     }
   });
 
@@ -169,16 +166,16 @@ describe("AuthMetadata", function () {
     const jsonStr = stringify(auth, { replacer: bigIntReplacer });
     const parsed = JSON.parse(jsonStr);
     const restored = AuthMetadata.fromJSON(parsed);
-    deepStrictEqual(restored.metadata.pubKey.x, metadata.pubKey.x, "pubKey.x must survive bigIntReplacer");
+    expect(restored.metadata.pubKey.x).toStrictEqual(metadata.pubKey.x);
   });
 
   it("#should load old-format toJSON snapshots via fromJSON (backward compat)", function () {
     for (const fixture of OLD_FORMAT_FIXTURES) {
       const restored = AuthMetadata.fromJSON(fixture);
       const restoredPubKeyHex = bytesToHex(restored.metadata.pubKey.toSEC1(true));
-      deepStrictEqual(restoredPubKeyHex, fixture.data.pubKey, "pubKey must match");
-      deepStrictEqual(restored.metadata.generalStore, fixture.data.generalStore ?? {}, "generalStore must match");
-      deepStrictEqual(restored.metadata.nonce, fixture.data.nonce ?? 0, "nonce must match");
+      expect(restoredPubKeyHex).toStrictEqual(fixture.data.pubKey);
+      expect(restored.metadata.generalStore).toStrictEqual(fixture.data.generalStore ?? {});
+      expect(restored.metadata.nonce).toStrictEqual(fixture.data.nonce ?? 0);
       if (restored.metadata.polyIDList.length < 1) throw new Error("polyIDList must not be empty");
     }
   });
@@ -209,8 +206,8 @@ describe("AuthMetadata", function () {
     for (let i = 0; i < snapshots.length; i++) {
       const { serialized, originalPubX, originalStore } = snapshots[i];
       const restored = AuthMetadata.fromJSON(serialized);
-      deepStrictEqual(restored.metadata.pubKey.x, originalPubX, `snapshot[${i}] pubKey.x must match`);
-      deepStrictEqual(restored.metadata.generalStore, originalStore, `snapshot[${i}] generalStore must match`);
+      expect(restored.metadata.pubKey.x).toStrictEqual(originalPubX);
+      expect(restored.metadata.generalStore).toStrictEqual(originalStore);
     }
   });
 });

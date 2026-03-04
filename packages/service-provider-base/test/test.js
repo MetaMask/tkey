@@ -1,5 +1,4 @@
 import { hexToBytes } from "@toruslabs/metadata-helpers";
-import { deepStrictEqual } from "assert";
 
 import ServiceProviderBase from "../src/ServiceProviderBase";
 
@@ -13,7 +12,7 @@ describe("ServiceProvider", function () {
     const tsp = new ServiceProviderBase({ postboxKey: privKey });
     const encDeets = await tsp.encrypt(message);
     const result = await tsp.decrypt(encDeets);
-    deepStrictEqual(result, message, "encrypted and decrypted message should be equal");
+    expect(result).toStrictEqual(message);
   });
 
   it("#should encrypt and decrypt correctly messages > 15", async function () {
@@ -23,6 +22,6 @@ describe("ServiceProvider", function () {
     const tsp = new ServiceProviderBase({ postboxKey: privKey });
     const encDeets = await tsp.encrypt(message);
     const result = await tsp.decrypt(encDeets);
-    deepStrictEqual(result, message, "encrypted and decrypted message should be equal");
+    expect(result).toStrictEqual(message);
   });
 });

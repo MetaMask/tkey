@@ -1,21 +1,11 @@
 import { TKey as ThresholdKey } from "@tkey/core";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { MockStorageLayer, TorusStorageLayer } from "@tkey/storage-layer-torus";
-import { deepStrictEqual, strictEqual, throws } from "assert";
 
 import WebStorageModule, { WEB_STORAGE_MODULE_NAME } from "../src/WebStorageModule";
 
-const rejects = async (fn, error, msg) => {
-  let f = () => {};
-  try {
-    await fn();
-  } catch (e) {
-    f = () => {
-      throw e;
-    };
-  } finally {
-    throws(f, error, msg);
-  }
+const rejects = async (fn) => {
+  await expect(fn()).rejects.toThrow();
 };
 
 function initStorageLayer(mocked, extraParams) {
@@ -44,7 +34,7 @@ manualSyncModes.forEach((mode) => {
     let tb;
     let tb2;
 
-    beforeEach("Setup ThresholdKey", async function () {
+    beforeEach(async function () {
       tb = new ThresholdKey({
         serviceProvider: defaultSP,
         storageLayer: defaultSL,
@@ -67,7 +57,7 @@ manualSyncModes.forEach((mode) => {
       await tb2.initialize();
       await tb2.modules[WEB_STORAGE_MODULE_NAME].inputShareFromWebStorage();
       const secondKey = await tb2.reconstructKey();
-      deepStrictEqual(secondKey, reconstructedKey, "Must be equal");
+      expect(secondKey).toStrictEqual(reconstructedKey);
     });
 
     it(`#should be able to input share from web storage after reconstruction, manualSync=${mode}`, async function () {
@@ -80,7 +70,7 @@ manualSyncModes.forEach((mode) => {
       await tb2.initialize();
       await tb2.modules[WEB_STORAGE_MODULE_NAME].inputShareFromWebStorage();
       const secondKey = await tb2.reconstructKey();
-      strictEqual(reconstructedKey.secp256k1Key.toString(16), secondKey.secp256k1Key.toString(16), "Must be equal");
+      expect(reconstructedKey.secp256k1Key.toString(16)).toBe(secondKey.secp256k1Key.toString(16));
     });
 
     it(`#should be able to input share from web storage after external share deletion, manualSync=${mode}`, async function () {
@@ -93,7 +83,7 @@ manualSyncModes.forEach((mode) => {
       await tb2.initialize();
       await tb2.modules[WEB_STORAGE_MODULE_NAME].inputShareFromWebStorage();
       const secondKey = await tb2.reconstructKey();
-      strictEqual(reconstructedKey.secp256k1Key.toString(16), secondKey.secp256k1Key.toString(16), "Must be equal");
+      expect(reconstructedKey.secp256k1Key.toString(16)).toBe(secondKey.secp256k1Key.toString(16));
     });
 
     it(`#should not be able to input share from web storage after deletion, manualSync=${mode}`, async function () {
@@ -141,7 +131,7 @@ manualSyncModes.forEach((mode) => {
       // console.log("%O", tb2.shares);
       await tb2.inputShareStore(newShare.newShareStores[newShare.newShareIndex.toString(16)]);
       const secondKey = await tb2.reconstructKey();
-      strictEqual(reconstructedKey.secp256k1Key.toString(16), secondKey.secp256k1Key.toString(16), "Must be equal");
+      expect(reconstructedKey.secp256k1Key.toString(16)).toBe(secondKey.secp256k1Key.toString(16));
     });
 
     it(`#should be able to add custom device share info, manualSync=${mode}`, async function () {
@@ -153,7 +143,7 @@ manualSyncModes.forEach((mode) => {
       const shareDesc = await tb.metadata.getShareDescription();
       const deviceShareIndex = Object.keys(shareDesc)[0];
 
-      deepStrictEqual(JSON.parse(shareDesc[deviceShareIndex][0]).customDeviceInfo, undefined, "device info should be correct");
+      expect(JSON.parse(shareDesc[deviceShareIndex][0]).customDeviceInfo).toBeUndefined();
       const updatedDeviceShareInfo = {
         browser: "brave",
       };
@@ -162,11 +152,7 @@ manualSyncModes.forEach((mode) => {
       const newShareDesc = { ...JSON.parse(shareDesc[deviceShareIndex]), customDeviceInfo: JSON.stringify(updatedDeviceShareInfo) };
       await tb.updateShareDescription(deviceShareIndex, oldShareDesc[0], JSON.stringify(newShareDesc), true);
       const updatedShareDescs = await tb.metadata.getShareDescription();
-      deepStrictEqual(
-        JSON.parse(JSON.parse(updatedShareDescs[deviceShareIndex][0]).customDeviceInfo),
-        updatedDeviceShareInfo,
-        "updated custom device info should be correct"
-      );
+      expect(JSON.parse(JSON.parse(updatedShareDescs[deviceShareIndex][0]).customDeviceInfo)).toStrictEqual(updatedDeviceShareInfo);
 
       await tb.syncLocalMetadataTransitions();
 
@@ -174,12 +160,8 @@ manualSyncModes.forEach((mode) => {
       await tb2.modules[WEB_STORAGE_MODULE_NAME].inputShareFromWebStorage();
       const secondKey = await tb2.reconstructKey();
       const deviceShareDesc2 = await tb2.metadata.getShareDescription();
-      deepStrictEqual(secondKey, reconstructedKey, "Must be equal");
-      deepStrictEqual(
-        JSON.parse(JSON.parse(deviceShareDesc2[Object.keys(deviceShareDesc2)[0]]).customDeviceInfo),
-        updatedDeviceShareInfo,
-        "device info should be correct"
-      );
+      expect(secondKey).toStrictEqual(reconstructedKey);
+      expect(JSON.parse(JSON.parse(deviceShareDesc2[Object.keys(deviceShareDesc2)[0]]).customDeviceInfo)).toStrictEqual(updatedDeviceShareInfo);
 
       const { newShareStores: newShareStores1, newShareIndex: newShareIndex1 } = await tb2.generateNewShare();
       const newDeviceShareInfo = {
@@ -187,11 +169,7 @@ manualSyncModes.forEach((mode) => {
       };
       await tb2.modules[WEB_STORAGE_MODULE_NAME].storeDeviceShare(newShareStores1[newShareIndex1.toString(16)], newDeviceShareInfo);
       const deviceShareDesc3 = await tb2.metadata.getShareDescription();
-      deepStrictEqual(
-        JSON.parse(JSON.parse(deviceShareDesc3[newShareIndex1.toString(16)]).customDeviceInfo),
-        newDeviceShareInfo,
-        "new device share info should be correct"
-      );
+      expect(JSON.parse(JSON.parse(deviceShareDesc3[newShareIndex1.toString(16)]).customDeviceInfo)).toStrictEqual(newDeviceShareInfo);
     });
   });
 });
