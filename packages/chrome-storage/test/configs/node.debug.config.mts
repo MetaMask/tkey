@@ -12,8 +12,5 @@ export default defineConfig({
     environment: "node",
     include: ["**/*.test.ts"],
     passWithNoTests: true,
-    env: {
-      MOCKED: "true",
-    },
   },
 });

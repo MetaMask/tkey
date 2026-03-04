@@ -13,7 +13,8 @@ export default defineConfig({
     include: ["**/*.test.ts"],
     passWithNoTests: true,
     env: {
-      MOCKED: "true",
+      MOCKED: "false",
+      METADATA: "https://metadata.web3auth.io",
     },
   },
 });
