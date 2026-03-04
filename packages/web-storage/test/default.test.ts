@@ -22,7 +22,8 @@ function randomPrivateKey(): string {
 
 /** Test-only: call private _initializeNewKey (bypass visibility for setup). */
 function initializeNewKey(t: InstanceType<typeof ThresholdKey>, opts?: { initializeModules?: boolean }) {
-  return (t as unknown as { _initializeNewKey(opts?: typeof opts): Promise<unknown> })._initializeNewKey(opts);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (t as unknown as { _initializeNewKey(opts?: any): Promise<unknown> })._initializeNewKey(opts);
 }
 
 const manualSyncModes = [true, false];
@@ -90,6 +91,7 @@ manualSyncModes.forEach((mode) => {
       const resp1 = await initializeNewKey(tb, { initializeModules: true });
       await tb.reconstructKey();
       await tb.generateNewShare();
+      // @ts-expect-error - deviceShare is not typed
       await tb.deleteShare(resp1.deviceShare.share.shareIndex);
       await tb.syncLocalMetadataTransitions();
 
@@ -106,6 +108,7 @@ manualSyncModes.forEach((mode) => {
       const resp1 = await initializeNewKey(tb, { initializeModules: true });
       const reconstructedKey = await tb.reconstructKey();
       const newShare = await tb.generateNewShare();
+      // @ts-expect-error - deviceShare is not typed
       await tb.deleteShare(resp1.deviceShare.share.shareIndex);
       await tb.syncLocalMetadataTransitions();
 
@@ -133,14 +136,13 @@ manualSyncModes.forEach((mode) => {
       const updatedDeviceShareInfo = { browser: "brave" };
       const oldShareDesc = shareDesc[deviceShareIndex];
       const newShareDesc = {
+        // @ts-expect-error - shareDesc is not typed
         ...JSON.parse(shareDesc[deviceShareIndex]),
         customDeviceInfo: JSON.stringify(updatedDeviceShareInfo),
       };
       await tb.updateShareDescription(deviceShareIndex, oldShareDesc[0], JSON.stringify(newShareDesc), true);
       const updatedShareDescs = await tb.metadata.getShareDescription();
-      expect(JSON.parse(JSON.parse(updatedShareDescs[deviceShareIndex][0]).customDeviceInfo)).toStrictEqual(
-        updatedDeviceShareInfo
-      );
+      expect(JSON.parse(JSON.parse(updatedShareDescs[deviceShareIndex][0]).customDeviceInfo)).toStrictEqual(updatedDeviceShareInfo);
 
       await tb.syncLocalMetadataTransitions();
 
@@ -149,9 +151,8 @@ manualSyncModes.forEach((mode) => {
       const secondKey = await tb2.reconstructKey();
       const deviceShareDesc2 = await tb2.metadata.getShareDescription();
       expect(secondKey).toStrictEqual(reconstructedKey);
-      expect(
-        JSON.parse(JSON.parse(deviceShareDesc2[Object.keys(deviceShareDesc2)[0]]).customDeviceInfo)
-      ).toStrictEqual(updatedDeviceShareInfo);
+      // @ts-expect-error - deviceShareDesc2 is not typed
+      expect(JSON.parse(JSON.parse(deviceShareDesc2[Object.keys(deviceShareDesc2)[0]]).customDeviceInfo)).toStrictEqual(updatedDeviceShareInfo);
 
       const { newShareStores: newShareStores1, newShareIndex: newShareIndex1 } = await tb2.generateNewShare();
       const newDeviceShareInfo = { device_name: "my home's laptop" };
@@ -160,9 +161,8 @@ manualSyncModes.forEach((mode) => {
         newDeviceShareInfo
       );
       const deviceShareDesc3 = await tb2.metadata.getShareDescription();
-      expect(
-        JSON.parse(JSON.parse(deviceShareDesc3[newShareIndex1.toString(16)]).customDeviceInfo)
-      ).toStrictEqual(newDeviceShareInfo);
+      // @ts-expect-error - deviceShareDesc3 is not typed
+      expect(JSON.parse(JSON.parse(deviceShareDesc3[newShareIndex1.toString(16)]).customDeviceInfo)).toStrictEqual(newDeviceShareInfo);
     });
   });
 });
