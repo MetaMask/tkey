@@ -27,6 +27,15 @@ jobs:
       - name: Build & Lint
         run: npm run build && npm run lint
 
+      - name: Install playwright
+        run: npx playwright install
+
+      - name: Install webkit
+        run: npx playwright install-deps webkit
+
+      - name: Install browser dependencies
+        run: npx playwright install
+
       - name: Test Development
         run: npm run test
         env:
