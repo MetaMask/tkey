@@ -1,4 +1,5 @@
 import { hexToBytes } from "@toruslabs/metadata-helpers";
+import { describe, expect, it } from "vitest";
 
 import ServiceProviderBase from "../src/ServiceProviderBase";
 

@@ -22,5 +22,8 @@ export default defineConfig({
       provider: "istanbul",
       include: ["src/**/*.ts"],
     },
+    env: {
+      MOCKED: "true",
+    },
   },
 });

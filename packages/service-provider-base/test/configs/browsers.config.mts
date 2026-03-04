@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     reporters: "verbose",
-    include: ["test/**/*.js"],
+    include: ["test/**/*.test.ts"],
     browser: {
       screenshotFailures: false,
       headless: true,
@@ -16,6 +16,14 @@ export default defineConfig({
         { name: "Firefox", browser: "firefox" },
         { name: "Safari", browser: "webkit" },
       ],
+    },
+    coverage: {
+      reporter: ["text"],
+      provider: "istanbul",
+      include: ["src/**/*.ts"],
+    },
+    env: {
+      MOCKED: "true",
     },
   },
 });

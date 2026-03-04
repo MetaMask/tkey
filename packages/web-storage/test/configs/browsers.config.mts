@@ -5,8 +5,7 @@ export default defineConfig({
   test: {
     globals: true,
     reporters: "verbose",
-    environment: "node",
-    include: ["test/**/*.js"],
+    include: ["test/**/*.test.ts"],
     browser: {
       screenshotFailures: false,
       headless: true,
@@ -18,9 +17,17 @@ export default defineConfig({
         { name: "Safari", browser: "webkit" },
       ],
     },
+    coverage: {
+      reporter: ["text"],
+      provider: "istanbul",
+      include: ["src/**/*.ts"],
+    },
+    env: {
+      MOCKED: "true",
+    },
   },
   define: {
-    "process.env.MOCKED": JSON.stringify(process.env.MOCKED ?? "false"),
-    "process.env.METADATA": JSON.stringify(process.env.METADATA ?? ""),
+    "process.env.MOCKED": JSON.stringify("true"),
+    "process.env.METADATA": JSON.stringify("http://localhost:5051"),
   },
 });

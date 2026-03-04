@@ -23,5 +23,11 @@ export default defineConfig({
       provider: "istanbul",
       include: ["src/**/*.ts"],
     },
+    env: {
+      MOCKED: "true",
+    },
+  },
+  define: {
+    "process.env.MOCKED": JSON.stringify("true"),
   },
 });

@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import { ShareSerializationModule } from "../src/index";
 
 describe("Share serialization", function () {
