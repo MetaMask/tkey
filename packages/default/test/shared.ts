@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-
+import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { bigIntReplacer, getPubKeyPoint, KEY_NOT_FOUND, secp256k1, SHARE_DELETED, ShareStore } from "@tkey/common-types";
 import { Metadata } from "@tkey/core";
 import { ED25519Format, PrivateKeyModule, SECP256K1Format } from "@tkey/private-keys";
@@ -13,10 +12,9 @@ import { generatePrivate } from "@toruslabs/eccrypto";
 import { post } from "@toruslabs/http-helpers";
 import { bytesToHex, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import { getOrSetNonce, keccak256 } from "@toruslabs/torus.js";
-import { describe, it, beforeEach, beforeAll, afterEach, expect, vi } from "vitest";
-import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { createPublicClient, http } from "viem";
 import { mainnet } from "viem/chains";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 function createEthProvider(rpcUrl: string) {
   const client = createPublicClient({ chain: mainnet, transport: http(rpcUrl) });
@@ -27,10 +25,7 @@ import { TKeyDefault as ThresholdKey } from "../src/index";
 import { ed25519Tests } from "./ed25519/ed25519";
 import { getMetadataUrl, getServiceProvider, initStorageLayer, isMocked } from "./helpers";
 
-const rejects = async (
-  fn: () => Promise<unknown>,
-  errorOrPredicate?: (err: unknown) => boolean | (new () => Error)
-) => {
+const rejects = async (fn: () => Promise<unknown>, errorOrPredicate?: (err: unknown) => boolean | (new () => Error)) => {
   try {
     await fn();
     expect.fail("should have thrown");
@@ -94,9 +89,7 @@ export const sharedTestCases = (
       await tb2.initialize();
       const reconstructedKey = await tb2.reconstructKey();
       await tb2.syncLocalMetadataTransitions();
-      if (tb2.secp256k1Key !== reconstructedKey.secp256k1Key) {
-        expect.fail("key should be able to be reconstructed");
-      }
+      expect(tb2.secp256k1Key).toBe(reconstructedKey.secp256k1Key);
     });
 
     it(`#should be able to reconstruct key when initializing a key, manualSync=${mode}`, async function () {
@@ -152,9 +145,7 @@ export const sharedTestCases = (
       await tb2.initialize({ withShare: resp1.userShare });
       await tb2.inputShareStoreSafe(resp1.deviceShare);
       const reconstructedKey = await tb2.reconstructKey();
-      if (resp1.secp256k1Key !== reconstructedKey.secp256k1Key) {
-        expect.fail("key should be able to be reconstructed");
-      }
+      expect(resp1.secp256k1Key).toBe(reconstructedKey.secp256k1Key);
     });
 
     it(`#should be able to reconstruct key after refresh and initializing with a share, manualSync=${mode}`, async function () {
@@ -169,9 +160,7 @@ export const sharedTestCases = (
       await tb2.inputShareStoreSafe(newShares.newShareStores[newShares.newShareIndex.toString(16)]);
       const reconstructedKey = await tb2.reconstructKey();
       // compareBNArray(resp1.secp256k1Key, reconstructedKey, "key should be able to be reconstructed");
-      if (resp1.secp256k1Key !== reconstructedKey.secp256k1Key) {
-        expect.fail("key should be able to be reconstructed");
-      }
+      expect(resp1.secp256k1Key).toBe(reconstructedKey.secp256k1Key);
     });
 
     it(`#should be able to reconstruct key after refresh and initializing with service provider, manualSync=${mode}`, async function () {
@@ -1025,9 +1014,7 @@ export const sharedTestCases = (
       expect(returnedSeed[0].seedPhrase).toBe(seedPhraseToSet);
       expect(returnedSeed[1].seedPhrase).toBe(seedPhraseToSet2);
 
-      const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(
-        createEthProvider(process.env.TEST_RPC_TARGET)
-      );
+      const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(createEthProvider(process.env.TEST_RPC_TARGET));
       const tb2 = new ThresholdKey({
         serviceProvider: customSP,
         manualSync: mode,
@@ -1114,9 +1101,7 @@ export const sharedTestCases = (
       const actualPrivateKeys = [
         BigInt("0x4bd0041b7654a9b16a7268a5de7982f2422b15635c4fd170c140dc4897624390"),
         BigInt("0x1ea6edde61c750ec02896e9ac7fe9ac0b48a3630594fdf52ad5305470a2635c0"),
-        BigInt(
-          "0x7a3118ccdd405b2750271f51cc8fe237d9863584173aec3fa4579d40e5b4951215351c3d54ef416e49567b79c42fd985fcda60a6da9a794e4e844ac8dec47e98"
-        ),
+        BigInt("0x7a3118ccdd405b2750271f51cc8fe237d9863584173aec3fa4579d40e5b4951215351c3d54ef416e49567b79c42fd985fcda60a6da9a794e4e844ac8dec47e98"),
       ];
       await tb.modules.privateKeyModule.setPrivateKey("secp256k1n", actualPrivateKeys[0]);
       await tb.modules.privateKeyModule.setPrivateKey("secp256k1n", actualPrivateKeys[1]);
@@ -1134,9 +1119,7 @@ export const sharedTestCases = (
       const actualPrivateKeys = [
         BigInt("0x4bd0041b7654a9b16a7268a5de7982f2422b15635c4fd170c140dc4897624390"),
         BigInt("0x1ea6edde61c750ec02896e9ac7fe9ac0b48a3630594fdf52ad5305470a2635c0"),
-        BigInt(
-          "0x99da9559e15e913ee9ab2e53e3dfad575da33b49be1125bb922e33494f4988281b2f49096e3e5dbd0fcfa9c0c0cd92d9ab3b21544b34d5dd4a65d98b878b9922"
-        ),
+        BigInt("0x99da9559e15e913ee9ab2e53e3dfad575da33b49be1125bb922e33494f4988281b2f49096e3e5dbd0fcfa9c0c0cd92d9ab3b21544b34d5dd4a65d98b878b9922"),
       ];
 
       await tb.modules.privateKeyModule.setPrivateKey("secp256k1n", actualPrivateKeys[0]);
@@ -1175,22 +1158,7 @@ export const sharedTestCases = (
       await tb.modules.privateKeyModule.setPrivateKey("secp256k1n", actualPrivateKeys[1]);
       await tb.syncLocalMetadataTransitions();
 
-      const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(
-        createEthProvider(process.env.TEST_RPC_TARGET)
-      );
-      const tb2 = new ThresholdKey({
-        serviceProvider: customSP,
-        manualSync: mode,
-        storageLayer: customSL,
-        modules: { seedPhrase: new SeedPhraseModule([metamaskSeedPhraseFormat2]), privateKeyModule: new PrivateKeyModule([secp256k1Format]) },
-      });
-      await tb2.initialize();
-      await tb2.inputShareStoreSafe(resp1.deviceShare);
-      const reconstructedKey = await tb2.reconstructKey();
-
-      compareReconstructedKeys(reconstructedKey, {
-        secp256k1Key: resp1.secp256k1Key,
-        seedPhraseModule: [
+      const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(createEthProvider(process.env.TEST_RPC_TARGET)  seedPhraseModule: [
           BigInt("0x70dc3117300011918e26b02176945cc15c3d548cf49fd8418d97f93af699e46"),
           BigInt("0x4d62a55af3496a7b290a12dd5fd5ef3e051d787dbc005fb74536136949602f9e"),
         ],

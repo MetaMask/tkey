@@ -19,9 +19,9 @@ describe("ed25519", function () {
   });
   it("#should not create keystore if invalid ed25519 private key supplied", async function () {
     const keyFormat = new ED25519Format();
-    expect(() =>
-      keyFormat.createPrivateKeyStore(BigInt("0x00000000000000000000000a000aef0708ada6c5b211dc5d5303cb11dc03eb95"))
-    ).toThrow("Invalid Private Key");
+    expect(() => keyFormat.createPrivateKeyStore(BigInt("0x00000000000000000000000a000aef0708ada6c5b211dc5d5303cb11dc03eb95"))).toThrow(
+      "Invalid Private Key"
+    );
   });
   it("#should not be able to validate an invalid ed25519 private key", async function () {
     const key = BigInt("0x00000000000000000000000a000aef0708ada6c5b211dc5d5303cb11dc03eb95");
@@ -50,9 +50,9 @@ describe("secp256", function () {
   });
   it("#should not create keystore if invalid secp256k1 private key is supplied", async function () {
     const keyFormat = new SECP256K1Format();
-    expect(() =>
-      keyFormat.createPrivateKeyStore(BigInt("0xfffffffffffffffffffffffffffffffffaaedce6af48a03bbfd25e8cd0364141"))
-    ).toThrow("Invalid Private Key");
+    expect(() => keyFormat.createPrivateKeyStore(BigInt("0xfffffffffffffffffffffffffffffffffaaedce6af48a03bbfd25e8cd0364141"))).toThrow(
+      "Invalid Private Key"
+    );
   });
   it("#should not be able to validate an invalid secp256k1 private key", async function () {
     const key = BigInt("0xffffffffffffffffffffffffffffffffbaaedce6af48a03bbfd25e8cd0364141");

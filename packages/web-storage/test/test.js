@@ -4,10 +4,6 @@ import { MockStorageLayer, TorusStorageLayer } from "@tkey/storage-layer-torus";
 
 import WebStorageModule, { WEB_STORAGE_MODULE_NAME } from "../src/WebStorageModule";
 
-const rejects = async (fn) => {
-  await expect(fn()).rejects.toThrow();
-};
-
 function initStorageLayer(mocked, extraParams) {
   return mocked === "true" ? new MockStorageLayer() : new TorusStorageLayer(extraParams);
 }
@@ -89,23 +85,17 @@ manualSyncModes.forEach((mode) => {
     it(`#should not be able to input share from web storage after deletion, manualSync=${mode}`, async function () {
       const resp1 = await tb._initializeNewKey({ initializeModules: true });
       await tb.reconstructKey();
-      // console.log("%O", tb.shares);
       await tb.generateNewShare();
       await tb.deleteShare(resp1.deviceShare.share.shareIndex);
       await tb.syncLocalMetadataTransitions();
 
-      // console.log("%O", tb.shares);
       await tb2.initialize();
-      // console.log("%O", tb2.shares);
-      await rejects(
-        async function () {
+      await expect(
+        (async () => {
           await tb2.modules[WEB_STORAGE_MODULE_NAME].inputShareFromWebStorage();
           await tb2.reconstructKey();
-        },
-        () => {
-          return true;
-        }
-      );
+        })()
+      ).rejects.toThrow();
     });
 
     it(`#should be able to input external share from web storage after deletion, manualSync=${mode}`, async function () {
@@ -117,16 +107,12 @@ manualSyncModes.forEach((mode) => {
       await tb.syncLocalMetadataTransitions();
 
       await tb2.initialize();
-
-      await rejects(
-        async function () {
+      await expect(
+        (async () => {
           await tb2.modules[WEB_STORAGE_MODULE_NAME].inputShareFromWebStorage();
           await tb2.reconstructKey();
-        },
-        () => {
-          return true;
-        }
-      );
+        })()
+      ).rejects.toThrow();
 
       // console.log("%O", tb2.shares);
       await tb2.inputShareStore(newShare.newShareStores[newShare.newShareIndex.toString(16)]);

@@ -50,7 +50,9 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       try {
         await instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
         expect.fail("should not be able to reinitialize with import key");
-      } catch (error) {}
+      } catch {
+        // expected
+      }
     });
 
     it("should import key for ed25519", async function () {
@@ -81,7 +83,9 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const a = newInstance.ed25519Key;
         expect.fail("should not be able to get ed25519 key");
-      } catch (error) {}
+      } catch {
+        // expected
+      }
 
       newInstance.inputShareStore(share.newShareStores[share.newShareIndex.toString(16)]);
       await newInstance.reconstructKey();
@@ -93,7 +97,9 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       try {
         await instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
         expect.fail("should not be able to reinitialize with import key");
-      } catch (error) {}
+      } catch {
+        // expected
+      }
     });
 
     it("should import key for ed25519 and secp256k1", async function () {
@@ -114,7 +120,9 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const a = newInstance.ed25519Key;
         expect.fail("should not be able to get ed25519 key");
-      } catch (error) {}
+      } catch {
+        // expected
+      }
 
       newInstance.inputShareStore(share.newShareStores[share.newShareIndex.toString(16)]);
       await newInstance.reconstructKey();
@@ -127,7 +135,9 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       try {
         await instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
         expect.fail("should not be able to reinitialize with import key");
-      } catch (error) {}
+      } catch {
+        // expected
+      }
     });
   });
 }

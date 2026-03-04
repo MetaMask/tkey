@@ -111,9 +111,7 @@ describe("AuthMetadata", function () {
     const parsed2 = JSON.parse(stringify(auth2, { replacer: bigIntReplacer }));
     const restored2 = AuthMetadata.fromJSON(parsed2);
 
-    expect(stringify(restored1.metadata, { replacer: bigIntReplacer })).toStrictEqual(
-      stringify(restored2.metadata, { replacer: bigIntReplacer })
-    );
+    expect(stringify(restored1.metadata, { replacer: bigIntReplacer })).toStrictEqual(stringify(restored2.metadata, { replacer: bigIntReplacer }));
   });
 
   it("#should reject tampered signature", function () {
