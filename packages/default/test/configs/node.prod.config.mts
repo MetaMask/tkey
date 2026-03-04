@@ -1,8 +1,6 @@
 import shared from "../../../../test/shared/node.prod.mts";
 
 shared.test!.testTimeout = 0;
-shared.test!.maxWorkers = 4;
-shared.test!.fileParallelism = true;
 shared.test!.env = {
   MOCKED: "false",
   METADATA: "https://node-1.dev-node.web3auth.io/metadata",
