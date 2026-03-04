@@ -1,23 +1,7 @@
-import { defineConfig } from "vitest/config";
+import shared from "../../../../test/shared/node.dev.mts";
 
-export default defineConfig({
-  test: {
-    globals: true,
-    reporters: "verbose",
-    coverage: {
-      reporter: ["text"],
-      provider: "istanbul",
-      include: ["src/**/*.ts"],
-    },
-    environment: "node",
-    include: ["test/**/*.test.ts"],
-    passWithNoTests: true,
-    testTimeout: 0,
-    maxWorkers: 4,
-    fileParallelism: true,
-    env: {
-      MOCKED: "false",
-      METADATA: "http://localhost:5051",
-    },
-  },
-});
+shared.test!.testTimeout = 0;
+shared.test!.maxWorkers = 4;
+shared.test!.fileParallelism = true;
+
+export default shared;

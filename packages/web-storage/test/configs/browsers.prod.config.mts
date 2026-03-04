@@ -1,34 +1,8 @@
-import { playwright } from "@vitest/browser-playwright";
-import { defineConfig } from "vitest/config";
+import shared from "../../../../test/shared/browsers.prod.mts";
 
-export default defineConfig({
-  test: {
-    globals: true,
-    reporters: "verbose",
-    include: ["test/**/*.test.ts"],
-    browser: {
-      screenshotFailures: false,
-      headless: true,
-      provider: playwright(),
-      enabled: true,
-      instances: [
-        { name: "Chrome", browser: "chromium" },
-        { name: "Firefox", browser: "firefox" },
-        { name: "Safari", browser: "webkit" },
-      ],
-    },
-    coverage: {
-      reporter: ["text"],
-      provider: "istanbul",
-      include: ["src/**/*.ts"],
-    },
-    env: {
-      MOCKED: "false",
-      METADATA: "https://metadata.web3auth.io",
-    },
-  },
-  define: {
-    "process.env.MOCKED": JSON.stringify("false"),
-    "process.env.METADATA": JSON.stringify("https://metadata.web3auth.io"),
-  },
-});
+shared.define = {
+  "process.env.MOCKED": JSON.stringify("false"),
+  "process.env.METADATA": JSON.stringify("https://metadata.web3auth.io"),
+};
+
+export default shared;

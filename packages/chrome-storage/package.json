@@ -22,10 +22,10 @@
     "url": "git+https://github.com/tkey/tkey.git"
   },
   "scripts": {
-    "test": "vitest run --config test/configs/node.config.mts --coverage",
-    "test-development": "vitest run --config test/configs/node.dev.config.mts --coverage",
-    "test-production": "vitest run --config test/configs/node.prod.config.mts --coverage",
-    "test-debugger": "vitest run --config test/configs/node.debug.config.mts --inspect-brk --coverage",
+    "test": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
+    "test-development": "vitest run --config ../../test/shared/node.dev.mts --coverage",
+    "test-production": "vitest run --config ../../test/shared/node.prod.mts --coverage",
+    "test-debugger": "vitest run --config ../../test/shared/node.debug.mts --inspect-brk --coverage",
     "dev": "rimraf dist/ && cross-env NODE_ENV=development torus-scripts build",
     "build": "rimraf dist/ && cross-env NODE_ENV=production torus-scripts build",
     "lint": "torus-scripts lint src test",
