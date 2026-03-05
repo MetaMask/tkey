@@ -1,8 +1,4 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src", "test"],
-  "compilerOptions": {
-    "noEmit": true,
-    "allowImportingTsExtensions": true
-  }
+  "include": ["src", "test"]
 }
