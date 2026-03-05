@@ -46,7 +46,7 @@
     "vitest": "4.0.17"
   },
   "dependencies": {
-    "@toruslabs/customauth": "^22.1.0",
+    "@toruslabs/customauth": "^22.2.0",
     "@toruslabs/eccrypto": "^7.0.0",
     "@toruslabs/metadata-helpers": "^8.2.0",
     "ts-custom-error": "^3.3.1"
