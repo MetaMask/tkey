@@ -41,17 +41,16 @@
     "@tkey/service-provider-torus": "^17.0.0",
     "@tkey/share-serialization": "^17.0.0",
     "@tkey/share-transfer": "^17.0.0",
-    "@tkey/storage-layer-torus": "^17.0.0",
-    "@toruslabs/metadata-helpers": "^8.1.0"
+    "@tkey/storage-layer-torus": "^17.0.0"
   },
   "devDependencies": {
-    "vitest": "4.0.17",
     "@tkey/private-keys": "^17.0.0",
     "@tkey/security-questions": "^17.0.0",
     "@tkey/seed-phrase": "^17.0.0",
     "@toruslabs/eccrypto": "^7.0.0",
     "@toruslabs/http-helpers": "^9.0.0",
-    "viem": "^2.46.3"
+    "viem": "^2.46.3",
+    "vitest": "4.0.17"
   },
   "peerDependencies": {
     "@babel/runtime": "7.x"
