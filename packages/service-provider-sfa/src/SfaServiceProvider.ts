@@ -1,8 +1,8 @@
 import { type StringifiedType } from "@tkey/common-types";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { NodeDetailManager } from "@toruslabs/fetch-node-details";
-import { utf8ToBytes } from "@toruslabs/metadata-helpers";
-import { keccak256, Torus, TorusKey } from "@toruslabs/torus.js";
+import { keccak256, utf8ToBytes } from "@toruslabs/metadata-helpers";
+import { Torus, TorusKey } from "@toruslabs/torus.js";
 
 import { LoginParams, SfaServiceProviderArgs, VerifierParams, Web3AuthOptions } from "./interfaces";
 

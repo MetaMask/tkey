@@ -39,7 +39,7 @@
   "dependencies": {
     "@tkey/service-provider-base": "^17.0.0",
     "@toruslabs/fetch-node-details": "^16.0.0",
-    "@toruslabs/metadata-helpers": "^8.1.0",
+    "@toruslabs/metadata-helpers": "^8.2.0",
     "@toruslabs/torus.js": "^17.0.0"
   },
   "devDependencies": {
