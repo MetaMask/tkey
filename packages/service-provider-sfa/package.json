@@ -40,7 +40,7 @@
     "@tkey/service-provider-base": "^17.0.0",
     "@toruslabs/fetch-node-details": "^16.0.0",
     "@toruslabs/metadata-helpers": "^8.2.0",
-    "@toruslabs/torus.js": "^17.0.0"
+    "@toruslabs/torus.js": "^17.1.0"
   },
   "devDependencies": {
     "vitest": "4.0.17"
