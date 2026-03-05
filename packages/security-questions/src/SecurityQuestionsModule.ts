@@ -1,26 +1,22 @@
-import { mod } from "@noble/curves/abstract/modular.js";
-import { bytesToNumberBE } from "@noble/curves/utils.js";
 import {
   GenerateNewShareResult,
   IModule,
   isEmptyObject,
   ISQAnswerStore,
   ITKeyApi,
-  secp256k1,
   SecurityQuestionStoreArgs,
   Share,
   ShareStore,
   ShareStoreMap,
-  stripHexPrefix,
 } from "@tkey/common-types";
-import { hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
-import { keccak256 } from "@toruslabs/torus.js";
+import { bytesToNumberBE, keccak256Bytes, mod, secp256k1, utf8ToBytes } from "@toruslabs/metadata-helpers";
 
 import SecurityQuestionsError from "./errors";
 import SecurityQuestionStore from "./SecurityQuestionStore";
 
 function answerToUserInputHashBigInt(answerString: string): bigint {
-  return bytesToNumberBE(hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(answerString)))));
+  const answerHashBytes = keccak256Bytes(utf8ToBytes(answerString));
+  return bytesToNumberBE(answerHashBytes);
 }
 
 export const SECURITY_QUESTIONS_MODULE_NAME = "securityQuestions";
