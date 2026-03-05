@@ -41,10 +41,10 @@
     "@babel/runtime": "7.x"
   },
   "dependencies": {
-    "@noble/curves": "^2.0.1",
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
-    "@tkey/common-types": "^17.0.0"
+    "@tkey/common-types": "^17.0.0",
+    "@toruslabs/metadata-helpers": "^8.2.0"
   },
   "devDependencies": {
     "vitest": "4.0.17"

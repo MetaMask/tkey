@@ -9,7 +9,7 @@ import {
   StringifiedType,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { bytesToBase64, derivePubKey, numberToBytesBE, secp256k1 } from "@toruslabs/metadata-helpers";
+import { bytesToBase64, derivePubKey, hexToBigInt, numberToBytesBE, secp256k1 } from "@toruslabs/metadata-helpers";
 
 class ServiceProviderBase implements IServiceProvider {
   enableLogging: boolean;
@@ -23,7 +23,7 @@ class ServiceProviderBase implements IServiceProvider {
 
   constructor({ enableLogging = false, postboxKey }: ServiceProviderArgs) {
     this.enableLogging = enableLogging;
-    this.postboxKey = postboxKey != null ? BigInt(`0x${postboxKey}`) : 0n;
+    this.postboxKey = postboxKey != null ? hexToBigInt(postboxKey) : 0n;
     this.serviceProviderName = "ServiceProviderBase";
   }
 

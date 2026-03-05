@@ -21,7 +21,7 @@ import {
   StringifiedType,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { bytesToHex, bytesToUtf8 } from "@toruslabs/metadata-helpers";
+import { bytesToHex, bytesToUtf8, hexToBigInt } from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
 
 import CoreError from "./errors";
@@ -286,10 +286,8 @@ class Metadata implements IMetadata {
 
         // if not reconstruct
         if (!pubShare) {
-          pubShare = new PublicShare(
-            BigInt(`0x${shareIndex}`),
-            polyCommitmentEval(this.publicPolynomials[el].polynomialCommitments, BigInt(`0x${shareIndex}`))
-          );
+          const shareIndexBigInt = hexToBigInt(shareIndex);
+          pubShare = new PublicShare(shareIndexBigInt, polyCommitmentEval(this.publicPolynomials[el].polynomialCommitments, shareIndexBigInt));
         }
         if (pubShare.shareCommitment.x === pubkey.x && pubShare.shareCommitment.y === pubkey.y) {
           const tempShare = new Share(pubShare.shareIndex, share);
@@ -311,8 +309,8 @@ class Metadata implements IMetadata {
       const polyID = this.polyIDList[i][0];
       const shareIndexes = this.polyIDList[i][1];
       const sortedShareIndexes = shareIndexes.sort((a: string, b: string) => {
-        const aBig = BigInt(`0x${a}`);
-        const bBig = BigInt(`0x${b}`);
+        const aBig = hexToBigInt(a);
+        const bBig = hexToBigInt(b);
         return aBig < bBig ? -1 : aBig > bBig ? 1 : 0;
       });
       const serializedPolyID = polyID

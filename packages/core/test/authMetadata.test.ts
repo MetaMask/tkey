@@ -1,5 +1,5 @@
 import { bigIntReplacer, generatePrivate, generatePrivateExcludingIndexes, getPubKeyPoint } from "@tkey/common-types";
-import { add0x, bytesToHex } from "@toruslabs/metadata-helpers";
+import { bytesToBigInt, bytesToHex, hexToBigInt } from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
 import { describe, expect, it } from "vitest";
 
@@ -79,7 +79,7 @@ function createTestMetadata(privKeyBN: bigint) {
 
 describe("AuthMetadata", function () {
   it("#should authenticate and serialize and deserialize into JSON seamlessly", async function () {
-    const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
+    const privKeyBN = hexToBigInt(PRIVATE_KEY);
     const metadata = createTestMetadata(privKeyBN);
     const a = new AuthMetadata(metadata, privKeyBN);
     const stringified = stringify(a);
@@ -89,7 +89,7 @@ describe("AuthMetadata", function () {
   });
 
   it("#should round-trip: stringify -> parse -> fromJSON preserves metadata fields", function () {
-    const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
+    const privKeyBN = hexToBigInt(PRIVATE_KEY);
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata, privKeyBN);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
@@ -101,7 +101,7 @@ describe("AuthMetadata", function () {
   });
 
   it("#should round-trip multiple times without corruption", function () {
-    const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
+    const privKeyBN = hexToBigInt(PRIVATE_KEY);
     const metadata = createTestMetadata(privKeyBN);
 
     const auth1 = new AuthMetadata(metadata, privKeyBN);
@@ -116,7 +116,7 @@ describe("AuthMetadata", function () {
   });
 
   it("#should reject tampered signature", function () {
-    const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
+    const privKeyBN = hexToBigInt(PRIVATE_KEY);
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata, privKeyBN);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
@@ -125,8 +125,8 @@ describe("AuthMetadata", function () {
   });
 
   it("#should reject signature from wrong key", function () {
-    const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
-    const otherKey = BigInt(add0x(bytesToHex(generatePrivate())));
+    const privKeyBN = hexToBigInt(PRIVATE_KEY);
+    const otherKey = bytesToBigInt(generatePrivate());
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata, otherKey);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
@@ -134,7 +134,7 @@ describe("AuthMetadata", function () {
   });
 
   it("#should throw when toJSON called without privKey", function () {
-    const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
+    const privKeyBN = hexToBigInt(PRIVATE_KEY);
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata);
     expect(() => auth.toJSON()).toThrow(/privkey unavailable/i);
@@ -146,7 +146,7 @@ describe("AuthMetadata", function () {
   });
 
   it("#should preserve polyIDList through round-trip", function () {
-    const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
+    const privKeyBN = hexToBigInt(PRIVATE_KEY);
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata, privKeyBN);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
@@ -159,7 +159,7 @@ describe("AuthMetadata", function () {
   });
 
   it("#should be JSON.parse compatible with bigIntReplacer output", function () {
-    const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
+    const privKeyBN = hexToBigInt(PRIVATE_KEY);
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata, privKeyBN);
     const jsonStr = stringify(auth, { replacer: bigIntReplacer });
@@ -182,7 +182,7 @@ describe("AuthMetadata", function () {
   it("#should load multiple freshly-generated toJSON outputs via fromJSON", function () {
     const keys: bigint[] = [];
     for (let i = 0; i < 5; i++) {
-      keys.push(BigInt(add0x(bytesToHex(generatePrivate()))));
+      keys.push(bytesToBigInt(generatePrivate()));
     }
 
     const snapshots = keys.map((privKeyBN, i) => {

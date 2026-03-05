@@ -1,4 +1,5 @@
 import { ISerializable, PolynomialID, PublicShare, SecurityQuestionStoreArgs, StringifiedType } from "@tkey/common-types";
+import { hexToBigInt } from "@toruslabs/metadata-helpers";
 
 class SecurityQuestionStore implements ISerializable {
   nonce: bigint;
@@ -12,8 +13,8 @@ class SecurityQuestionStore implements ISerializable {
   questions: string;
 
   constructor({ nonce, shareIndex, sqPublicShare, polynomialID, questions }: SecurityQuestionStoreArgs) {
-    this.nonce = typeof nonce === "bigint" ? nonce : BigInt(`0x${nonce}`);
-    this.shareIndex = typeof shareIndex === "bigint" ? shareIndex : BigInt(`0x${shareIndex}`);
+    this.nonce = typeof nonce === "bigint" ? nonce : hexToBigInt(nonce);
+    this.shareIndex = typeof shareIndex === "bigint" ? shareIndex : hexToBigInt(shareIndex);
     this.sqPublicShare = sqPublicShare instanceof PublicShare ? sqPublicShare : PublicShare.fromJSON(sqPublicShare);
     this.polynomialID = polynomialID;
     this.questions = questions;
