@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@tkey/common-types": "^17.0.0",
-    "@toruslabs/metadata-helpers": "^8.1.0",
+    "@toruslabs/metadata-helpers": "^8.2.0",
     "ethereum-cryptography": "^3.2.0"
   },
   "bugs": {
