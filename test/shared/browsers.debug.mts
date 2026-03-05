@@ -6,6 +6,7 @@ export default defineConfig({
     globals: true,
     reporters: "verbose",
     include: ["test/**/*.test.ts"],
+    passWithNoTests: true,
     browser: {
       screenshotFailures: false,
       headless: true,

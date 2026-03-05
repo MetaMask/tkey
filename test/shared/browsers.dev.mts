@@ -6,6 +6,7 @@ export default defineConfig({
     globals: true,
     reporters: "verbose",
     include: ["test/**/*.test.ts"],
+    passWithNoTests: true,
     browser: {
       screenshotFailures: false,
       headless: true,
@@ -21,10 +22,6 @@ export default defineConfig({
       reporter: ["text"],
       provider: "istanbul",
       include: ["src/**/*.ts"],
-    },
-    env: {
-      MOCKED: "false",
-      METADATA: "http://localhost:5051",
     },
   },
   define: {

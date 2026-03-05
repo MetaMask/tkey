@@ -22,7 +22,7 @@
     "url": "git+https://github.com/tkey/tkey.git"
   },
   "scripts": {
-    "test": "vitest run --config ../../test/shared/node.mocked.mts",
+    "test": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
     "coverage": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
     "coverage-production": "vitest run --config ../../test/shared/node.prod.mts --coverage",
     "test-development": "vitest run --config ../../test/shared/node.dev.mts",
@@ -45,7 +45,8 @@
     "json-stable-stringify": "^1.3.0"
   },
   "devDependencies": {
-    "@types/json-stable-stringify": "^1.2.0"
+    "@types/json-stable-stringify": "^1.2.0",
+    "vitest": "4.0.17"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"

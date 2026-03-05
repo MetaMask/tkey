@@ -21,7 +21,7 @@
     "url": "git+https://github.com/tkey/tkey.git"
   },
   "scripts": {
-    "test": "vitest run --config ../../test/shared/node.mocked.mts",
+    "test": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
     "coverage": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
     "coverage-production": "vitest run --config ../../test/shared/node.prod.mts --coverage",
     "test-development": "vitest run --config ../../test/shared/node.dev.mts",
@@ -41,6 +41,9 @@
     "@toruslabs/fetch-node-details": "^16.0.0",
     "@toruslabs/metadata-helpers": "^8.1.0",
     "@toruslabs/torus.js": "^17.0.0"
+  },
+  "devDependencies": {
+    "vitest": "4.0.17"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"

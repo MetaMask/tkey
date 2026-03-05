@@ -22,7 +22,7 @@ export default [
     },
   },
   {
-    files: ["test/**/*.js", "test/**/*.ts", "test/**/*.mts", "**/test/**/*.js", "**/test/**/*.ts", "**/test/**/*.mts"],
+    files: ["**/test/**/*.js", "**/test/**/*.ts", "**/test/**/*.mts"],
     rules: {
       "import/no-extraneous-dependencies": "off",
       "prefer-arrow-callback": "off",

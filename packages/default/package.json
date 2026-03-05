@@ -9,7 +9,7 @@
   "types": "dist/lib.cjs/types/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "test": "vitest run --config test/configs/node.config.mts",
+    "test": "vitest run --config test/configs/node.config.mts --coverage",
     "test:full": "cross-env TKEY_FULL=1 vitest run --config test/configs/node.config.mts",
     "coverage": "vitest run --config test/configs/node.config.mts --coverage",
     "coverage-production": "vitest run --config test/configs/node.prod.config.mts --coverage",

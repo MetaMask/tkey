@@ -23,7 +23,7 @@
   },
   "scripts": {
     "test:browser": "vitest run --config ../../test/shared/browsers.mocked.mts --project Chrome",
-    "test": "vitest run --config ../../test/shared/browsers.mocked.mts --project Chrome",
+    "test": "vitest run --config ../../test/shared/browsers.mocked.mts --project Chrome --coverage",
     "coverage": "vitest run --config ../../test/shared/browsers.mocked.mts --coverage --project Chrome",
     "coverage-production": "vitest run --config ../../test/shared/browsers.prod.mts --coverage --project Chrome",
     "test-development": "vitest run --config ../../test/shared/browsers.dev.mts --project Chrome",

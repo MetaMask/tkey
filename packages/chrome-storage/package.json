@@ -44,7 +44,8 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.1.37",
-    "@types/webextension-polyfill": "^0.12.5"
+    "@types/webextension-polyfill": "^0.12.5",
+    "vitest": "4.0.17"
   },
   "lint-staged": {
     "!(*d).ts": [

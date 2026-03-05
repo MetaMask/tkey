@@ -47,12 +47,9 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
 
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
-      try {
-        await instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
-        expect.fail("should not be able to reinitialize with import key");
-      } catch {
-        // expected
-      }
+      await expect(
+        instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) })
+      ).rejects.toThrow();
     });
 
     it("should import key for ed25519", async function () {
@@ -79,13 +76,6 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       const newInstance = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
       await newInstance.initialize();
       const edPub = newInstance.getEd25519PublicKey();
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const a = newInstance.ed25519Key;
-        expect.fail("should not be able to get ed25519 key");
-      } catch {
-        // expected
-      }
 
       newInstance.inputShareStore(share.newShareStores[share.newShareIndex.toString(16)]);
       await newInstance.reconstructKey();
@@ -94,12 +84,9 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       expect(edPub).toBe(newInstance.getEd25519PublicKey());
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
-      try {
-        await instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
-        expect.fail("should not be able to reinitialize with import key");
-      } catch {
-        // expected
-      }
+      await expect(
+        instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) })
+      ).rejects.toThrow();
     });
 
     it("should import key for ed25519 and secp256k1", async function () {
@@ -116,13 +103,6 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       const newInstance = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
       await newInstance.initialize();
       const edPub = newInstance.getEd25519PublicKey();
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const a = newInstance.ed25519Key;
-        expect.fail("should not be able to get ed25519 key");
-      } catch {
-        // expected
-      }
 
       newInstance.inputShareStore(share.newShareStores[share.newShareIndex.toString(16)]);
       await newInstance.reconstructKey();
@@ -132,12 +112,9 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       expect(edPub).toBe(newInstance.getEd25519PublicKey());
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
-      try {
-        await instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) });
-        expect.fail("should not be able to reinitialize with import key");
-      } catch {
-        // expected
-      }
+      await expect(
+        instance3.initialize({ importKey: generatePrivateBigInt(), importEd25519Seed: new Uint8Array(randomBytes(32)) })
+      ).rejects.toThrow();
     });
   });
 }

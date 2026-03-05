@@ -9,7 +9,7 @@
   "types": "dist/lib.cjs/types/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "test": "vitest run --config ../../test/shared/node.mocked.mts",
+    "test": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
     "coverage": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
     "coverage-production": "vitest run --config ../../test/shared/node.prod.mts --coverage",
     "test-development": "vitest run --config ../../test/shared/node.dev.mts",
