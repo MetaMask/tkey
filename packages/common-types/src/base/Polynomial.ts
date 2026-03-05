@@ -1,9 +1,8 @@
-import { mod } from "@noble/curves/abstract/modular.js";
+import { hexToBigInt, mod, secp256k1 } from "@toruslabs/metadata-helpers";
 
 import { ISerializable, PolynomialID, StringifiedType } from "../baseTypes/commonTypes";
-import { secp256k1 } from "../utils";
 import { getPubKeyPoint } from "./keyUtils";
-import Point, { hexToBigInt } from "./Point";
+import Point from "./Point";
 import PublicPolynomial from "./PublicPolynomial";
 import Share from "./Share";
 

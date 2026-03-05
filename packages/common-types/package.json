@@ -1,6 +1,6 @@
 {
   "name": "@tkey/common-types",
-  "version": "17.0.0",
+  "version": "17.1.0",
   "description": "TKey common types",
   "author": "Torus Labs",
   "homepage": "https://github.com/tkey/tkey#readme",
@@ -46,11 +46,9 @@
     "vitest": "4.0.17"
   },
   "dependencies": {
-    "@noble/curves": "^2.0.1",
-    "@toruslabs/customauth": "^22.1.0",
+    "@toruslabs/customauth": "^22.2.0",
     "@toruslabs/eccrypto": "^7.0.0",
-    "@toruslabs/metadata-helpers": "^8.1.0",
-    "@toruslabs/torus.js": "^17.0.0",
+    "@toruslabs/metadata-helpers": "^8.2.0",
     "ts-custom-error": "^3.3.1"
   },
   "bugs": {

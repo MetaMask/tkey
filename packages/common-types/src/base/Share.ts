@@ -1,6 +1,7 @@
+import { hexToBigInt } from "@toruslabs/metadata-helpers";
+
 import { ISerializable, StringifiedType } from "../baseTypes/commonTypes";
 import { getPubKeyPoint } from "./keyUtils";
-import { hexToBigInt } from "./Point";
 import PublicShare from "./PublicShare";
 
 class Share implements ISerializable {

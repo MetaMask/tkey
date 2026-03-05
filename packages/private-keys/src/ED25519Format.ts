@@ -1,6 +1,6 @@
 import { ed25519 } from "@noble/curves/ed25519.js";
-import { bytesToNumberBE, concatBytes, equalBytes, numberToBytesBE } from "@noble/curves/utils.js";
 import { generateID, IPrivateKeyFormat, IPrivateKeyStore } from "@tkey/common-types";
+import { areUint8ArraysEqual, bytesToNumberBE, concatBytes, numberToBytesBE } from "@toruslabs/metadata-helpers";
 
 export class ED25519Format implements IPrivateKeyFormat {
   privateKey: bigint;
@@ -18,7 +18,7 @@ export class ED25519Format implements IPrivateKeyFormat {
       const seed = keyBytes.slice(0, 32);
       const storedPubKey = keyBytes.slice(32);
       const derivedPubKey = ed25519.getPublicKey(seed);
-      return equalBytes(derivedPubKey, storedPubKey);
+      return areUint8ArraysEqual(derivedPubKey, storedPubKey);
     } catch {
       return false;
     }
@@ -29,7 +29,7 @@ export class ED25519Format implements IPrivateKeyFormat {
     if (!privateKey) {
       const seed = ed25519.utils.randomSecretKey();
       const pubKey = ed25519.getPublicKey(seed);
-      privKey = bytesToNumberBE(concatBytes(seed, pubKey));
+      privKey = bytesToNumberBE(concatBytes([seed, pubKey]));
     } else {
       if (!this.validatePrivateKey(privateKey)) {
         throw Error("Invalid Private Key");

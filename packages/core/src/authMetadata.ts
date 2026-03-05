@@ -1,6 +1,5 @@
-import { bigIntReplacer, IAuthMetadata, secp256k1, StringifiedType, stripHexPrefix, toPrivKeyECC } from "@tkey/common-types";
-import { bytesToHex, hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
-import { keccak256 } from "@toruslabs/torus.js";
+import { bigIntReplacer, IAuthMetadata, StringifiedType, toPrivKeyECC } from "@tkey/common-types";
+import { bytesToHex, hexToBytes, keccak256Bytes, secp256k1, utf8ToBytes } from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
 
 import CoreError from "./errors";
@@ -23,7 +22,7 @@ class AuthMetadata implements IAuthMetadata {
     const m = Metadata.fromJSON(data);
     if (!m.pubKey) throw CoreError.metadataPubKeyUnavailable();
 
-    const msgHash = hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })))));
+    const msgHash = keccak256Bytes(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })));
     // keep lowS: false for backward compatibility with old @tkey/core@16.0.0
     // lowS: true work for both lowS and highS signatures
     if (!secp256k1.verify(hexToBytes(sig), msgHash, m.pubKey.toSEC1(true), { prehash: false, format: "der", lowS: false })) {
@@ -36,7 +35,7 @@ class AuthMetadata implements IAuthMetadata {
     const data = this.metadata;
 
     if (!this.privKey) throw CoreError.privKeyUnavailable();
-    const msgHash = hexToBytes(stripHexPrefix(keccak256(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })))));
+    const msgHash = keccak256Bytes(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })));
     const sig = secp256k1.sign(msgHash, toPrivKeyECC(this.privKey), { prehash: false, format: "der" });
 
     return {

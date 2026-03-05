@@ -1,5 +1,7 @@
+import { hexToBigInt } from "@toruslabs/metadata-helpers";
+
 import { ISerializable, StringifiedType } from "../baseTypes/commonTypes";
-import Point, { hexToBigInt } from "./Point";
+import Point from "./Point";
 
 class PublicShare implements ISerializable {
   shareCommitment: Point;

@@ -1,7 +1,6 @@
 /* eslint-disable vitest/expect-expect */
 /* eslint-disable vitest/no-conditional-expect */
-import { bytesToNumberBE } from "@noble/curves/utils.js";
-import { bigIntReplacer, getPubKeyPoint, KEY_NOT_FOUND, secp256k1, SHARE_DELETED, ShareStore, type ShareStoreMap } from "@tkey/common-types";
+import { bigIntReplacer, getPubKeyPoint, KEY_NOT_FOUND, SHARE_DELETED, ShareStore, type ShareStoreMap } from "@tkey/common-types";
 import { Metadata } from "@tkey/core";
 import { ED25519Format, PrivateKeyModule, SECP256K1Format } from "@tkey/private-keys";
 import { SecurityQuestionsModule } from "@tkey/security-questions";
@@ -12,15 +11,15 @@ import { ShareTransferModule } from "@tkey/share-transfer";
 import { MockStorageLayer, TorusStorageLayer } from "@tkey/storage-layer-torus";
 import { generatePrivate } from "@toruslabs/eccrypto";
 import { post } from "@toruslabs/http-helpers";
-import { bytesToHex, utf8ToBytes } from "@toruslabs/metadata-helpers";
-import { getOrSetNonce, keccak256 } from "@toruslabs/torus.js";
+import { bytesToHex, bytesToNumberBE, Hex, hexToBigInt, keccak256, secp256k1, utf8ToBytes } from "@toruslabs/metadata-helpers";
+import { getOrSetNonce } from "@toruslabs/torus.js";
 import { createPublicClient, http } from "viem";
 import { mainnet } from "viem/chains";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 function createEthProvider(rpcUrl: string) {
   const client = createPublicClient({ chain: mainnet, transport: http(rpcUrl) });
-  return { getBalance: (address: `0x${string}`) => client.getBalance({ address }) };
+  return { getBalance: (address: Hex) => client.getBalance({ address }) };
 }
 
 import { TKeyDefault as ThresholdKey } from "../src/index";
@@ -87,7 +86,7 @@ export const sharedTestCases = (
 
     it("#should be able to initializeNewKey using initialize and reconstruct it", async function () {
       const sp = customSP;
-      sp.postboxKey = BigInt(`0x${getTempKey()}`);
+      sp.postboxKey = hexToBigInt(getTempKey());
       const storageLayer = initStorageLayer({ hostUrl: metadataURL });
       const tb2 = new ThresholdKey({ serviceProvider: sp, storageLayer, manualSync: mode });
       await tb2.initialize();
@@ -565,7 +564,7 @@ export const sharedTestCases = (
 
     it(`#should get or set with specified private key correctly, manualSync=${mode}`, async function () {
       const privKey = bytesToHex(generatePrivate());
-      const privKeyBN = BigInt(`0x${privKey}`);
+      const privKeyBN = hexToBigInt(privKey);
       const storageLayer = initStorageLayer({ hostUrl: metadataURL });
       const message = { test: Math.random().toString(36).substring(7) };
       await storageLayer.setMetadata({ input: message, privKey: privKeyBN });
@@ -1478,12 +1477,12 @@ export const sharedTestCases = (
       expect(pubNonce).not.toBe(undefined);
       expect(isUpgraded).toBe(false);
 
-      const nonceBN = BigInt(`0x${nonce}`);
+      const nonceBN = hexToBigInt(nonce);
       const importKey = ((postboxKeyBN + nonceBN) % secp256k1.Point.CURVE().n).toString(16);
 
       const tKey = new ThresholdKey({ serviceProvider, storageLayer: storageLayer2, manualSync: mode });
       await tKey.initialize({
-        importKey: BigInt(`0x${importKey}`),
+        importKey: hexToBigInt(importKey),
         delete1OutOf1: true,
       });
       await tKey.syncLocalMetadataTransitions();

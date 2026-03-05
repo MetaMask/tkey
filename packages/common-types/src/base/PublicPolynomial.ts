@@ -1,4 +1,4 @@
-import { bytesToHex } from "@noble/curves/utils.js";
+import { bytesToHex } from "@toruslabs/metadata-helpers";
 
 import { ISerializable, PolynomialID, StringifiedType } from "../baseTypes/commonTypes";
 import Point from "./Point";

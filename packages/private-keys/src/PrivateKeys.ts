@@ -1,4 +1,5 @@
 import { IModule, IPrivateKeyFormat, IPrivateKeyStore, ITKeyApi } from "@tkey/common-types";
+import { hexToBigInt } from "@toruslabs/metadata-helpers";
 
 import PrivateKeysError from "./errors";
 
@@ -43,7 +44,7 @@ class PrivateKeyModule implements IModule {
     try {
       const privateKeys = await this.getPrivateKeys();
       return privateKeys.reduce((acc: bigint[], x) => {
-        acc.push(typeof x.privateKey === "bigint" ? x.privateKey : BigInt(`0x${x.privateKey}`));
+        acc.push(typeof x.privateKey === "bigint" ? x.privateKey : hexToBigInt(x.privateKey));
         return acc;
       }, []);
     } catch {

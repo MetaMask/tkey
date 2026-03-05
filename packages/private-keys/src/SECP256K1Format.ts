@@ -1,5 +1,5 @@
-import { bytesToNumberBE } from "@noble/curves/utils.js";
-import { generateID, IPrivateKeyFormat, IPrivateKeyStore, secp256k1 } from "@tkey/common-types";
+import { generateID, IPrivateKeyFormat, IPrivateKeyStore } from "@tkey/common-types";
+import { bytesToNumberBE, secp256k1 } from "@toruslabs/metadata-helpers";
 
 export class SECP256K1Format implements IPrivateKeyFormat {
   privateKey: bigint;

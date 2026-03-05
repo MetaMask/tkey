@@ -3,15 +3,13 @@ import {
   encrypt as encryptUtils,
   EncryptedMessage,
   getPubKeyECC,
-  getPubKeyPoint,
   IServiceProvider,
   PubKeyType,
-  secp256k1,
   ServiceProviderArgs,
   StringifiedType,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { bytesToBase64 } from "@toruslabs/metadata-helpers";
+import { bytesToBase64, derivePubKey, hexToBigInt, numberToBytesBE, secp256k1 } from "@toruslabs/metadata-helpers";
 
 class ServiceProviderBase implements IServiceProvider {
   enableLogging: boolean;
@@ -25,7 +23,7 @@ class ServiceProviderBase implements IServiceProvider {
 
   constructor({ enableLogging = false, postboxKey }: ServiceProviderArgs) {
     this.enableLogging = enableLogging;
-    this.postboxKey = postboxKey != null ? BigInt(`0x${postboxKey}`) : 0n;
+    this.postboxKey = postboxKey != null ? hexToBigInt(postboxKey) : 0n;
     this.serviceProviderName = "ServiceProviderBase";
   }
 
@@ -42,11 +40,11 @@ class ServiceProviderBase implements IServiceProvider {
   }
 
   async decrypt(msg: EncryptedMessage): Promise<Uint8Array> {
-    return decryptUtils(toPrivKeyECC(this.postboxKey), msg);
+    return decryptUtils(numberToBytesBE(this.postboxKey, 32), msg);
   }
 
   retrievePubKeyPoint(): { x: bigint; y: bigint } {
-    const pt = getPubKeyPoint(this.postboxKey);
+    const pt = derivePubKey(secp256k1, this.postboxKey);
     return { x: pt.x, y: pt.y };
   }
 

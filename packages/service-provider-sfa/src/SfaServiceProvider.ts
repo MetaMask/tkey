@@ -1,8 +1,8 @@
 import { type StringifiedType } from "@tkey/common-types";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { NodeDetailManager } from "@toruslabs/fetch-node-details";
-import { utf8ToBytes } from "@toruslabs/metadata-helpers";
-import { keccak256, Torus, TorusKey } from "@toruslabs/torus.js";
+import { hexToBigInt, keccak256, utf8ToBytes } from "@toruslabs/metadata-helpers";
+import { Torus, TorusKey } from "@toruslabs/torus.js";
 
 import { LoginParams, SfaServiceProviderArgs, VerifierParams, Web3AuthOptions } from "./interfaces";
 
@@ -79,10 +79,10 @@ class SfaServiceProvider extends ServiceProviderBase {
     if (!torusKey.metadata.upgraded) {
       const { finalKeyData, oAuthKeyData } = torusKey;
       const privKey = finalKeyData.privKey || oAuthKeyData.privKey;
-      this.migratableKey = BigInt(`0x${privKey}`);
+      this.migratableKey = hexToBigInt(privKey);
     }
     const postboxKey = Torus.getPostboxKey(torusKey);
-    this.postboxKey = BigInt(`0x${postboxKey}`);
+    this.postboxKey = hexToBigInt(postboxKey);
     return this.postboxKey;
   }
 

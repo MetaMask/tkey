@@ -1,6 +1,7 @@
 import { StringifiedType, TorusServiceProviderArgs } from "@tkey/common-types";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { CustomAuth, CustomAuthArgs, CustomAuthLoginParams, InitParams, TorusLoginResponse } from "@toruslabs/customauth";
+import { hexToBigInt } from "@toruslabs/metadata-helpers";
 import { Torus, TorusKey } from "@toruslabs/torus.js";
 
 class TorusServiceProvider extends ServiceProviderBase {
@@ -50,10 +51,10 @@ class TorusServiceProvider extends ServiceProviderBase {
       if (!obj.metadata.upgraded) {
         const { finalKeyData, oAuthKeyData } = obj;
         const privKey = finalKeyData.privKey || oAuthKeyData.privKey;
-        this.migratableKey = BigInt(`0x${privKey}`);
+        this.migratableKey = hexToBigInt(privKey);
       }
 
-      this.postboxKey = BigInt(`0x${localPrivKey}`);
+      this.postboxKey = hexToBigInt(localPrivKey);
     }
 
     return obj;

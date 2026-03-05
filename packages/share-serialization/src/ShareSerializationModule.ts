@@ -1,4 +1,5 @@
 import { IModule, ITKeyApi } from "@tkey/common-types";
+import { add0x } from "@toruslabs/metadata-helpers";
 
 import { english } from "./english";
 import ShareSerializationError from "./errors";
@@ -20,7 +21,7 @@ class ShareSerializationModule implements IModule {
   }
 
   static deserializeMnemonic(share: string): bigint {
-    return BigInt(`0x${mnemonicToEntropy(share, english)}`);
+    return BigInt(add0x(mnemonicToEntropy(share, english)));
   }
 
   setModuleReferences(tbSDK: ITKeyApi): void {

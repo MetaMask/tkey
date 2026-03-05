@@ -1,15 +1,16 @@
-import { bytesToHex, randomBytes } from "@noble/curves/utils.js";
 import { HDKey } from "@scure/bip32";
 import { entropyToMnemonic, mnemonicToSeedSync, validateMnemonic } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english";
 import {
   generateAddressFromPublicKey,
   generateID,
+  generatePrivate,
   getPubKeyECC,
   ISeedPhraseFormat,
   ISeedPhraseStore,
   MetamaskSeedPhraseStore,
 } from "@tkey/common-types";
+import { bytesToBigInt } from "@toruslabs/metadata-helpers";
 
 export interface EthProvider {
   getBalance(address: string): Promise<bigint>;
@@ -47,7 +48,7 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
     const root = hdkey.derive(this.hdPathString);
     for (let i = 0; i < numOfWallets; i += 1) {
       const child = root.deriveChild(i);
-      const wallet = BigInt(`0x${bytesToHex(child.privateKey)}`);
+      const wallet = bytesToBigInt(child.privateKey);
       wallets.push(wallet);
     }
     return wallets;
@@ -60,7 +61,7 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
     if (seedPhrase) {
       phrase = seedPhrase;
     } else {
-      phrase = entropyToMnemonic(randomBytes(32), wordlist);
+      phrase = entropyToMnemonic(generatePrivate(), wordlist);
     }
     const seed = mnemonicToSeedSync(phrase);
     const hdkey = HDKey.fromMasterSeed(seed);
@@ -68,7 +69,7 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
     // seek out the first zero balance
     while (lastBalance !== BigInt(0)) {
       const child = root.deriveChild(numberOfWallets);
-      const privKeyBigInt = BigInt(`0x${bytesToHex(child.privateKey)}`);
+      const privKeyBigInt = bytesToBigInt(child.privateKey);
       const uncompressedPubKey = getPubKeyECC(privKeyBigInt).slice(1);
       const address = generateAddressFromPublicKey(uncompressedPubKey);
       lastBalance = await this.provider.getBalance(address);

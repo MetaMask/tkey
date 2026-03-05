@@ -1,6 +1,5 @@
-import { invert, mod } from "@noble/curves/abstract/modular.js";
-import { bytesToNumberBE } from "@noble/curves/utils.js";
-import { generatePrivateExcludingIndexes, Point, Polynomial, secp256k1, Share } from "@tkey/common-types";
+import { generatePrivateExcludingIndexes, Point, Polynomial, Share } from "@tkey/common-types";
+import { bytesToNumberBE, invert, mod, secp256k1 } from "@toruslabs/metadata-helpers";
 
 import CoreError from "./errors";
 

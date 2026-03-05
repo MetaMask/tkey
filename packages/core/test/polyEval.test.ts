@@ -1,6 +1,6 @@
-import { bytesToNumberBE } from "@noble/curves/utils.js";
-import { getPubKeyPoint, Polynomial } from "@tkey/common-types";
+import { getPubKeyPoint, Point, Polynomial } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
+import { bytesToNumberBE } from "@toruslabs/metadata-helpers";
 import { describe, expect, it } from "vitest";
 
 import { generateRandomPolynomial, polyCommitmentEval } from "../src/index";
@@ -24,7 +24,7 @@ describe("polyCommitmentEval", function () {
     const poly = generateRandomPolynomial(degree);
     const publicPoly = poly.getPublicPolynomial();
     const expectedShareCommitment = [];
-    const shareCommitment = [];
+    const shareCommitment: Point[] = [];
     for (let i = 0; i < 10; i += 1) {
       const shareIndex = bytesToNumberBE(generatePrivate());
       expectedShareCommitment.push(getPubKeyPoint(poly.polyEval(shareIndex)));
