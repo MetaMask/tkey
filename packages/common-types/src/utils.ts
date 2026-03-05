@@ -47,7 +47,7 @@ export function bigIntReplacer(this: unknown, _key: string | number, value: unkn
 }
 
 export function generateAddressFromPublicKey(publicKey: Uint8Array): string {
-  const pubKeyHash = keccak256(publicKey);
+  const pubKeyHash = keccak256(publicKey); // keccak256 returns `0x` prefixed hash by default
   const ethAddressLower = add0x(pubKeyHash.slice(-40));
   return getChecksumAddress(ethAddressLower);
 }
