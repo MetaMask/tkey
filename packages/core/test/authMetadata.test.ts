@@ -1,5 +1,5 @@
-import { bytesToHex } from "@noble/curves/utils.js";
 import { bigIntReplacer, generatePrivate, generatePrivateExcludingIndexes, getPubKeyPoint } from "@tkey/common-types";
+import { add0x, bytesToHex } from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
 import { describe, expect, it } from "vitest";
 
@@ -126,7 +126,7 @@ describe("AuthMetadata", function () {
 
   it("#should reject signature from wrong key", function () {
     const privKeyBN = BigInt(`0x${PRIVATE_KEY}`);
-    const otherKey = BigInt(`0x${bytesToHex(generatePrivate())}`);
+    const otherKey = BigInt(add0x(bytesToHex(generatePrivate())));
     const metadata = createTestMetadata(privKeyBN);
     const auth = new AuthMetadata(metadata, otherKey);
     const parsed = JSON.parse(stringify(auth, { replacer: bigIntReplacer }));
@@ -182,7 +182,7 @@ describe("AuthMetadata", function () {
   it("#should load multiple freshly-generated toJSON outputs via fromJSON", function () {
     const keys: bigint[] = [];
     for (let i = 0; i < 5; i++) {
-      keys.push(BigInt(`0x${bytesToHex(generatePrivate())}`));
+      keys.push(BigInt(add0x(bytesToHex(generatePrivate()))));
     }
 
     const snapshots = keys.map((privKeyBN, i) => {

@@ -1,4 +1,3 @@
-import { randomBytes } from "@noble/curves/utils.js";
 import {
   bigIntReplacer,
   CatchupToLatestShareResult,
@@ -11,7 +10,6 @@ import {
   generatePrivateExcludingIndexes,
   getPubKeyECC,
   getPubKeyPoint,
-  hexToBigInt,
   IMessageMetadata,
   IMetadata,
   InitializeNewKeyResult,
@@ -21,6 +19,7 @@ import {
   ITKeyApi,
   KEY_NOT_FOUND,
   KeyDetails,
+  KeyType,
   LocalMetadataTransitions,
   LocalTransitionData,
   LocalTransitionShares,
@@ -47,8 +46,16 @@ import {
   TkeyStoreItemType,
   toPrivKeyECC,
 } from "@tkey/common-types";
-import { bytesToHex, bytesToUtf8, hexToBytes, utf8ToBytes } from "@toruslabs/metadata-helpers";
-import { encodeEd25519Point, getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed } from "@toruslabs/torus.js";
+import {
+  bytesToHex,
+  bytesToUtf8,
+  encodeEd25519Point,
+  generatePrivateKey,
+  getEd25519ExtendedPublicKey as getEd25519KeyPairFromSeed,
+  hexToBigInt,
+  hexToBytes,
+  utf8ToBytes,
+} from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
 
 import AuthMetadata from "./authMetadata";
@@ -1497,7 +1504,7 @@ class ThresholdKey implements ITKey {
     }
     let seedToUse = seed;
     if (!seed) {
-      seedToUse = randomBytes(32);
+      seedToUse = generatePrivateKey(KeyType.ed25519);
     }
     await this.importEd25519Seed(seedToUse);
   }

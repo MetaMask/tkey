@@ -1,6 +1,6 @@
-import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { Polynomial } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
+import { bytesToNumberBE } from "@toruslabs/metadata-helpers";
 import { describe, expect, it } from "vitest";
 
 import { generateRandomPolynomial, lagrangeInterpolation } from "../src/index";

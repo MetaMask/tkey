@@ -1,6 +1,6 @@
-import { bytesToHex, bytesToNumberBE } from "@noble/curves/utils.js";
 import { getPubKeyPoint } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
+import { bytesToHex, bytesToNumberBE } from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
 import { describe, expect, it } from "vitest";
 
@@ -15,7 +15,7 @@ describe("Metadata", function () {
     const shareIndexes = [1n, 2n];
     for (let i = 1; i <= 2; i += 1) {
       let ran = generatePrivate();
-      while (ran < 2) {
+      while (bytesToNumberBE(ran) < 2) {
         ran = generatePrivate();
       }
       shareIndexes.push(bytesToNumberBE(ran));
@@ -38,7 +38,7 @@ describe("Metadata", function () {
     const shareIndexes = [1n, 2n];
     for (let i = 1; i <= 2; i += 1) {
       let ran = generatePrivate();
-      while (ran < 2) {
+      while (bytesToNumberBE(ran) < 2) {
         ran = generatePrivate();
       }
       shareIndexes.push(bytesToNumberBE(ran));
@@ -61,7 +61,7 @@ describe("Metadata", function () {
     const shareIndexes = [1n, 2n];
     for (let i = 1; i <= 2; i += 1) {
       let ran = generatePrivate();
-      while (ran < 2) {
+      while (bytesToNumberBE(ran) < 2) {
         ran = generatePrivate();
       }
       shareIndexes.push(bytesToNumberBE(ran));
