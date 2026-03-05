@@ -21,15 +21,15 @@
     "url": "git+https://github.com/tkey/tkey.git"
   },
   "scripts": {
-    "test": "cross-env MOCKED=true mocha --config ../../.mocharc.json ",
-    "coverage": "nyc npm test",
-    "coverage-production": "nyc npm run test-production",
-    "test-development": "cross-env MOCKED=false METADATA=http://localhost:5051 mocha --config ../../.mocharc.json ",
-    "test-production": "cross-env MOCKED=false METADATA=https://metadata.web3auth.io mocha --config ../../.mocharc.json ",
-    "test-debugger": "mocha --config ../../.mocharc.json --inspect-brk",
+    "test": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
+    "coverage": "vitest run --config ../../test/shared/node.mocked.mts --coverage",
+    "coverage-production": "vitest run --config ../../test/shared/node.prod.mts --coverage",
+    "test-development": "vitest run --config ../../test/shared/node.dev.mts",
+    "test-production": "vitest run --config ../../test/shared/node.prod.mts",
+    "test-debugger": "vitest run --config ../../test/shared/node.debug.mts --inspect-brk",
     "dev": "rimraf dist/ && cross-env NODE_ENV=development torus-scripts build",
     "build": "rimraf dist/ && cross-env NODE_ENV=production torus-scripts build",
-    "lint": "eslint --fix 'src/**/*.ts'",
+    "lint": "torus-scripts lint src",
     "prepack": "npm run build",
     "pre-commit": "lint-staged"
   },
@@ -41,6 +41,9 @@
     "@toruslabs/fetch-node-details": "^16.0.0",
     "@toruslabs/metadata-helpers": "^8.1.0",
     "@toruslabs/torus.js": "^17.0.0"
+  },
+  "devDependencies": {
+    "vitest": "4.0.17"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"
