@@ -12,13 +12,9 @@ function initStorageLayer(mocked: string, extraParams: { hostUrl: string }) {
 const mocked = process.env.MOCKED || "false";
 const metadataURL = process.env.METADATA || "http://localhost:5051";
 
-function randomPrivateKey(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
+const PRIVATE_KEY = "f70fb5f5970b363879bc36f54d4fc0ad77863bfd059881159251f50f48863acc";
+const defaultSP = new ServiceProviderBase({ postboxKey: PRIVATE_KEY });
+const defaultSL = initStorageLayer(mocked, { hostUrl: metadataURL });
 
 /** Test-only: call private _initializeNewKey (bypass visibility for setup). */
 function initializeNewKey(t: InstanceType<typeof ThresholdKey>, opts?: { initializeModules?: boolean }) {
@@ -33,18 +29,15 @@ manualSyncModes.forEach((mode) => {
     let tb2: InstanceType<typeof ThresholdKey>;
 
     beforeEach(async function () {
-      const privKey = randomPrivateKey();
-      const sp = new ServiceProviderBase({ postboxKey: privKey });
-      const sl = initStorageLayer(mocked, { hostUrl: metadataURL });
       tb = new ThresholdKey({
-        serviceProvider: sp,
-        storageLayer: sl,
+        serviceProvider: defaultSP,
+        storageLayer: defaultSL,
         modules: { [WEB_STORAGE_MODULE_NAME]: new WebStorageModule() },
         manualSync: mode,
       });
       tb2 = new ThresholdKey({
-        serviceProvider: sp,
-        storageLayer: sl,
+        serviceProvider: defaultSP,
+        storageLayer: defaultSL,
         modules: { [WEB_STORAGE_MODULE_NAME]: new WebStorageModule() },
         manualSync: mode,
       });

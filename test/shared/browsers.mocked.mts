@@ -26,4 +26,7 @@ export default defineConfig({
       MOCKED: "true",
     },
   },
+  define: {
+    "process.env.MOCKED": JSON.stringify("true"),
+  },
 });

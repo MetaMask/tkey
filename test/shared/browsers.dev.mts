@@ -27,4 +27,8 @@ export default defineConfig({
       METADATA: "http://localhost:5051",
     },
   },
+  define: {
+    "process.env.MOCKED": JSON.stringify("false"),
+    "process.env.METADATA": JSON.stringify("http://localhost:5051"),
+  },
 });

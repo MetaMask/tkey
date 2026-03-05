@@ -23,4 +23,8 @@ export default defineConfig({
       include: ["src/**/*.ts"],
     },
   },
+  define: {
+    "process.env.MOCKED": JSON.stringify(process.env.MOCKED ?? "false"),
+    "process.env.METADATA": JSON.stringify(process.env.METADATA ?? "http://localhost:5051"),
+  },
 });

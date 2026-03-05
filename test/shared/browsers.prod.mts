@@ -27,4 +27,8 @@ export default defineConfig({
       METADATA: "https://metadata.web3auth.io",
     },
   },
+  define: {
+    "process.env.MOCKED": JSON.stringify("false"),
+    "process.env.METADATA": JSON.stringify("https://metadata.web3auth.io"),
+  },
 });
