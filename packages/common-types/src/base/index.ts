@@ -1,7 +1,7 @@
 export * from "./Error";
 export * from "./keyUtils";
 export * from "./OneKey";
-export { hexToBigInt, default as Point } from "./Point";
+export { default as Point } from "./Point";
 export { default as Polynomial } from "./Polynomial";
 export * from "./Polynomial";
 export { default as PublicPolynomial } from "./PublicPolynomial";

@@ -1,12 +1,6 @@
-import { concatBytes, numberToBytesBE } from "@noble/curves/utils.js";
+import { concatBytes, hexToBigInt, numberToBytesBE, secp256k1 } from "@toruslabs/metadata-helpers";
 
 import { IPoint, StringifiedType } from "../baseTypes/commonTypes";
-import { secp256k1 } from "../utils";
-
-export function hexToBigInt(s: string): bigint {
-  if (s.length === 0) throw new Error("hexToBigInt: empty string is invalid");
-  return BigInt(`0x${s}`);
-}
 
 class Point implements IPoint {
   x: bigint;
@@ -53,7 +47,7 @@ class Point implements IPoint {
         const prefix = new Uint8Array([0x04]);
         const xBytes = numberToBytesBE(this.x, 32);
         const yBytes = numberToBytesBE(this.y, 32);
-        return concatBytes(prefix, xBytes, yBytes);
+        return concatBytes([prefix, xBytes, yBytes]);
       }
       default:
         throw new Error("encoding doesnt exist in Point");

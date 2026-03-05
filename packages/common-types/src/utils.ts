@@ -1,13 +1,8 @@
-import { secp256k1 } from "@noble/curves/secp256k1.js";
-import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { serializeError } from "@toruslabs/customauth";
 import { decrypt as ecDecrypt, encrypt as ecEncrypt } from "@toruslabs/eccrypto";
-import { bytesToHex, hexToBytes } from "@toruslabs/metadata-helpers";
-import { keccak256, toChecksumAddress } from "@toruslabs/torus.js";
+import { add0x, bytesToHex, bytesToNumberBE, getChecksumAddress, hexToBytes, keccak256, secp256k1 } from "@toruslabs/metadata-helpers";
 
 import { EncryptedMessage } from "./baseTypes/commonTypes";
-
-export { secp256k1 };
 
 /** Returns 32 random bytes suitable for use as a secp256k1 private key. */
 export function generatePrivate(): Uint8Array {
@@ -52,8 +47,9 @@ export function bigIntReplacer(this: unknown, _key: string | number, value: unkn
 }
 
 export function generateAddressFromPublicKey(publicKey: Uint8Array): string {
-  const ethAddressLower = `0x${keccak256(publicKey).slice(-40)}`;
-  return toChecksumAddress(ethAddressLower);
+  const pubKeyHash = keccak256(publicKey);
+  const ethAddressLower = add0x(pubKeyHash.slice(-40));
+  return getChecksumAddress(ethAddressLower);
 }
 
 export function generatePrivateExcludingIndexes(shareIndexes: bigint[]): bigint {
@@ -69,11 +65,6 @@ export const SHARE_DELETED = "SHARE_DELETED";
 
 export function derivePubKeyXFromPolyID(polyID: string): string {
   return polyID.split("|")[0].slice(2);
-}
-
-export function stripHexPrefix(str: string): string {
-  if (str.slice(0, 2) === "0x") return str.slice(2);
-  return str;
 }
 
 export function generateID(): string {

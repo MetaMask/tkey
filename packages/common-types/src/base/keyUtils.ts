@@ -1,7 +1,6 @@
-import { numberToBytesBE } from "@noble/curves/utils.js";
 import { getPublic } from "@toruslabs/eccrypto";
+import { numberToBytesBE, secp256k1 } from "@toruslabs/metadata-helpers";
 
-import { secp256k1 } from "../utils";
 import Point from "./Point";
 
 export const toPrivKeyECC = (s: bigint): Uint8Array => {

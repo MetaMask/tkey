@@ -1,10 +1,8 @@
-import { bytesToNumberBE } from "@noble/curves/utils.js";
 import { generatePrivate } from "@toruslabs/eccrypto";
-import { bytesToHex } from "@toruslabs/metadata-helpers";
+import { bytesToHex, bytesToNumberBE, secp256k1 } from "@toruslabs/metadata-helpers";
 import { describe, expect, it } from "vitest";
 
 import { getPubKeyPoint, Point, Polynomial } from "../src/base";
-import { secp256k1 } from "../src/utils";
 
 describe("polynomial", function () {
   it("#should polyEval indexes correctly", async function () {
