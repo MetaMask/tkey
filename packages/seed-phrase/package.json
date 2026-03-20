@@ -41,8 +41,8 @@
     "@babel/runtime": "7.x"
   },
   "dependencies": {
-    "@scure/bip32": "^1.7.0",
-    "@scure/bip39": "^1.6.0",
+    "@scure/bip32": "^2.0.1",
+    "@scure/bip39": "^2.0.1",
     "@tkey/common-types": "^17.2.0",
     "@toruslabs/metadata-helpers": "^8.2.0"
   },

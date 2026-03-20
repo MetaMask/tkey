@@ -1,5 +1,5 @@
+import { sha256 } from "@noble/hashes/sha2.js";
 import { bytesToHex, hexToBytes } from "@toruslabs/metadata-helpers";
-import { sha256 } from "ethereum-cryptography/sha256";
 
 import ShareSerializationError from "./errors";
 

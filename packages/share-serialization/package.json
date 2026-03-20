@@ -48,7 +48,7 @@
   "dependencies": {
     "@tkey/common-types": "^17.2.0",
     "@toruslabs/metadata-helpers": "^8.2.0",
-    "ethereum-cryptography": "^3.2.0"
+    "@noble/hashes": "^2.0.1"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"
