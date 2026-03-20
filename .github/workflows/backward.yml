@@ -46,7 +46,7 @@ jobs:
           npm run pack:lerna
 
       - name: Clone comp tests
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: tkey/backward-compatibility-tests
           path: backward-compatibility-tests
