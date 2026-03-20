@@ -1,6 +1,6 @@
 {
   "name": "@tkey/share-serialization",
-  "version": "17.1.0",
+  "version": "17.2.0",
   "description": "TKey share serialization module",
   "author": "Torus Labs",
   "homepage": "https://github.com/tkey/tkey#readme",
@@ -46,7 +46,7 @@
     "vitest": "4.1.0"
   },
   "dependencies": {
-    "@tkey/common-types": "^17.1.0",
+    "@tkey/common-types": "^17.2.0",
     "@toruslabs/metadata-helpers": "^8.2.0",
     "ethereum-cryptography": "^3.2.0"
   },

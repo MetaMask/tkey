@@ -1,6 +1,6 @@
 {
   "name": "@tkey/service-provider-sfa",
-  "version": "17.1.0",
+  "version": "17.2.0",
   "description": "TKey Torus Service Provider Module",
   "author": "Torus Labs",
   "homepage": "https://github.com/tkey/tkey#readme",
@@ -37,11 +37,11 @@
     "@babel/runtime": "7.x"
   },
   "dependencies": {
-    "@tkey/service-provider-base": "^17.1.0",
+    "@tkey/service-provider-base": "^17.2.0",
+    "@toruslabs/constants": "^16.1.0",
     "@toruslabs/fetch-node-details": "^16.1.0",
     "@toruslabs/metadata-helpers": "^8.2.0",
-    "@toruslabs/torus.js": "^17.2.0",
-    "@toruslabs/constants": "^16.1.0"
+    "@toruslabs/torus.js": "^17.2.0"
   },
   "devDependencies": {
     "vitest": "4.1.0"
