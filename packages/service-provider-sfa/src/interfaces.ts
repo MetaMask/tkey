@@ -1,5 +1,5 @@
 import { type ServiceProviderArgs } from "@tkey/common-types";
-import { type TORUS_NETWORK_TYPE } from "@toruslabs/constants";
+import { BUILD_ENV_TYPE, type TORUS_NETWORK_TYPE } from "@toruslabs/constants";
 
 export interface Web3AuthOptions {
   clientId: string;
@@ -10,6 +10,7 @@ export interface Web3AuthOptions {
    * @defaultValue undefined
    */
   useDkg?: boolean;
+  buildEnv?: BUILD_ENV_TYPE;
 }
 export interface SfaServiceProviderArgs extends ServiceProviderArgs {
   web3AuthOptions: Web3AuthOptions;
