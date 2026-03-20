@@ -1,6 +1,6 @@
 {
   "name": "@tkey/seed-phrase",
-  "version": "17.1.0",
+  "version": "17.2.0",
   "description": "TKey Seed Phrase Module",
   "author": "Torus Labs",
   "homepage": "https://github.com/tkey/tkey#readme",
@@ -43,7 +43,7 @@
   "dependencies": {
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
-    "@tkey/common-types": "^17.1.0",
+    "@tkey/common-types": "^17.2.0",
     "@toruslabs/metadata-helpers": "^8.2.0"
   },
   "devDependencies": {
