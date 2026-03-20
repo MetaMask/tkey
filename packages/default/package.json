@@ -49,8 +49,8 @@
     "@tkey/seed-phrase": "^17.1.0",
     "@toruslabs/eccrypto": "^7.0.0",
     "@toruslabs/http-helpers": "^9.0.0",
-    "viem": "^2.46.3",
-    "vitest": "4.0.17"
+    "viem": "^2.47.5",
+    "vitest": "4.1.0"
   },
   "peerDependencies": {
     "@babel/runtime": "7.x"

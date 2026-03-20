@@ -24,10 +24,12 @@ class SfaServiceProvider extends ServiceProviderBase {
       clientId: web3AuthOptions.clientId,
       enableOneKey: true,
       network: web3AuthOptions.network,
+      buildEnv: web3AuthOptions.buildEnv,
+      source: "tkey/sfa",
     });
     Torus.enableLogging(enableLogging);
     this.serviceProviderName = "SfaServiceProvider";
-    this.nodeDetailManagerInstance = new NodeDetailManager({ network: web3AuthOptions.network, enableLogging });
+    this.nodeDetailManagerInstance = new NodeDetailManager({ network: web3AuthOptions.network, enableLogging, buildEnv: web3AuthOptions.buildEnv });
   }
 
   static fromJSON(value: StringifiedType): SfaServiceProvider {

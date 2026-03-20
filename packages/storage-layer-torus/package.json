@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@types/json-stable-stringify": "^1.2.0",
-    "vitest": "4.0.17"
+    "vitest": "4.1.0"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"

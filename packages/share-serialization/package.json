@@ -43,7 +43,7 @@
     "@babel/runtime": "7.x"
   },
   "devDependencies": {
-    "vitest": "4.0.17"
+    "vitest": "4.1.0"
   },
   "dependencies": {
     "@tkey/common-types": "^17.1.0",

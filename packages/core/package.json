@@ -39,7 +39,7 @@
     "json-stable-stringify": "^1.3.0"
   },
   "devDependencies": {
-    "vitest": "4.0.17"
+    "vitest": "4.1.0"
   },
   "peerDependencies": {
     "@babel/runtime": "7.x"

@@ -52,7 +52,7 @@
     "@tkey/service-provider-base": "^17.1.0",
     "@tkey/storage-layer-torus": "^17.1.0",
     "@types/filesystem": "^0.0.36",
-    "vitest": "4.0.17"
+    "vitest": "4.1.0"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"
