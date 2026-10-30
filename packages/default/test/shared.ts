@@ -1322,6 +1322,130 @@ export const sharedTestCases = (
       }
       expect(count).toBe(1);
     });
+
+    it(`#freshness is checked while holding the write lock, manualSync=${mode}`, async function () {
+      const tb = new ThresholdKey({ serviceProvider: customSP, manualSync: mode, storageLayer: customSL });
+      await initializeNewKey(tb, { initializeModules: true });
+      await tb.syncLocalMetadataTransitions();
+
+      let lockHeldAtCheck = false;
+      const checkSpy = vi
+        .spyOn(tb as unknown as { _assertCloudNonceMatches: () => Promise<void> }, "_assertCloudNonceMatches")
+        .mockImplementation(async () => {
+          lockHeldAtCheck = tb.haveWriteMetadataLock !== "";
+        });
+      await tb.generateNewShare();
+      await tb.syncLocalMetadataTransitions();
+      expect(checkSpy).toHaveBeenCalled();
+      expect(lockHeldAtCheck).toBe(true);
+      vi.restoreAllMocks();
+    });
+
+    it(`#deleteShare writes the refresh and SHARE_DELETED in one sync, manualSync=false`, async function () {
+      const tb = new ThresholdKey({ serviceProvider: customSP, manualSync: false, storageLayer: customSL });
+      await initializeNewKey(tb, { initializeModules: true });
+      const { newShareIndex } = await tb.generateNewShare();
+      const deletedStore = tb.outputShareStore(newShareIndex);
+
+      const setSpy = vi.spyOn(customSL, "setMetadataStream");
+      await tb.deleteShare(newShareIndex);
+      expect(setSpy).toHaveBeenCalledTimes(1);
+      vi.restoreAllMocks();
+
+      const raw = await customSL.getMetadata<{ message: string }>({ privKey: deletedStore.share.share });
+      expect(raw.message).toStrictEqual(SHARE_DELETED);
+    });
+
+    it(`#concurrent deleteShare and generateNewShare leave at most one write, manualSync=${mode}`, async function () {
+      const tb = new ThresholdKey({ serviceProvider: customSP, manualSync: mode, storageLayer: customSL });
+      const resp1 = await initializeNewKey(tb, { initializeModules: true });
+      const { newShareIndex } = await tb.generateNewShare();
+      await tb.syncLocalMetadataTransitions();
+      const deletedStore = tb.outputShareStore(newShareIndex);
+
+      const tb2 = new ThresholdKey({ serviceProvider: customSP, manualSync: mode, storageLayer: customSL });
+      await tb2.initialize();
+      await tb2.inputShareStoreSafe(resp1.deviceShare);
+      await tb2.reconstructKey();
+
+      const results = await Promise.allSettled([
+        tb.deleteShare(newShareIndex).then(() => tb.syncLocalMetadataTransitions()),
+        tb2.generateNewShare().then(() => tb2.syncLocalMetadataTransitions()),
+      ]);
+      const fulfilled = results.filter((r) => r.status === "fulfilled").length;
+      expect(fulfilled).toBeLessThanOrEqual(1);
+      results.forEach((r) => {
+        if (r.status === "rejected") expect([1401, 1403]).toContain((r.reason as { code?: number }).code);
+      });
+
+      if (results[0].status === "fulfilled") {
+        const raw = await customSL.getMetadata<{ message: string }>({ privKey: deletedStore.share.share });
+        expect(raw.message).toStrictEqual(SHARE_DELETED);
+      }
+    });
+
+    it(`#a write overwritten by a concurrent writer is reported as 1403, manualSync=${mode}`, async function () {
+      const tbA = new ThresholdKey({ serviceProvider: customSP, manualSync: mode, storageLayer: customSL });
+      const resp1 = await initializeNewKey(tbA, { initializeModules: true });
+      await tbA.syncLocalMetadataTransitions();
+
+      const tbB = new ThresholdKey({ serviceProvider: customSP, manualSync: mode, storageLayer: customSL });
+      await tbB.initialize();
+      await tbB.inputShareStoreSafe(resp1.deviceShare);
+      await tbB.reconstructKey();
+
+      // simulate the server lock race: both writers are granted the lock
+      vi.spyOn(customSL, "acquireWriteLock").mockResolvedValue({ status: 1, id: "race" });
+      vi.spyOn(customSL, "releaseWriteLock").mockResolvedValue({ status: 1 });
+      // tbB passed its freshness check before tbA's write landed
+      vi.spyOn(tbB as unknown as { _assertCloudNonceMatches: () => Promise<void> }, "_assertCloudNonceMatches").mockResolvedValue(undefined);
+
+      // right after tbA's rows land, tbB writes over them
+      const realSet = customSL.setMetadataStream.bind(customSL);
+      let bWrote = false;
+      vi.spyOn(customSL, "setMetadataStream").mockImplementation(async (params) => {
+        const res = await realSet(params);
+        if (!bWrote) {
+          bWrote = true;
+          await tbB.generateNewShare();
+          await tbB.syncLocalMetadataTransitions();
+        }
+        return res;
+      });
+
+      try {
+        await expect(
+          (async () => {
+            await tbA.generateNewShare();
+            await tbA.syncLocalMetadataTransitions();
+          })()
+        ).rejects.toMatchObject({ code: 1403 });
+        expect(tbB.lastFetchedCloudMetadata.nonce).toStrictEqual(tbB.metadata.nonce);
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
+
+    it(`#share selection can pick the last share on the latest polynomial, manualSync=${mode}`, async function () {
+      const tb = new ThresholdKey({ serviceProvider: customSP, manualSync: mode, storageLayer: customSL });
+      await initializeNewKey(tb, { initializeModules: true });
+      await tb.syncLocalMetadataTransitions();
+
+      const polyID = tb.lastFetchedCloudMetadata.getLatestPublicPolynomial().getPolynomialID();
+      const indexes = Object.keys(tb.shares[polyID]);
+      expect(indexes.length).toBeGreaterThan(1);
+
+      vi.spyOn(Math, "random").mockReturnValue(0.999);
+      const catchupSpy = vi.spyOn(tb, "catchupToLatestShare");
+      try {
+        await tb.acquireWriteMetadataLock();
+        const picked = catchupSpy.mock.calls[0][0].shareStore.share.shareIndex.toString(16);
+        expect(picked).toStrictEqual(indexes[indexes.length - 1]);
+        await tb.releaseWriteMetadataLock();
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
   });
 
   describe("tkey error cases", function () {

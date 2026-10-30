@@ -48,6 +48,7 @@ class CoreError extends TkeyError {
     // lock
     1401: "Unable to acquire lock",
     1402: "Unable to release lock",
+    1403: "Metadata was modified concurrently, re-initialize and retry",
     // auth metadata
     1501: "privkey unavailable",
     1502: "metadata pubkey unavailable",
@@ -127,6 +128,10 @@ class CoreError extends TkeyError {
 
   public static releaseLockFailed(extraMessage = ""): ITkeyError {
     return CoreError.fromCode(1402, extraMessage);
+  }
+
+  public static metadataWriteConflict(extraMessage = ""): ITkeyError {
+    return CoreError.fromCode(1403, extraMessage);
   }
 
   // Authmetadata
