@@ -69,6 +69,8 @@ import {
 import Metadata from "./metadata";
 
 const ed25519SeedConst = "ed25519Seed";
+// matches KEYVALUE_LOCK_TIMEOUT (seconds) on the metadata service
+const METADATA_LOCK_TIMEOUT_MS = 90_000;
 
 // TODO: handle errors for get and set with retries
 
@@ -100,6 +102,8 @@ class ThresholdKey implements ITKey {
   storeDeviceShare: (deviceShareStore: ShareStore, customDeviceInfo?: StringifiedType) => Promise<void>;
 
   haveWriteMetadataLock: string;
+
+  lockAcquiredAt: number;
 
   serverTimeOffset?: number = 0;
 
@@ -603,9 +607,19 @@ class ThresholdKey implements ITKey {
     } else if (newShareIndexes.length < pubPoly.getThreshold()) {
       throw CoreError.default(`Minimum ${pubPoly.getThreshold()} shares are required for tkey. Unable to delete share`);
     }
-    const results = await this._refreshShares(pubPoly.getThreshold(), [...newShareIndexes], previousPolyID);
-    const newShareStores = results.shareStores;
-    await this.addLocalMetadataTransitions({ input: [{ message: SHARE_DELETED, dateAdded: Date.now() }], privKey: [shareToDelete.share.share] });
+    // queue the refresh and the SHARE_DELETED marker together, then write them in one locked sync.
+    // syncing between them would let another writer land in the gap.
+    const prevManualSync = this.manualSync;
+    let newShareStores: Record<string, ShareStore>;
+    this.manualSync = true;
+    try {
+      const results = await this._refreshShares(pubPoly.getThreshold(), [...newShareIndexes], previousPolyID);
+      newShareStores = results.shareStores;
+      await this.addLocalMetadataTransitions({ input: [{ message: SHARE_DELETED, dateAdded: Date.now() }], privKey: [shareToDelete.share.share] });
+    } finally {
+      this.manualSync = prevManualSync;
+    }
+    if (!this.manualSync) await this.syncLocalMetadataTransitions();
     return { newShareStores };
   }
 
@@ -674,21 +688,73 @@ class ThresholdKey implements ITKey {
       await this.acquireWriteMetadataLock();
       acquiredLock = true;
     }
+    const previousPolyID = this.lastFetchedCloudMetadata?.getLatestPublicPolynomial().getPolynomialID();
+    // share keys this write marks SHARE_DELETED on the same polynomial (e.g. CRITICAL_deleteTkey)
+    const deletedKeysInThisWrite = new Set<string>();
+    this._localMetadataTransitions[0].forEach((key, i) => {
+      if (key && (this._localMetadataTransitions[1][i] as { message?: string })?.message === SHARE_DELETED) {
+        deletedKeysInThisWrite.add(key.toString(16));
+      }
+    });
     try {
       await this.storageLayer.setMetadataStream({
         input: this._localMetadataTransitions[1],
         privKey: this._localMetadataTransitions[0],
         serviceProvider: this.serviceProvider,
       });
+      if (acquiredLock) await this._assertWriteVisible(previousPolyID, deletedKeysInThisWrite);
       this._localMetadataTransitions = [[], []];
       this.lastFetchedCloudMetadata = this.metadata.clone();
     } catch (error: unknown) {
+      if ((error as { code?: number })?.code === 1403) throw error;
       const prettyError = await prettyPrintError(error);
       throw CoreError.metadataPostFailed(prettyError.message);
     } finally {
       // release lock
       if (acquiredLock) await this.releaseWriteMetadataLock();
     }
+  }
+
+  // After a locked write, read back the row under each share we hold on the previous polynomial.
+  // If another writer overwrote one of them, its nonce or polynomial will not match what we wrote.
+  // Each write creates a new random polynomial, so the polynomial ID identifies the write.
+  private async _assertWriteVisible(previousPolyID: PolynomialID, deletedKeysInThisWrite: Set<string>): Promise<void> {
+    if (!this.metadata || !previousPolyID) return;
+    const expectedNonce = this.metadata.nonce;
+    const expectedPolyID = this.metadata.getLatestPublicPolynomial().getPolynomialID();
+    // share indexes still present on the final local polynomial; any other index was deleted by this write.
+    // indexes are stable across polynomials (only the private key changes), so this holds however many refreshes were queued
+    const liveIndexes = new Set(this.metadata.getShareIndexesForPolynomial(expectedPolyID));
+
+    for (const shareStore of Object.values(this.shares[previousPolyID] || {})) {
+      const shareIndexHex = shareStore.share.shareIndex.toString(16);
+      const deletedHere = !liveIndexes.has(shareIndexHex) || deletedKeysInThisWrite.has(shareStore.share.share.toString(16));
+      let latest: CatchupToLatestShareResult;
+      try {
+        latest = await this.catchupToLatestShare({ shareStore });
+      } catch (error: unknown) {
+        if ((error as { code?: number })?.code === 1308) {
+          // a share this write deleted is expected to read SHARE_DELETED; any other deleted read is a conflict
+          if (deletedHere) continue;
+          throw CoreError.metadataWriteConflict(`share ${shareIndexHex} was marked deleted by another writer.${this._lockTimeNote()}`);
+        }
+        throw error;
+      }
+      if (deletedHere) {
+        throw CoreError.metadataWriteConflict(`share ${shareIndexHex} was deleted in this write but reads back as live.${this._lockTimeNote()}`);
+      }
+      const seen = latest.shareMetadata;
+      const seenPolyID = seen.getLatestPublicPolynomial().getPolynomialID();
+      if (seen.nonce !== expectedNonce || seenPolyID !== expectedPolyID) {
+        throw CoreError.metadataWriteConflict(`share ${shareIndexHex} reads nonce ${seen.nonce}, expected ${expectedNonce}.${this._lockTimeNote()}`);
+      }
+    }
+  }
+
+  private _lockTimeNote(): string {
+    const elapsed = Date.now() - (this.lockAcquiredAt || Date.now());
+    if (elapsed <= METADATA_LOCK_TIMEOUT_MS) return "";
+    return ` The write took ${Math.round(elapsed / 1000)}s, longer than the ${METADATA_LOCK_TIMEOUT_MS / 1000}s lock TTL, so the lock may have expired.`;
   }
 
   async readMetadata<T>(privKey: bigint): Promise<T> {
@@ -937,17 +1003,40 @@ class ThresholdKey implements ITKey {
       throw CoreError.privateKeyUnavailable();
     }
 
-    // we check the metadata of a random share we have on the latest polynomial we know that reflects the cloud
-    // below we cater for if we have an existing share or need to create the share in the SDK
-    let randomShareStore: ShareStore;
-    const latestPolyIDOnCloud = this.lastFetchedCloudMetadata.getLatestPublicPolynomial().getPolynomialID();
-    const shareIndexesExistInSDK = Object.keys(this.shares[latestPolyIDOnCloud]);
-    const randomIndex = shareIndexesExistInSDK[Math.floor(Math.random() * (shareIndexesExistInSDK.length - 1))];
-    if (shareIndexesExistInSDK.length >= 1) {
-      randomShareStore = this.shares[latestPolyIDOnCloud][randomIndex];
-    } else {
-      randomShareStore = this.outputShareStore(hexToBigInt(randomIndex), latestPolyIDOnCloud);
+    // take the lock first, then check freshness. checking before locking lets two clients
+    // both pass the nonce check at the same version and write in turn.
+    const res = await this.storageLayer.acquireWriteLock({ privKey: this.privKey });
+    if (res.status !== 1) throw CoreError.acquireLockFailed(`lock cannot be acquired from storage layer status code: ${res.status}`);
+    this.haveWriteMetadataLock = res.id;
+    this.lockAcquiredAt = Date.now();
+
+    try {
+      await this._assertCloudNonceMatches();
+    } catch (error: unknown) {
+      try {
+        await this.releaseWriteMetadataLock();
+      } catch {
+        // keep the freshness error as the one the caller sees
+      }
+      throw error;
     }
+
+    // increment metadata nonce for write session
+    // this.metadata.nonce += 1;
+    return this.metadata.nonce;
+  }
+
+  // we check the metadata of a random share we have on the latest polynomial we know that reflects the cloud
+  // below we cater for if we have an existing share or need to create the share in the SDK
+  private async _assertCloudNonceMatches(): Promise<void> {
+    const latestPolyIDOnCloud = this.lastFetchedCloudMetadata.getLatestPublicPolynomial().getPolynomialID();
+    const shareIndexesExistInSDK = Object.keys(this.shares[latestPolyIDOnCloud] || {});
+    if (shareIndexesExistInSDK.length === 0) {
+      // we can only check freshness with a share we hold; without one we cannot read the cloud
+      throw CoreError.default("no share on the latest cloud polynomial is available to verify metadata freshness");
+    }
+    const randomIndex = shareIndexesExistInSDK[Math.floor(Math.random() * shareIndexesExistInSDK.length)];
+    const randomShareStore: ShareStore = this.shares[latestPolyIDOnCloud][randomIndex];
     const latestRes = await this.catchupToLatestShare({ shareStore: randomShareStore });
     const latestMetadata = latestRes.shareMetadata;
 
@@ -962,14 +1051,6 @@ class ThresholdKey implements ITKey {
       being higher than last written metadata nonce (${latestMetadata.nonce}). this should never happen as it 
       should only ever be updated by getting metadata)`);
     }
-
-    const res = await this.storageLayer.acquireWriteLock({ privKey: this.privKey });
-    if (res.status !== 1) throw CoreError.acquireLockFailed(`lock cannot be acquired from storage layer status code: ${res.status}`);
-
-    // increment metadata nonce for write session
-    // this.metadata.nonce += 1;
-    this.haveWriteMetadataLock = res.id;
-    return this.metadata.nonce;
   }
 
   async releaseWriteMetadataLock(): Promise<void> {
