@@ -689,11 +689,11 @@ class ThresholdKey implements ITKey {
       acquiredLock = true;
     }
     const previousPolyID = this.lastFetchedCloudMetadata?.getLatestPublicPolynomial().getPolynomialID();
-    // share keys this write marks SHARE_DELETED; a read of those is expected, anything else is a conflict
-    const deletedInThisWrite = new Set<string>();
+    // share keys this write marks SHARE_DELETED on the same polynomial (e.g. CRITICAL_deleteTkey)
+    const deletedKeysInThisWrite = new Set<string>();
     this._localMetadataTransitions[0].forEach((key, i) => {
       if (key && (this._localMetadataTransitions[1][i] as { message?: string })?.message === SHARE_DELETED) {
-        deletedInThisWrite.add(key.toString(16));
+        deletedKeysInThisWrite.add(key.toString(16));
       }
     });
     try {
@@ -702,7 +702,7 @@ class ThresholdKey implements ITKey {
         privKey: this._localMetadataTransitions[0],
         serviceProvider: this.serviceProvider,
       });
-      if (acquiredLock) await this._assertWriteVisible(previousPolyID, deletedInThisWrite);
+      if (acquiredLock) await this._assertWriteVisible(previousPolyID, deletedKeysInThisWrite);
       this._localMetadataTransitions = [[], []];
       this.lastFetchedCloudMetadata = this.metadata.clone();
     } catch (error: unknown) {
@@ -718,14 +718,17 @@ class ThresholdKey implements ITKey {
   // After a locked write, read back the row under each share we hold on the previous polynomial.
   // If another writer overwrote one of them, its nonce or polynomial will not match what we wrote.
   // Each write creates a new random polynomial, so the polynomial ID identifies the write.
-  private async _assertWriteVisible(previousPolyID: PolynomialID, deletedInThisWrite: Set<string>): Promise<void> {
+  private async _assertWriteVisible(previousPolyID: PolynomialID, deletedKeysInThisWrite: Set<string>): Promise<void> {
     if (!this.metadata || !previousPolyID) return;
     const expectedNonce = this.metadata.nonce;
     const expectedPolyID = this.metadata.getLatestPublicPolynomial().getPolynomialID();
+    // share indexes still present on the final local polynomial; any other index was deleted by this write.
+    // indexes are stable across polynomials (only the private key changes), so this holds however many refreshes were queued
+    const liveIndexes = new Set(this.metadata.getShareIndexesForPolynomial(expectedPolyID));
 
     for (const shareStore of Object.values(this.shares[previousPolyID] || {})) {
       const shareIndexHex = shareStore.share.shareIndex.toString(16);
-      const deletedHere = deletedInThisWrite.has(shareStore.share.share.toString(16));
+      const deletedHere = !liveIndexes.has(shareIndexHex) || deletedKeysInThisWrite.has(shareStore.share.share.toString(16));
       let latest: CatchupToLatestShareResult;
       try {
         latest = await this.catchupToLatestShare({ shareStore });

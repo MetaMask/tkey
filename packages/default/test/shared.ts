@@ -1426,6 +1426,18 @@ export const sharedTestCases = (
       }
     });
 
+    it(`#generateNewShare then deleteShare in one pending write does not report a conflict, manualSync=${mode}`, async function () {
+      const tb = new ThresholdKey({ serviceProvider: customSP, manualSync: mode, storageLayer: customSL });
+      await initializeNewKey(tb, { initializeModules: true });
+      await tb.syncLocalMetadataTransitions();
+      const indexes = tb.metadata.getShareIndexesForPolynomial(tb.metadata.getLatestPublicPolynomial().getPolynomialID());
+      const existing = indexes[indexes.length - 1];
+      await tb.generateNewShare();
+      await tb.generateNewShare();
+      await tb.deleteShare(hexToBigInt(existing));
+      await tb.syncLocalMetadataTransitions();
+    });
+
     it(`#share selection can pick the last share on the latest polynomial, manualSync=${mode}`, async function () {
       const tb = new ThresholdKey({ serviceProvider: customSP, manualSync: mode, storageLayer: customSL });
       await initializeNewKey(tb, { initializeModules: true });
