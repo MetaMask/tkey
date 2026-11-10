@@ -2,9 +2,15 @@ import { getPubKeyPoint } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
 import { bytesToHex, bytesToNumberBE, hexToBigInt } from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { generateRandomPolynomial, Metadata } from "../src/index";
+
+function stableStringify(...args: Parameters<typeof stringify>): string {
+  const serialized = stringify(...args);
+  if (serialized === undefined) throw new Error("expected serialized json");
+  return serialized;
+}
 
 const PRIVATE_KEY = bytesToHex(generatePrivate());
 
@@ -25,9 +31,9 @@ describe("Metadata", function () {
     const metadata = new Metadata(getPubKeyPoint(privKeyBN));
     metadata.addFromPolynomialAndShares(poly, shares);
     metadata.setGeneralStoreDomain("something", { test: "oh this is an object" });
-    const serializedMetadata = stringify(metadata);
+    const serializedMetadata = stableStringify(metadata);
     const deserializedMetadata = Metadata.fromJSON(JSON.parse(serializedMetadata));
-    const secondSerialization = stringify(deserializedMetadata);
+    const secondSerialization = stableStringify(deserializedMetadata);
     expect(serializedMetadata).toStrictEqual(secondSerialization);
     const deserializedMetadata2 = Metadata.fromJSON(JSON.parse(secondSerialization));
     expect(deserializedMetadata2).toStrictEqual(deserializedMetadata);
@@ -48,9 +54,9 @@ describe("Metadata", function () {
     const metadata = new Metadata(getPubKeyPoint(privKeyBN));
     metadata.addFromPolynomialAndShares(poly, shares);
     metadata.setTkeyStoreDomain("something", { test: "oh this is an object" });
-    const serializedMetadata = stringify(metadata);
+    const serializedMetadata = stableStringify(metadata);
     const deserializedMetadata = Metadata.fromJSON(JSON.parse(serializedMetadata));
-    const secondSerialization = stringify(deserializedMetadata);
+    const secondSerialization = stableStringify(deserializedMetadata);
     expect(serializedMetadata).toStrictEqual(secondSerialization);
     const deserializedMetadata2 = Metadata.fromJSON(JSON.parse(secondSerialization));
     expect(deserializedMetadata2).toStrictEqual(deserializedMetadata);
@@ -71,9 +77,9 @@ describe("Metadata", function () {
     const metadata = new Metadata(getPubKeyPoint(privKeyBN));
     metadata.addFromPolynomialAndShares(poly, shares);
     metadata.setScopedStore("something", { test: "oh this is an object" });
-    const serializedMetadata = stringify(metadata);
+    const serializedMetadata = stableStringify(metadata);
     const deserializedMetadata = Metadata.fromJSON(JSON.parse(serializedMetadata));
-    const secondSerialization = stringify(deserializedMetadata);
+    const secondSerialization = stableStringify(deserializedMetadata);
     expect(serializedMetadata).toStrictEqual(secondSerialization);
     const deserializedMetadata2 = Metadata.fromJSON(JSON.parse(secondSerialization));
     expect(deserializedMetadata2).toStrictEqual(deserializedMetadata);

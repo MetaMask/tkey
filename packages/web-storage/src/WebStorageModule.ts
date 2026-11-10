@@ -9,7 +9,7 @@ export const WEB_STORAGE_MODULE_NAME = "webStorage";
 class WebStorageModule implements IModule {
   moduleName: string;
 
-  tbSDK: ITKeyApi;
+  tbSDK!: ITKeyApi;
 
   canUseFileStorage: boolean;
 
@@ -36,7 +36,6 @@ class WebStorageModule implements IModule {
           self.canUseFileStorage = true;
         }
       };
-      // eslint-disable-next-line no-empty
     } catch {}
   }
 

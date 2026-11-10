@@ -48,6 +48,7 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
     const root = hdkey.derive(this.hdPathString);
     for (let i = 0; i < numOfWallets; i += 1) {
       const child = root.deriveChild(i);
+      if (!child.privateKey) throw new Error("Unable to derive a secp256k1 private key");
       const wallet = bytesToBigInt(child.privateKey);
       wallets.push(wallet);
     }
@@ -56,7 +57,7 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
 
   async createSeedPhraseStore(seedPhrase?: string): Promise<MetamaskSeedPhraseStore> {
     let numberOfWallets = 0;
-    let lastBalance: bigint;
+    let lastBalance: bigint | undefined = undefined;
     let phrase: string;
     if (seedPhrase) {
       phrase = seedPhrase;
@@ -69,6 +70,7 @@ class MetamaskSeedPhraseFormat implements ISeedPhraseFormat {
     // seek out the first zero balance
     while (lastBalance !== BigInt(0)) {
       const child = root.deriveChild(numberOfWallets);
+      if (!child.privateKey) throw new Error("Unable to derive a secp256k1 private key");
       const privKeyBigInt = bytesToBigInt(child.privateKey);
       const uncompressedPubKey = getPubKeyECC(privKeyBigInt).slice(1);
       const address = generateAddressFromPublicKey(uncompressedPubKey);

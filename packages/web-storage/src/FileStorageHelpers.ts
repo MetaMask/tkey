@@ -28,6 +28,10 @@ async function requestQuota(): Promise<number> {
     navigator.webkitPersistentStorage.requestQuota(requestedBytes, resolve, reject);
   });
 }
+function hasFileSystemApi(win: Window): boolean {
+  const legacy = win as Window & { requestFileSystem?: unknown; webkitRequestFileSystem?: unknown };
+  return typeof legacy.requestFileSystem === "function" || typeof legacy.webkitRequestFileSystem === "function";
+}
 async function browserRequestFileSystem(grantedBytes: number): Promise<FileSystem> {
   return new Promise((resolve, reject) => {
     const win = getWindow();
@@ -49,7 +53,7 @@ async function readFile(fileEntry: FileEntry): Promise<File> {
 export const getShareFromFileStorage = async (key: string): Promise<ShareStore> => {
   const win = getWindow();
   win.requestFileSystem = win.requestFileSystem || win.webkitRequestFileSystem;
-  if (win.requestFileSystem) {
+  if (hasFileSystemApi(win)) {
     const fs = await browserRequestFileSystem(requestedBytes);
 
     const fileEntry = await getFile(fs, key, false);
@@ -69,7 +73,7 @@ export const storeShareOnFileStorage = async (share: ShareStore, key: string): P
   const fileStr = JSON.stringify(share);
   const win = getWindow();
   win.requestFileSystem = win.requestFileSystem || win.webkitRequestFileSystem;
-  if (win.requestFileSystem) {
+  if (hasFileSystemApi(win)) {
     const grantedBytes = await requestQuota();
     const fs = await browserRequestFileSystem(grantedBytes);
     const fileEntry = await getFile(fs, key, true);

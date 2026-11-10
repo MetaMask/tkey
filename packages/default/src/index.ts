@@ -16,7 +16,7 @@ export class TKeyDefault extends TKey {
     let finalServiceProvider: IServiceProvider;
     let finalStorageLayer: IStorageLayer;
     if (!serviceProvider) {
-      finalServiceProvider = new TorusServiceProvider({ customAuthArgs });
+      finalServiceProvider = new TorusServiceProvider({ customAuthArgs: customAuthArgs! });
     } else {
       finalServiceProvider = serviceProvider;
     }
@@ -40,7 +40,7 @@ export class TKeyDefault extends TKey {
       serviceProvider ||
       TorusServiceProvider.fromJSON(tempOldServiceProvider) ||
       ServiceProviderBase.fromJSON(tempOldServiceProvider) ||
-      new TorusServiceProvider({ customAuthArgs });
+      new TorusServiceProvider({ customAuthArgs: customAuthArgs! });
 
     tempOldStorageLayer.serviceProvider = finalServiceProvider;
     const finalStorageLayer: IStorageLayer =

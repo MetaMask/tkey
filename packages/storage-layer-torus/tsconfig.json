@@ -1,4 +1,22 @@
 {
-  "extends": "../../tsconfig.json",
-  "include": ["src", "test"]
+  "extends": "@toruslabs/config/tsconfig.library.json",
+  "compilerOptions": {
+    "paths": {
+      "@tkey/*": [
+        "../../packages/*"
+      ]
+    },
+    "typeRoots": [
+      "../../node_modules/@types"
+    ],
+    "lib": [
+      "ES2024",
+      "DOM",
+      "DOM.Iterable"
+    ]
+  },
+  "include": [
+    "src",
+    "test"
+  ]
 }

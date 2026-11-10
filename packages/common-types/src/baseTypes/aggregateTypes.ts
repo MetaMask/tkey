@@ -186,7 +186,7 @@ export type BufferObj = {
 
 export interface ShareRequestArgs {
   encPubKey: unknown;
-  encShareInTransit: EncryptedMessage;
+  encShareInTransit?: EncryptedMessage;
   availableShareIndexes: string[];
   userAgent: string;
   userIp: string;
@@ -234,7 +234,7 @@ export interface IPrivateKeyFormat {
   privateKey: bigint;
   type: string;
   validatePrivateKey(privateKey: bigint): boolean;
-  createPrivateKeyStore(privateKey: bigint): IPrivateKeyStore;
+  createPrivateKeyStore(privateKey?: bigint): IPrivateKeyStore;
 }
 
 export interface IAuthMetadata {

@@ -7,7 +7,7 @@ export const SEED_PHRASE_MODULE_NAME = "seedPhraseModule";
 class SeedPhraseModule implements IModule {
   moduleName: string;
 
-  tbSDK: ITKeyApi;
+  tbSDK!: ITKeyApi;
 
   seedPhraseFormats: ISeedPhraseFormat[];
 
@@ -46,6 +46,7 @@ class SeedPhraseModule implements IModule {
   async CRITICAL_changeSeedPhrase(oldSeedPhrase: string, newSeedPhrase: string): Promise<void> {
     const seedPhrases = await this.getSeedPhrases();
     const itemToChange = seedPhrases.find((x) => x.seedPhrase === oldSeedPhrase);
+    if (!itemToChange) throw SeedPhraseError.notSupported();
     itemToChange.seedPhrase = newSeedPhrase;
     return this.tbSDK._setTKeyStoreItem(this.moduleName, itemToChange);
   }
@@ -60,6 +61,7 @@ class SeedPhraseModule implements IModule {
       return await Promise.all(
         seedPhrases.map(async (x) => {
           const suitableFormat = this.seedPhraseFormats.find((y) => y.type === x.type);
+          if (!suitableFormat) throw SeedPhraseError.notSupported();
           const keys = await suitableFormat.deriveKeysFromSeedPhrase(x);
           return { ...x, keys };
         })
@@ -75,6 +77,7 @@ class SeedPhraseModule implements IModule {
       const responses = await Promise.all(
         seedPhrases.map(async (x) => {
           const suitableFormat = this.seedPhraseFormats.find((y) => y.type === x.type);
+          if (!suitableFormat) throw SeedPhraseError.notSupported();
           return suitableFormat.deriveKeysFromSeedPhrase(x);
         })
       );

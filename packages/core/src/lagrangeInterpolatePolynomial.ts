@@ -5,6 +5,22 @@ import CoreError from "./errors";
 
 const N = secp256k1.Point.CURVE().n;
 
+function requirePoint(points: Point[], index: number): Point {
+  const point = points[index];
+  if (point === undefined) {
+    throw CoreError.default("missing point for interpolation");
+  }
+  return point;
+}
+
+function requireBigInt(values: bigint[], index: number): bigint {
+  const value = values[index];
+  if (value === undefined) {
+    throw CoreError.default("missing coefficient for interpolation");
+  }
+  return value;
+}
+
 export function generatePrivateBigInt(): bigint {
   return bytesToNumberBE(secp256k1.utils.randomSecretKey());
 }
@@ -13,10 +29,10 @@ const generateEmptyBigIntArray = (length: number): bigint[] => Array.from({ leng
 
 const denominator = (i: number, innerPoints: Point[]) => {
   let result = 1n;
-  const xi = innerPoints[i].x;
+  const xi = requirePoint(innerPoints, i).x;
   for (let j = innerPoints.length - 1; j >= 0; j -= 1) {
     if (i !== j) {
-      const tmp = mod(xi - innerPoints[j].x, N);
+      const tmp = mod(xi - requirePoint(innerPoints, j).x, N);
       result = mod(result * tmp, N);
     }
   }
@@ -41,9 +57,10 @@ const interpolationPoly = (i: number, innerPoints: Point[]): bigint[] => {
       }
       j -= 1;
       for (; j >= 0; j -= 1) {
-        newCoefficients[j + 1] = mod(newCoefficients[j + 1] + coefficients[j], N);
-        const tmp = mod(innerPoints[k].x * coefficients[j], N);
-        newCoefficients[j] = mod(newCoefficients[j] - tmp, N);
+        const coefficient = requireBigInt(coefficients, j);
+        newCoefficients[j + 1] = mod(requireBigInt(newCoefficients, j + 1) + coefficient, N);
+        const tmp = mod(requirePoint(innerPoints, k).x * coefficient, N);
+        newCoefficients[j] = mod(requireBigInt(newCoefficients, j) - tmp, N);
       }
       coefficients = newCoefficients;
     }
@@ -62,9 +79,10 @@ const lagrange = (unsortedPoints: Point[]) => {
   const polynomial = generateEmptyBigIntArray(sortedPoints.length);
   for (let i = 0; i < sortedPoints.length; i += 1) {
     const coefficients = interpolationPoly(i, sortedPoints);
+    const point = requirePoint(sortedPoints, i);
     for (let k = 0; k < sortedPoints.length; k += 1) {
-      const tmp = sortedPoints[i].y * coefficients[k];
-      polynomial[k] = mod(polynomial[k] + tmp, N);
+      const tmp = point.y * requireBigInt(coefficients, k);
+      polynomial[k] = mod(requireBigInt(polynomial, k) + tmp, N);
     }
   }
   return new Polynomial(polynomial);
@@ -84,13 +102,13 @@ export function lagrangeInterpolation(shares: bigint[], nodeIndex: bigint[]): bi
     let lower = 1n;
     for (let j = 0; j < shares.length; j += 1) {
       if (i !== j) {
-        upper = mod(upper * -nodeIndex[j], N);
-        const temp = mod(nodeIndex[i] - nodeIndex[j], N);
+        upper = mod(upper * -requireBigInt(nodeIndex, j), N);
+        const temp = mod(requireBigInt(nodeIndex, i) - requireBigInt(nodeIndex, j), N);
         lower = mod(lower * temp, N);
       }
     }
     let delta = mod(upper * invert(lower, N), N);
-    delta = mod(delta * shares[i], N);
+    delta = mod(delta * requireBigInt(shares, i), N);
     secret = secret + delta;
   }
   return mod(secret, N);
@@ -130,10 +148,18 @@ export function generateRandomPolynomial(degree: number, secret?: bigint, determ
 
 //  2 + 3x = y | secret for index 1 is 5 >>> g^5 is the commitment | now we have g^2, g^3 and 1, |
 export function polyCommitmentEval(polyCommitments: Point[], index: bigint): Point {
-  let shareCommitment = polyCommitments[0].toProjectivePoint();
+  const firstCommitment = polyCommitments[0];
+  if (firstCommitment === undefined) {
+    throw CoreError.default("missing commitment for evaluation");
+  }
+  let shareCommitment = firstCommitment.toProjectivePoint();
   for (let i = 1; i < polyCommitments.length; i += 1) {
+    const commitment = polyCommitments[i];
+    if (commitment === undefined) {
+      throw CoreError.default("missing commitment for evaluation");
+    }
     const factor = mod(index ** BigInt(i), N);
-    const e = polyCommitments[i].toProjectivePoint().multiply(factor);
+    const e = commitment.toProjectivePoint().multiply(factor);
     shareCommitment = shareCommitment.add(e);
   }
   const affine = shareCommitment.toAffine();

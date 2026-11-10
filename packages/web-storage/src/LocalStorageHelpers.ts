@@ -5,7 +5,7 @@ import { getWindow } from "./utils";
 
 function storageAvailable(type: string): boolean {
   const win = getWindow();
-  let storage: Storage;
+  let storage: Storage | undefined;
   try {
     storage = win[type as "sessionStorage" | "localStorage"];
     const x = "__storage_test__";
@@ -25,7 +25,7 @@ function storageAvailable(type: string): boolean {
         // Firefox
         e.name === "NS_ERROR_DOM_QUOTA_REACHED") &&
       // acknowledge QuotaExceededError only if there's something already stored
-      storage &&
+      storage !== undefined &&
       storage.length !== 0
     );
   }

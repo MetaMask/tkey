@@ -18,10 +18,10 @@ class MockStorageLayer implements IStorageLayer {
   storageLayerName: string;
 
   lockMap: {
-    [key: string]: string;
+    [key: string]: string | null;
   };
 
-  serviceProvider: IServiceProvider;
+  serviceProvider!: IServiceProvider;
 
   constructor({ dataMap, lockMap }: MockStorageLayerArgs = { dataMap: {}, lockMap: {} }) {
     this.dataMap = dataMap || {};
@@ -29,7 +29,7 @@ class MockStorageLayer implements IStorageLayer {
     this.storageLayerName = "MockStorageLayer";
   }
 
-  static fromJSON(value: StringifiedType): MockStorageLayer {
+  static fromJSON(value: StringifiedType): MockStorageLayer | undefined {
     const { dataMap, lockMap, storageLayerName } = value;
     if (storageLayerName !== "MockStorageLayer") return undefined;
     return new MockStorageLayer({ dataMap, lockMap });
@@ -42,8 +42,10 @@ class MockStorageLayer implements IStorageLayer {
   async getMetadata<T>(params: { serviceProvider?: IServiceProvider; privKey?: bigint }): Promise<T> {
     const { serviceProvider, privKey } = params;
     let usedKey: bigint;
-    if (!privKey) usedKey = serviceProvider.retrievePubKeyPoint().x;
-    else usedKey = getPubKeyPoint(privKey).x;
+    if (!privKey) {
+      if (!serviceProvider) throw new Error("getMetadata: either privKey or serviceProvider must be provided");
+      usedKey = serviceProvider.retrievePubKeyPoint().x;
+    } else usedKey = getPubKeyPoint(privKey).x;
 
     const fromMap = this.dataMap[usedKey.toString(16)];
     if (!fromMap) {
@@ -60,8 +62,10 @@ class MockStorageLayer implements IStorageLayer {
   async setMetadata<T>(params: { input: T; serviceProvider?: IServiceProvider; privKey?: bigint }): Promise<{ message: string }> {
     const { serviceProvider, privKey, input } = params;
     let usedKey: bigint;
-    if (!privKey) usedKey = serviceProvider.retrievePubKeyPoint().x;
-    else usedKey = getPubKeyPoint(privKey).x;
+    if (!privKey) {
+      if (!serviceProvider) throw new Error("setMetadata: either privKey or serviceProvider must be provided");
+      usedKey = serviceProvider.retrievePubKeyPoint().x;
+    } else usedKey = getPubKeyPoint(privKey).x;
     this.dataMap[usedKey.toString(16)] = stringify(input, { replacer: bigIntReplacer });
     return { message: "success" };
   }
@@ -70,8 +74,11 @@ class MockStorageLayer implements IStorageLayer {
     const { serviceProvider, privKey, input } = params;
     input.forEach((el, index) => {
       let usedKey: bigint;
-      if (!privKey || !privKey[index]) usedKey = serviceProvider.retrievePubKeyPoint().x;
-      else usedKey = getPubKeyPoint(privKey[index]).x;
+      const shareKey = privKey?.[index];
+      if (!shareKey) {
+        if (!serviceProvider) throw new Error("setMetadataStream: either privKey or serviceProvider must be provided");
+        usedKey = serviceProvider.retrievePubKeyPoint().x;
+      } else usedKey = getPubKeyPoint(shareKey).x;
       this.dataMap[usedKey.toString(16)] = stringify(el, { replacer: bigIntReplacer });
     });
 
@@ -81,8 +88,10 @@ class MockStorageLayer implements IStorageLayer {
   async acquireWriteLock(params: { serviceProvider?: IServiceProvider; privKey?: bigint }): Promise<{ status: number; id?: string }> {
     const { serviceProvider, privKey } = params;
     let usedKey: bigint;
-    if (!privKey) usedKey = serviceProvider.retrievePubKeyPoint().x;
-    else usedKey = getPubKeyPoint(privKey).x;
+    if (!privKey) {
+      if (!serviceProvider) throw new Error("acquireWriteLock: either privKey or serviceProvider must be provided");
+      usedKey = serviceProvider.retrievePubKeyPoint().x;
+    } else usedKey = getPubKeyPoint(privKey).x;
     if (this.lockMap[usedKey.toString(16)]) return { status: 0 };
     const id = generateID();
     this.lockMap[usedKey.toString(16)] = id;
@@ -92,8 +101,10 @@ class MockStorageLayer implements IStorageLayer {
   async releaseWriteLock(params: { id: string; serviceProvider?: IServiceProvider; privKey?: bigint }): Promise<{ status: number }> {
     const { serviceProvider, privKey, id } = params;
     let usedKey: bigint;
-    if (!privKey) usedKey = serviceProvider.retrievePubKeyPoint().x;
-    else usedKey = getPubKeyPoint(privKey).x;
+    if (!privKey) {
+      if (!serviceProvider) throw new Error("releaseWriteLock: either privKey or serviceProvider must be provided");
+      usedKey = serviceProvider.retrievePubKeyPoint().x;
+    } else usedKey = getPubKeyPoint(privKey).x;
     if (!this.lockMap[usedKey.toString(16)]) return { status: 0 };
     if (id !== this.lockMap[usedKey.toString(16)]) return { status: 2 };
     this.lockMap[usedKey.toString(16)] = null;

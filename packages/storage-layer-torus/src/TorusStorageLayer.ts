@@ -29,8 +29,22 @@ import {
 } from "@toruslabs/metadata-helpers";
 import stringify from "json-stable-stringify";
 
+function requireSerialized(value: string | undefined): string {
+  if (value === undefined) {
+    throw new Error("failed to serialize metadata");
+  }
+  return value;
+}
+
+function requireServiceProvider(serviceProvider: IServiceProvider | undefined, method: string): IServiceProvider {
+  if (!serviceProvider) {
+    throw new Error(`${method}: either privKey or serviceProvider must be provided`);
+  }
+  return serviceProvider;
+}
+
 function signDataWithPrivKey(data: { timestamp: number }, privKey: bigint): string {
-  const hash = keccak256Bytes(utf8ToBytes(stringify(data)));
+  const hash = keccak256Bytes(utf8ToBytes(requireSerialized(stringify(data))));
   const sig = secp256k1.sign(hash, toPrivKeyECC(privKey), { prehash: false, format: "der" });
   return bytesToHex(sig);
 }
@@ -51,7 +65,7 @@ class TorusStorageLayer implements IStorageLayer {
     this.serverTimeOffset = serverTimeOffset;
   }
 
-  static async serializeMetadataParamsInput(el: unknown, serviceProvider: IServiceProvider, privKey: bigint): Promise<unknown> {
+  static async serializeMetadataParamsInput(el: unknown, serviceProvider?: IServiceProvider, privKey?: bigint): Promise<unknown> {
     if (typeof el === "object") {
       // Allow using of special message as command, in which case, do not encrypt
       const obj = el as Record<string, unknown>;
@@ -60,18 +74,18 @@ class TorusStorageLayer implements IStorageLayer {
     }
 
     // General case, encrypt message
-    const msgBytes = utf8ToBytes(stringify(el, { replacer: bigIntReplacer }));
+    const msgBytes = utf8ToBytes(requireSerialized(stringify(el, { replacer: bigIntReplacer })));
     let encryptedDetails: EncryptedMessage;
     if (privKey) {
       encryptedDetails = await encrypt(getPubKeyECC(privKey), msgBytes);
     } else {
-      encryptedDetails = await serviceProvider.encrypt(msgBytes);
+      encryptedDetails = await requireServiceProvider(serviceProvider, "serializeMetadataParamsInput").encrypt(msgBytes);
     }
-    const serializedEncryptedDetails = encodeBase64Url(stringify(encryptedDetails));
+    const serializedEncryptedDetails = encodeBase64Url(requireSerialized(stringify(encryptedDetails)));
     return serializedEncryptedDetails;
   }
 
-  static fromJSON(value: StringifiedType): TorusStorageLayer {
+  static fromJSON(value: StringifiedType): TorusStorageLayer | undefined {
     const { enableLogging, hostUrl, storageLayerName, serverTimeOffset = 0 } = value;
     if (storageLayerName !== "TorusStorageLayer") return undefined;
     return new TorusStorageLayer({ enableLogging, hostUrl, serverTimeOffset });
@@ -95,7 +109,7 @@ class TorusStorageLayer implements IStorageLayer {
     if (privKey) {
       decrypted = await decrypt(toPrivKeyECC(privKey), encryptedMessage);
     } else {
-      decrypted = await serviceProvider.decrypt(encryptedMessage);
+      decrypted = await requireServiceProvider(serviceProvider, "getMetadata").decrypt(encryptedMessage);
     }
 
     return JSON.parse(bytesToUtf8(decrypted)) as T;
@@ -126,13 +140,14 @@ class TorusStorageLayer implements IStorageLayer {
       const { serviceProvider, privKey, input } = params;
       const newInput = input;
       const finalMetadataParams = await Promise.all(
-        newInput.map(async (el, i) =>
-          this.generateMetadataParams(
-            await TorusStorageLayer.serializeMetadataParamsInput(el, serviceProvider, privKey[i]),
+        newInput.map(async (el, i) => {
+          const sharePrivKey = privKey?.[i];
+          return this.generateMetadataParams(
+            await TorusStorageLayer.serializeMetadataParamsInput(el, serviceProvider, sharePrivKey),
             serviceProvider,
-            privKey[i]
-          )
-        )
+            sharePrivKey
+          );
+        })
       );
 
       const FD = new FormData();
@@ -175,19 +190,22 @@ class TorusStorageLayer implements IStorageLayer {
       setTKeyStore.data = "<deleted>";
     }
 
-    const hash = keccak256Bytes(utf8ToBytes(stringify(setTKeyStore)));
+    const hash = keccak256Bytes(utf8ToBytes(requireSerialized(stringify(setTKeyStore))));
     if (privKey) {
       const recoveredSig = secp256k1.sign(hash, toPrivKeyECC(privKey), { prehash: false, format: "recovered" });
+      const recoveryId = recoveredSig[0];
+      if (recoveryId === undefined) throw new Error("missing recovery id");
       const sigWithV = new Uint8Array(65);
       sigWithV.set(recoveredSig.slice(1, 65), 0); // r + s
-      sigWithV[64] = recoveredSig[0]; // v
+      sigWithV[64] = recoveryId; // v
       sig = bytesToBase64(sigWithV);
       const pubK = getPubKeyPoint(privKey);
       pubX = pubK.x.toString(16);
       pubY = pubK.y.toString(16);
     } else {
-      const point = serviceProvider.retrievePubKeyPoint();
-      sig = serviceProvider.sign(hash);
+      const provider = requireServiceProvider(serviceProvider, "generateMetadataParams");
+      const point = provider.retrievePubKeyPoint();
+      sig = provider.sign(hash);
       pubX = point.x.toString(16);
       pubY = point.y.toString(16);
     }
@@ -213,8 +231,9 @@ class TorusStorageLayer implements IStorageLayer {
       signature = signDataWithPrivKey(data, privKey);
       key = bytesToHex(getPubKeyECC(privKey));
     } else {
-      signature = serviceProvider.sign(keccak256Bytes(utf8ToBytes(stringify(data))));
-      key = bytesToHex(serviceProvider.retrievePubKey("ecc"));
+      const provider = requireServiceProvider(serviceProvider, "acquireWriteLock");
+      signature = provider.sign(keccak256Bytes(utf8ToBytes(requireSerialized(stringify(data)))));
+      key = bytesToHex(provider.retrievePubKey("ecc"));
     }
     const metadataParams = {
       key,
@@ -237,8 +256,9 @@ class TorusStorageLayer implements IStorageLayer {
       signature = signDataWithPrivKey(data, privKey);
       key = bytesToHex(getPubKeyECC(privKey));
     } else {
-      signature = serviceProvider.sign(keccak256Bytes(utf8ToBytes(stringify(data))));
-      key = bytesToHex(serviceProvider.retrievePubKey("ecc"));
+      const provider = requireServiceProvider(serviceProvider, "releaseWriteLock");
+      signature = provider.sign(keccak256Bytes(utf8ToBytes(requireSerialized(stringify(data)))));
+      key = bytesToHex(provider.retrievePubKey("ecc"));
     }
     const metadataParams = {
       key,
