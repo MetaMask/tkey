@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@tkey/common-types": "^17.2.0",
-    "@toruslabs/http-helpers": "^9.0.0",
-    "@toruslabs/metadata-helpers": "^8.2.0",
+    "@toruslabs/http-helpers": "^10.0.0",
+    "@toruslabs/metadata-helpers": "^9.0.0",
     "json-stable-stringify": "^1.3.0"
   },
   "devDependencies": {

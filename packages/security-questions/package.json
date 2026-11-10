@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@tkey/common-types": "^17.2.0",
-    "@toruslabs/metadata-helpers": "^8.2.0"
+    "@toruslabs/metadata-helpers": "^9.0.0"
   },
   "devDependencies": {
     "vitest": "4.1.0"

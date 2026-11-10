@@ -48,7 +48,7 @@
   "dependencies": {
     "@noble/hashes": "^2.0.1",
     "@tkey/common-types": "^17.2.0",
-    "@toruslabs/metadata-helpers": "^8.2.0"
+    "@toruslabs/metadata-helpers": "^9.0.0"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"

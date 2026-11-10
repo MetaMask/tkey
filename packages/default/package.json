@@ -47,8 +47,8 @@
     "@tkey/private-keys": "^17.2.0",
     "@tkey/security-questions": "^17.2.0",
     "@tkey/seed-phrase": "^17.2.1",
-    "@toruslabs/eccrypto": "^7.0.0",
-    "@toruslabs/http-helpers": "^9.0.0",
+    "@toruslabs/eccrypto": "^8.0.0",
+    "@toruslabs/http-helpers": "^10.0.0",
     "viem": "^2.47.5",
     "vitest": "4.1.0"
   },
