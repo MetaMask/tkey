@@ -1,6 +1,6 @@
 # tKey Web Storage Module
 
-[![npm version](https://img.shields.io/npm/v/@tkey/web-storage?label=%22%22)](https://www.npmjs.com/package/@tkey/web-storage/v/latest)                       [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/web-storage?label=%22%22)](https://bundlephobia.com/result?p=@tkey/web-storage@latest)
+[![npm version](https://img.shields.io/npm/v/@tkey/web-storage?label=%22%22)](https://www.npmjs.com/package/@tkey/web-storage/v/latest) [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/web-storage?label=%22%22)](https://bundlephobia.com/result?p=@tkey/web-storage@latest)
 
 The tKey Web Storage Module helps you store and recall key shares in the from local and file storage. This module is the part of the [tKey SDK](https://github.com/tkey/tkey/).
 

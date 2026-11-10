@@ -1,5 +1,6 @@
 /* eslint-disable vitest/expect-expect */
 /* eslint-disable vitest/no-conditional-expect */
+/// <reference types="node" />
 import { bigIntReplacer, getPubKeyPoint, KEY_NOT_FOUND, SHARE_DELETED, ShareStore, type ShareStoreMap } from "@tkey/common-types";
 import { Metadata } from "@tkey/core";
 import { ED25519Format, PrivateKeyModule, SECP256K1Format } from "@tkey/private-keys";
@@ -15,9 +16,10 @@ import { bytesToHex, bytesToNumberBE, Hex, hexToBigInt, keccak256, secp256k1, ut
 import { getOrSetNonce } from "@toruslabs/torus.js";
 import { createPublicClient, http } from "viem";
 import { mainnet } from "viem/chains";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite-plus/test";
 
-function createEthProvider(rpcUrl: string) {
+function createEthProvider(rpcUrl: string | undefined) {
+  if (rpcUrl === undefined) throw new Error("TEST_RPC_TARGET is required");
   const client = createPublicClient({ chain: mainnet, transport: http(rpcUrl) });
   return { getBalance: (address: Hex) => client.getBalance({ address }) };
 }
@@ -31,7 +33,6 @@ function initializeNewKey(
   t: InstanceType<typeof ThresholdKey>,
   opts?: Parameters<InstanceType<typeof ThresholdKey>["_initializeNewKey"]>[0]
 ): ReturnType<InstanceType<typeof ThresholdKey>["_initializeNewKey"]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- intentional test access to private method
   return (t as any)._initializeNewKey(opts);
 }
 
@@ -40,6 +41,11 @@ const metadataURL = getMetadataUrl();
 function getTempKey() {
   return bytesToHex(generatePrivate());
 }
+function requireShare(share: ShareStore | undefined): ShareStore {
+  if (!share) throw new Error("expected share store");
+  return share;
+}
+
 function compareBigintArray(a: bigint[], b: bigint[], message: string) {
   if (a.length !== b.length) throw new Error(message);
   return a.map((el) => {
@@ -154,7 +160,7 @@ export const sharedTestCases = (
 
       const tb2 = new ThresholdKey({ serviceProvider: customSP, storageLayer: customSL, manualSync: mode });
       await tb2.initialize({ withShare: resp1.userShare });
-      await tb2.inputShareStoreSafe(newShares.newShareStores[newShares.newShareIndex.toString(16)]);
+      await tb2.inputShareStoreSafe(requireShare(newShares.newShareStores[newShares.newShareIndex.toString(16)]));
       const reconstructedKey = await tb2.reconstructKey();
       // compareBNArray(resp1.secp256k1Key, reconstructedKey, "key should be able to be reconstructed");
       expect(resp1.secp256k1Key).toBe(reconstructedKey.secp256k1Key);
@@ -169,7 +175,7 @@ export const sharedTestCases = (
 
       const tb2 = new ThresholdKey({ serviceProvider: customSP, storageLayer: customSL, manualSync: mode });
       await tb2.initialize();
-      await tb2.inputShareStoreSafe(newShares.newShareStores[newShares.newShareIndex.toString(16)]);
+      await tb2.inputShareStoreSafe(requireShare(newShares.newShareStores[newShares.newShareIndex.toString(16)]));
       const reconstructedKey = await tb2.reconstructKey();
       expect(resp1.secp256k1Key).toBe(reconstructedKey.secp256k1Key);
     });
@@ -209,7 +215,7 @@ export const sharedTestCases = (
       await tb2.inputShareStoreSafe(resp1.deviceShare);
       const reconstructedKey = await tb2.reconstructKey();
       const shareStore = tb2.outputShareStore(newShareIndex);
-      expect(newShareStores[newShareIndex.toString(16)].share.share.toString(16)).toBe(shareStore.share.share.toString(16));
+      expect(requireShare(newShareStores[newShareIndex.toString(16)]).share.share.toString(16)).toBe(shareStore.share.share.toString(16));
 
       expect(resp1.secp256k1Key).toBe(reconstructedKey.secp256k1Key);
     });
@@ -227,7 +233,7 @@ export const sharedTestCases = (
 
       expect(resp1.secp256k1Key).toBe(reconstructedKey.secp256k1Key);
       const shareStore = tb3.outputShareStore(tbShareIndex);
-      expect(tbShareStore[tbShareIndex.toString(16)].share.share.toString(16)).toBe(shareStore.share.share.toString(16));
+      expect(requireShare(tbShareStore[tbShareIndex.toString(16)]).share.share.toString(16)).toBe(shareStore.share.share.toString(16));
     });
 
     it(`#should be able to insert shares from existing tkey using new TKey Instance, manualSync=${mode}`, async function () {
@@ -261,7 +267,7 @@ export const sharedTestCases = (
       // throws since share doesn't
       await expect(
         (async () => {
-          await tb3.inputShareStoreSafe(tbShareStore[tbShareIndex.toString(16)], true);
+          await tb3.inputShareStoreSafe(requireShare(tbShareStore[tbShareIndex.toString(16)]), true);
         })()
       ).rejects.toMatchObject({ code: 1307 });
       await expect(
@@ -276,7 +282,7 @@ export const sharedTestCases = (
       await tb3.syncLocalMetadataTransitions();
       await tb3.reconstructKey();
 
-      await tb2.inputShareStoreSafe(tb3ShareStore[tb3ShareIndex.toString(16)], true);
+      await tb2.inputShareStoreSafe(requireShare(tb3ShareStore[tb3ShareIndex.toString(16)]), true);
       const reconstructedKey2 = await tb2.reconstructKey();
       expect(resp2.secp256k1Key).toBe(reconstructedKey2.secp256k1Key);
     });
@@ -350,7 +356,7 @@ export const sharedTestCases = (
       const tb2 = new ThresholdKey({ serviceProvider: customSP, storageLayer: customSL, manualSync: mode });
       await expect(
         (async () => {
-          await tb2.initialize({ withShare: deletedShareStores[deletedShareIndex.toString(16)] });
+          await tb2.initialize({ withShare: requireShare(deletedShareStores[deletedShareIndex.toString(16)]) });
         })()
       ).rejects.toThrow();
     });
@@ -360,7 +366,7 @@ export const sharedTestCases = (
       await tb2.initialize();
       await expect(
         (async () => {
-          await tb2.inputShare(deletedShareStores[deletedShareIndex.toString(16)].share.share);
+          await tb2.inputShare(requireShare(deletedShareStores[deletedShareIndex.toString(16)]).share.share);
         })()
       ).rejects.toThrow(Error);
     });
@@ -410,7 +416,7 @@ export const sharedTestCases = (
 
       const data3 = await customSL.getMetadata({ serviceProvider: customSP });
       expect((data3 as { message: string }).message).not.toBe(KEY_NOT_FOUND);
-      expect(tb2.metadata.nonce).toStrictEqual(1);
+      expect(tb2.getMetadata().nonce).toStrictEqual(1);
 
       const reconstructedKey = await tb2.reconstructKey();
       expect(resp1.secp256k1Key).not.toBe(reconstructedKey.secp256k1Key);
@@ -466,7 +472,7 @@ export const sharedTestCases = (
       expect(tb2.manualSync).toBe(mode);
       const finalKey = await tb2.reconstructKey();
       const shareToVerify = tb2.outputShareStore(shareIndex);
-      expect(shareStores[shareIndex.toString(16)].share.share.toString(16)).toBe(shareToVerify.share.share.toString(16));
+      expect(requireShare(shareStores[shareIndex.toString(16)]).share.share.toString(16)).toBe(shareToVerify.share.share.toString(16));
       await tb2.syncLocalMetadataTransitions();
       expect(finalKey.secp256k1Key.toString(16)).toBe(resp1.secp256k1Key.toString(16));
 
@@ -486,7 +492,7 @@ export const sharedTestCases = (
       const tb2 = await ThresholdKey.fromJSON(JSON.parse(stringified), { serviceProvider: customSP, storageLayer: customSL });
       const finalKey = await tb2.reconstructKey();
       const shareToVerify = tb2.outputShareStore(shareIndex);
-      expect(shareStores[shareIndex.toString(16)].share.share.toString(16)).toBe(shareToVerify.share.share.toString(16));
+      expect(requireShare(shareStores[shareIndex.toString(16)]).share.share.toString(16)).toBe(shareToVerify.share.share.toString(16));
       await tb2.syncLocalMetadataTransitions();
       expect(finalKey.secp256k1Key.toString(16)).toBe(reconstructedKey.secp256k1Key.toString(16));
 
@@ -500,7 +506,7 @@ export const sharedTestCases = (
       await tb.syncLocalMetadataTransitions();
       const tb3 = new ThresholdKey({ serviceProvider: customSP, storageLayer: customSL, manualSync: mode });
       await tb3.initialize();
-      await tb3.inputShareStoreSafe(newShareStores[newShareIndex.toString(16)]);
+      await tb3.inputShareStoreSafe(requireShare(newShareStores[newShareIndex.toString(16)]));
 
       const stringified = JSON.stringify(tb3, bigIntReplacer);
       const tb4 = await ThresholdKey.fromJSON(JSON.parse(stringified), { serviceProvider: customSP, storageLayer: customSL, manualSync: mode });
@@ -517,11 +523,10 @@ export const sharedTestCases = (
       await tb.syncLocalMetadataTransitions();
 
       const customSP3 = getServiceProvider({ type: torusSP.serviceProviderName, isEmptyProvider: true });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test-only: assign serviceProvider to storage layer
       (customSL2 as any).serviceProvider = customSP3;
       const tb2 = new ThresholdKey({ serviceProvider: customSP3, storageLayer: customSL2, manualSync: mode });
       await tb2.initialize({ withShare: resp1.deviceShare });
-      await tb2.inputShareStoreSafe(newShareStores1[newShareIndex1.toString(16)]);
+      await tb2.inputShareStoreSafe(requireShare(newShareStores1[newShareIndex1.toString(16)]));
       await tb2.reconstructKey();
       const stringified = JSON.stringify(tb2, bigIntReplacer);
 
@@ -639,7 +644,7 @@ export const sharedTestCases = (
       await tb.syncLocalMetadataTransitions();
 
       // delete sq
-      const sqIndex = (tb.metadata.generalStore as { securityQuestions: { shareIndex: bigint } }).securityQuestions.shareIndex;
+      const sqIndex = (tb.getMetadata().generalStore as { securityQuestions: { shareIndex: bigint } }).securityQuestions.shareIndex;
       await tb.deleteShare(sqIndex);
 
       // add sq again
@@ -801,7 +806,7 @@ export const sharedTestCases = (
     it(`#should be able to change share transfer pointer after share deletion, manualSync=${mode}`, async function () {
       await initializeNewKey(tb, { initializeModules: true });
       type ShareTransferStore = { pointer: bigint };
-      const gs = () => (tb.metadata.generalStore as { shareTransfer: ShareTransferStore }).shareTransfer;
+      const gs = () => (tb.getMetadata().generalStore as { shareTransfer: ShareTransferStore }).shareTransfer;
       const firstShareTransferPointer = gs().pointer.toString(16);
       const { newShareIndex: newShareIndex1 } = await tb.generateNewShare();
       const secondShareTransferPointer = gs().pointer.toString(16);
@@ -833,6 +838,7 @@ export const sharedTestCases = (
 
       const requests = await (tb.modules.shareTransfer as ShareTransferModule).getShareTransferStore();
       const pubkey2 = Object.keys(requests)[0];
+      if (pubkey2 === undefined) throw new Error("expected share transfer request");
       await (tb.modules.shareTransfer as ShareTransferModule).approveRequest(pubkey2);
 
       await (tb2.modules.shareTransfer as ShareTransferModule).startRequestStatusCheck(pubkey, true);
@@ -981,8 +987,11 @@ export const sharedTestCases = (
       await (tb.modules.seedPhrase as SeedPhraseModule).setSeedPhrase("HD Key Tree", seedPhraseToSet2);
       await tb.syncLocalMetadataTransitions();
       const returnedSeed = await (tb.modules.seedPhrase as SeedPhraseModule).getSeedPhrases();
-      expect(returnedSeed[0].seedPhrase).toBe(seedPhraseToSet);
-      expect(returnedSeed[1].seedPhrase).toBe(seedPhraseToSet2);
+      const firstSeed = returnedSeed[0];
+      const secondSeed = returnedSeed[1];
+      if (!firstSeed || !secondSeed) throw new Error("expected seed phrases");
+      expect(firstSeed.seedPhrase).toBe(seedPhraseToSet);
+      expect(secondSeed.seedPhrase).toBe(seedPhraseToSet2);
 
       const metamaskSeedPhraseFormat2 = new MetamaskSeedPhraseFormat(createEthProvider(process.env.TEST_RPC_TARGET));
       const tb2 = new ThresholdKey({
@@ -1027,6 +1036,7 @@ export const sharedTestCases = (
       await tb.syncLocalMetadataTransitions();
 
       const [seed] = await (tb.modules.seedPhrase as SeedPhraseModule).getSeedPhrases();
+      if (!seed) throw new Error("expected seed phrase");
       const derivedKeys = await (tb.modules.seedPhrase as SeedPhraseModule).getAccounts();
       expect(metamaskSeedPhraseFormat.validateSeedPhrase(seed.seedPhrase)).toBeTruthy();
       expect(derivedKeys.length >= 1).toBeTruthy();
@@ -1044,8 +1054,10 @@ export const sharedTestCases = (
       await tb.syncLocalMetadataTransitions();
 
       const secondStoredSeedPhrases = await (tb.modules.seedPhrase as SeedPhraseModule).getSeedPhrases();
+      const storedSeed = secondStoredSeedPhrases[0];
+      if (!storedSeed) throw new Error("expected seed phrase");
 
-      expect(secondStoredSeedPhrases[0].seedPhrase).toBe(newSeedPhrase);
+      expect(storedSeed.seedPhrase).toBe(newSeedPhrase);
     });
 
     it(`#should be able to replace numberOfWallets seed phrase module, manualSync=${mode}`, async function () {
@@ -1053,9 +1065,11 @@ export const sharedTestCases = (
       await (tb.modules.seedPhrase as SeedPhraseModule).setSeedPhrase("HD Key Tree");
       await (tb.modules.seedPhrase as SeedPhraseModule).setSeedPhrase("HD Key Tree");
       const seedPhraseStores = await (tb.modules.seedPhrase as SeedPhraseModule).getSeedPhrases();
+      const secondStore = seedPhraseStores[1];
+      if (!secondStore) throw new Error("expected seed phrase store");
       await (tb.modules.seedPhrase as SeedPhraseModule).setSeedPhraseStoreItem({
-        id: seedPhraseStores[1].id,
-        seedPhrase: seedPhraseStores[1].seedPhrase,
+        id: secondStore.id,
+        seedPhrase: secondStore.seedPhrase,
         numberOfWallets: 2,
       } as unknown as import("@tkey/common-types").ISeedPhraseStore);
       await tb.syncLocalMetadataTransitions();
@@ -1162,19 +1176,17 @@ export const sharedTestCases = (
       // reconstruct tkey
       const reconstructPreThreshold = await tb3.reconstructKey();
 
-      const poly = tb3.metadata.getLatestPublicPolynomial();
-      const existingShareIndexes = tb3.metadata.getShareIndexesForPolynomial(poly.getPolynomialID());
+      const poly = tb3.getMetadata().getLatestPublicPolynomial();
+      const existingShareIndexes = tb3.getMetadata().getShareIndexesForPolynomial(poly.getPolynomialID());
 
       // increase threshold from 2 -> 3
       const newThreshold = 3;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test-only: access private method
       await (tb3 as any)._refreshShares(newThreshold, existingShareIndexes, poly.getPolynomialID());
 
       // 3/4 shares is required to reconstruct tkey
       const reconstructPostThreshold = await tb3.reconstructKey();
       expect(reconstructPreThreshold.secp256k1Key).toBe(reconstructPostThreshold.secp256k1Key);
-      // console.log("newThreshold", tb3.metadata.getLatestPublicPolynomial().getThreshold());
-      expect(tb3.metadata.getLatestPublicPolynomial().getThreshold()).toBe(newThreshold);
+      expect(tb3.getMetadata().getLatestPublicPolynomial().getThreshold()).toBe(newThreshold);
     });
   });
 
@@ -1226,7 +1238,7 @@ export const sharedTestCases = (
       const latestSPShareStore = tb.outputShareStore(1n);
 
       expect(JSON.stringify(latestSPShareStore.toJSON())).toBe(JSON.stringify(expectLatestResult.latestShare.toJSON()));
-      expect(JSON.stringify(tb.metadata.toJSON())).toBe(JSON.stringify(expectLatestResult.shareMetadata.toJSON()));
+      expect(JSON.stringify(tb.getMetadata().toJSON())).toBe(JSON.stringify(expectLatestResult.shareMetadata.toJSON()));
     });
 
     it("should able to initialize and reconstruct with localMetadataTransision", async function () {
@@ -1241,7 +1253,7 @@ export const sharedTestCases = (
       await tb.reconstructKey(true);
 
       const newShareMap = await tb.generateNewShare();
-      const newShare = newShareMap.newShareStores[newShareMap.newShareIndex.toString(16)];
+      const newShare = requireShare(newShareMap.newShareStores[newShareMap.newShareIndex.toString(16)]);
 
       const localMetadataTransistionShare = tb._localMetadataTransitions[0];
       const localMetadataTransistionData = tb._localMetadataTransitions[1];
@@ -1252,7 +1264,7 @@ export const sharedTestCases = (
         storageLayer: customSL,
       });
 
-      const newMetadata = Metadata.fromJSON(tb.metadata.toJSON());
+      const newMetadata = Metadata.fromJSON(tb.getMetadata().toJSON());
       await tb2.initialize({
         neverInitializeNewKey: true,
         transitionMetadata: newMetadata,
@@ -1264,6 +1276,7 @@ export const sharedTestCases = (
       await tb2.inputShareStoreSafe(newShare);
       await tb2.reconstructKey();
 
+      if (!tb.secp256k1Key || !tb2.secp256k1Key) throw new Error("expected secp256k1 key");
       expect(tb.secp256k1Key.toString(16)).toBe(tb2.secp256k1Key.toString(16));
     });
   });
@@ -1312,13 +1325,15 @@ export const sharedTestCases = (
       // generate shares
       const promises = [];
       for (let i = 0; i < alltbs.length; i += 1) {
-        promises.push(alltbs[i].generateNewShare().then((_) => alltbs[i].syncLocalMetadataTransitions()));
+        const instance = alltbs[i];
+        if (!instance) throw new Error("expected tkey");
+        promises.push(instance.generateNewShare().then(() => instance.syncLocalMetadataTransitions()));
       }
       const res = await Promise.allSettled(promises);
 
       let count = 0;
       for (let i = 0; i < res.length; i += 1) {
-        if (res[i].status === "fulfilled") count += 1;
+        if (res[i]?.status === "fulfilled") count += 1;
       }
       expect(count).toBe(1);
     });
@@ -1477,6 +1492,7 @@ export const sharedTestCases = (
       expect(pubNonce).not.toBe(undefined);
       expect(isUpgraded).toBe(false);
 
+      if (nonce === undefined) throw new Error("expected nonce");
       const nonceBN = hexToBigInt(nonce);
       const importKey = ((postboxKeyBN + nonceBN) % secp256k1.Point.CURVE().n).toString(16);
 
@@ -1486,6 +1502,7 @@ export const sharedTestCases = (
         delete1OutOf1: true,
       });
       await tKey.syncLocalMetadataTransitions();
+      if (!tKey.secp256k1Key) throw new Error("expected secp256k1 key");
       expect(tKey.secp256k1Key.toString(16)).toBe(importKey);
 
       const nonceRes2 = await getOrSetNonce(

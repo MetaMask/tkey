@@ -6,7 +6,7 @@ export const CHROME_EXTENSION_STORAGE_MODULE_NAME = "chromeExtensionStorage";
 export default class ChromeExtensionStorageModule implements IModule {
   moduleName: string;
 
-  tbSDK: ITKeyApi;
+  tbSDK!: ITKeyApi;
 
   constructor() {
     this.moduleName = CHROME_EXTENSION_STORAGE_MODULE_NAME;

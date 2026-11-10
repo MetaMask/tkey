@@ -11,7 +11,7 @@ class SfaServiceProvider extends ServiceProviderBase {
 
   authInstance: Torus;
 
-  public torusKey: TorusKey;
+  public torusKey!: TorusKey;
 
   public migratableKey: bigint | null = null;
 
@@ -32,7 +32,7 @@ class SfaServiceProvider extends ServiceProviderBase {
     this.nodeDetailManagerInstance = new NodeDetailManager({ network: web3AuthOptions.network, enableLogging, buildEnv: web3AuthOptions.buildEnv });
   }
 
-  static fromJSON(value: StringifiedType): SfaServiceProvider {
+  static fromJSON(value: StringifiedType): SfaServiceProvider | undefined {
     const { enableLogging, postboxKey, web3AuthOptions, serviceProviderName, torusKey } = value;
     if (serviceProviderName !== "SfaServiceProvider") return undefined;
 

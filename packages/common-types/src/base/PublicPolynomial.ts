@@ -6,7 +6,7 @@ import Point from "./Point";
 class PublicPolynomial implements ISerializable {
   polynomialCommitments: Point[];
 
-  polynomialId: PolynomialID;
+  polynomialId!: PolynomialID;
 
   constructor(polynomialCommitments: Point[]) {
     this.polynomialCommitments = polynomialCommitments;
@@ -24,7 +24,9 @@ class PublicPolynomial implements ISerializable {
   getPolynomialID(): PolynomialID {
     let idSeed = "";
     for (let i = 0; i < this.polynomialCommitments.length; i += 1) {
-      let nextChunk = bytesToHex(this.polynomialCommitments[i].toSEC1(true));
+      const commitment = this.polynomialCommitments[i];
+      if (!commitment) continue;
+      let nextChunk = bytesToHex(commitment.toSEC1(true));
       if (i !== 0) {
         nextChunk = `|${nextChunk}`;
       }

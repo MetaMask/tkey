@@ -5,62 +5,61 @@
     "packages/*"
   ],
   "scripts": {
-    "just:publish:lerna": "lerna publish",
-    "publish:lerna": "npm run clean && npm install && lerna publish",
-    "clean": "lerna clean --yes && lerna exec -- rimraf package-lock.json yarn.lock dist/ .rts2_cache_{cjs,esm}/ tkey-*.tgz",
-    "build": "cross-env FORCE_COLOR=1 lerna run build",
-    "dev": "cross-env FORCE_COLOR=1 lerna run dev",
-    "test": "cross-env FORCE_COLOR=1 lerna run test --parallel",
-    "test:cov": "cross-env FORCE_COLOR=1 lerna run coverage --parallel",
-    "test-development": "cross-env FORCE_COLOR=1 lerna run test-development --parallel",
-    "test-production": "cross-env FORCE_COLOR=1 lerna run test-production",
-    "test-production:cov": "cross-env FORCE_COLOR=1 lerna run coverage-production",
-    "test-debugger": "cross-env FORCE_COLOR=1 lerna run test-debugger --parallel",
-    "browser-tests:local-mocked": "cross-env FORCE_COLOR=1 lerna run browser-tests:local-mocked --parallel",
-    "browser-tests:local-prod": "cross-env FORCE_COLOR=1 lerna run browser-tests:local-prod",
-    "browser-tests:local-dev": "cross-env FORCE_COLOR=1 lerna run browser-tests:local-dev --parallel",
-    "browser-tests:cloud-mocked": "cross-env FORCE_COLOR=1 lerna run browser-tests:cloud-mocked",
-    "browser-tests:cloud-prod": "cross-env FORCE_COLOR=1 lerna run browser-tests:cloud-prod",
-    "lint": "cross-env FORCE_COLOR=1 lerna run lint --parallel",
-    "pack:lerna": "lerna exec -- npm pack",
-    "pre-commit": "lerna run pre-commit"
+    "build": "vp run -r --fail-if-no-match build",
+    "dev": "vp run -r --fail-if-no-match dev",
+    "test": "vp run -r --fail-if-no-match --parallel test",
+    "test:cov": "vp run -r --fail-if-no-match --parallel coverage",
+    "test-development": "vp run -r --fail-if-no-match --parallel test-development",
+    "test-production": "vp run -r --fail-if-no-match test-production",
+    "test-production:cov": "vp run -r --fail-if-no-match coverage-production",
+    "test-debugger": "vp run -r --fail-if-no-match --parallel test-debugger",
+    "browser-tests:local-mocked": "vp run -r --fail-if-no-match --parallel browser-tests:local-mocked",
+    "browser-tests:local-prod": "vp run -r --fail-if-no-match browser-tests:local-prod",
+    "browser-tests:local-dev": "vp run -r --fail-if-no-match --parallel browser-tests:local-dev",
+    "browser-tests:cloud-mocked": "vp run -r --fail-if-no-match browser-tests:cloud-mocked",
+    "browser-tests:cloud-prod": "vp run -r --fail-if-no-match browser-tests:cloud-prod",
+    "lint": "vp run -r --fail-if-no-match lint",
+    "check": "vp check",
+    "typecheck": "for dir in packages/*; do npm exec --no -- tsc --noEmit -p \"$dir/tsconfig.json\" || exit 1; done",
+    "pack": "npm exec --workspaces -- npm pack",
+    "pre-commit": "lint-staged",
+    "version-packages": "changeset version && npm install --package-lock-only --ignore-scripts",
+    "release-packages": "changeset publish"
   },
   "devDependencies": {
-    "@babel/register": "^7.28.6",
-    "@babel/runtime": "^7.29.2",
-    "@toruslabs/config": "^4.0.0",
-    "@toruslabs/eslint-config-typescript": "^5.0.1",
-    "@toruslabs/torus-scripts": "^8.0.1",
-    "@types/node": "^25",
-    "@vitest/browser-playwright": "4.1.0",
-    "@vitest/coverage-istanbul": "4.1.0",
+    "@changesets/cli": "^2.31.1",
+    "@lavamoat/harden": "^0.8.1",
+    "@toruslabs/config": "^5.0.0",
+    "@toruslabs/oxlint-config-typescript": "^1.1.0",
+    "@toruslabs/torus-scripts": "^9.0.1",
+    "@types/node": "^26.6.6",
+    "@vitest/browser-playwright": "5.1.0",
+    "@vitest/coverage-istanbul": "5.1.0",
     "cross-env": "^10.1.0",
-    "dotenv": "^17.3.1",
-    "eslint": "^9.39.2",
     "husky": "^9.1.7",
-    "lerna": "^9.0.7",
     "lint-staged": "^16.4.0",
-    "playwright": "^1.58.2",
-    "prettier": "^3.8.1",
-    "rimraf": "^6.1.3",
-    "tsconfig-paths": "^4.2.0",
-    "tsconfig-paths-webpack-plugin": "^4.2.0",
-    "tslib": "^2.8.1",
-    "typescript": "^5.9.3",
-    "vitest": "4.1.0"
-  },
-  "peerDependencies": {
-    "@babel/runtime": "^7.x"
+    "playwright": "^1.65.0",
+    "typescript": "^7.0.2",
+    "vite-plus": "1.5.1"
   },
   "author": "Torus Labs",
   "license": "MIT",
-  "husky": {
-    "hooks": {
-      "pre-commit": "lerna run pre-commit --concurrency 1 --since HEAD"
+  "engines": {
+    "node": ">=24.22.0",
+    "npm": ">=12"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.17.0",
+      "onFail": "error"
     }
   },
-  "engines": {
-    "node": ">=22.x",
-    "npm": ">=10.x"
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.5.1",
+    "vitest": "5.1.0"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": false
   }
 }

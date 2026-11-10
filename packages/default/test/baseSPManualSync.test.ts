@@ -1,7 +1,7 @@
 import { bytesToHex } from "@noble/curves/utils.js";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { generatePrivate } from "@toruslabs/eccrypto";
-import { describe } from "vitest";
+import { describe } from "vite-plus/test";
 
 import { getMetadataUrl, initStorageLayer } from "./helpers";
 import { sharedTestCases } from "./shared";

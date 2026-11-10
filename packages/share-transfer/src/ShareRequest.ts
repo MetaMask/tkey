@@ -3,13 +3,13 @@ import { BufferObj, EncryptedMessage, ShareRequestArgs } from "@tkey/common-type
 class ShareRequest {
   encPubKey: Uint8Array;
 
-  encShareInTransit: EncryptedMessage;
+  encShareInTransit?: EncryptedMessage;
 
   availableShareIndexes: Array<string>;
 
   userAgent: string;
 
-  customInfo: string;
+  customInfo?: string;
 
   userIp: string;
 

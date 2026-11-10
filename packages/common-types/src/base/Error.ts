@@ -20,7 +20,7 @@ export abstract class TkeyError extends CustomError implements ITkeyError {
     // takes care of stack and proto
     super(message);
 
-    this.code = code;
+    this.code = code ?? 0;
     this.message = message || "";
     // Set name explicitly as minification can mangle class names
     Object.defineProperty(this, "name", { value: "TkeyError" });

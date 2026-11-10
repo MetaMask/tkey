@@ -109,7 +109,9 @@ class Metadata implements IMetadata {
     if (tssPolyCommits) {
       metadata.tssPolyCommits = {};
       for (const key in tssPolyCommits) {
-        metadata.tssPolyCommits[key] = (tssPolyCommits as Record<string, Point[]>)[key].map((obj) => Point.fromJSON(obj));
+        const commits = (tssPolyCommits as Record<string, Point[]>)[key];
+        if (!commits) throw CoreError.default("missing tss poly commits");
+        metadata.tssPolyCommits[key] = commits.map((obj) => Point.fromJSON(obj));
       }
     }
     if (tssNonces) {
@@ -121,7 +123,9 @@ class Metadata implements IMetadata {
     if (factorPubs) {
       metadata.factorPubs = {};
       for (const key in factorPubs) {
-        metadata.factorPubs[key] = (factorPubs as Record<string, Point[]>)[key].map((obj) => Point.fromJSON(obj));
+        const pubs = (factorPubs as Record<string, Point[]>)[key];
+        if (!pubs) throw CoreError.default("missing factor pubs");
+        metadata.factorPubs[key] = pubs.map((obj) => Point.fromJSON(obj));
       }
     }
     if (factorEncs) metadata.factorEncs = factorEncs;
@@ -156,18 +160,34 @@ class Metadata implements IMetadata {
     } else if (matchingPolyIDs.length > 1) {
       throw CoreError.default("there is more than one matching polyID");
     }
-    return matchingPolyIDs[0][1];
+    const match = matchingPolyIDs[0];
+    if (!match) {
+      throw CoreError.default("there is no matching polyID");
+    }
+    return match[1];
   }
 
   getLatestPublicPolynomial(): PublicPolynomial {
-    return this.publicPolynomials[this.polyIDList[this.polyIDList.length - 1][0]];
+    const latest = this.polyIDList[this.polyIDList.length - 1];
+    if (!latest) {
+      throw CoreError.default("there is no matching polyID");
+    }
+    const polynomial = this.publicPolynomials[latest[0]];
+    if (!polynomial) {
+      throw CoreError.default("there is no matching polyID");
+    }
+    return polynomial;
   }
 
   addPublicShare(polynomialID: PolynomialID, publicShare: PublicShare): void {
     if (!(polynomialID in this.publicShares)) {
       this.publicShares[polynomialID] = {};
     }
-    this.publicShares[polynomialID][publicShare.shareIndex.toString(16)] = publicShare;
+    const sharesForPolynomial = this.publicShares[polynomialID];
+    if (!sharesForPolynomial) {
+      throw CoreError.default("there is no matching polyID");
+    }
+    sharesForPolynomial[publicShare.shareIndex.toString(16)] = publicShare;
   }
 
   setGeneralStoreDomain(key: string, obj: unknown): void {
@@ -200,14 +220,18 @@ class Metadata implements IMetadata {
     const shareIndexArr = [];
     if (Array.isArray(shares)) {
       for (let i = 0; i < shares.length; i += 1) {
-        this.addPublicShare(publicPolynomial.getPolynomialID(), shares[i].getPublicShare());
-        shareIndexArr.push(shares[i].shareIndex.toString(16));
+        const share = shares[i];
+        if (!share) throw CoreError.fromCode(1307);
+        this.addPublicShare(publicPolynomial.getPolynomialID(), share.getPublicShare());
+        shareIndexArr.push(share.shareIndex.toString(16));
       }
     } else {
       for (const k in shares) {
         if (Object.prototype.hasOwnProperty.call(shares, k)) {
-          this.addPublicShare(publicPolynomial.getPolynomialID(), shares[k].getPublicShare());
-          shareIndexArr.push(shares[k].shareIndex.toString(16));
+          const share = shares[k];
+          if (!share) throw CoreError.fromCode(1307);
+          this.addPublicShare(publicPolynomial.getPolynomialID(), share.getPublicShare());
+          shareIndexArr.push(share.shareIndex.toString(16));
         }
       }
     }
@@ -248,9 +272,14 @@ class Metadata implements IMetadata {
 
   deleteShareDescription(shareIndex: string, description: string): void {
     const currentSD = this.getGeneralStoreDomain("shareDescriptions") as Record<string, string[]>;
-    const index = currentSD[shareIndex].indexOf(description);
+    const descriptions = currentSD[shareIndex];
+    if (!descriptions) {
+      throw CoreError.default(`No share description found for the given shareIndex: ${shareIndex} 
+        and description: ${description}`);
+    }
+    const index = descriptions.indexOf(description);
     if (index > -1) {
-      currentSD[shareIndex].splice(index, 1);
+      descriptions.splice(index, 1);
     } else {
       throw CoreError.default(`No share description found for the given shareIndex: ${shareIndex} 
         and description: ${description}`);
@@ -259,9 +288,14 @@ class Metadata implements IMetadata {
 
   updateShareDescription(shareIndex: string, oldDescription: string, newDescription: string): void {
     const currentSD = this.getGeneralStoreDomain("shareDescriptions") as Record<string, string[]>;
-    const index = currentSD[shareIndex].indexOf(oldDescription);
+    const descriptions = currentSD[shareIndex];
+    if (!descriptions) {
+      throw CoreError.default(`No share description found for the given shareIndex:
+        ${shareIndex} and description: ${oldDescription}`);
+    }
+    const index = descriptions.indexOf(oldDescription);
     if (index > -1) {
-      currentSD[shareIndex][index] = newDescription;
+      descriptions[index] = newDescription;
     } else {
       throw CoreError.default(`No share description found for the given shareIndex:
         ${shareIndex} and description: ${oldDescription}`);
@@ -272,22 +306,30 @@ class Metadata implements IMetadata {
     const pubkey = getPubKeyPoint(share);
 
     for (let i = this.polyIDList.length - 1; i >= 0; i -= 1) {
-      const el = this.polyIDList[i][0];
+      const polyEntry = this.polyIDList[i];
+      if (!polyEntry) throw CoreError.default("there is no matching polyID");
+      const el = polyEntry[0];
+      const indexes = polyEntry[1];
 
-      for (let t = 0; t < this.polyIDList[i][1].length; t += 1) {
-        const shareIndex = this.polyIDList[i][1][t];
+      for (let t = 0; t < indexes.length; t += 1) {
+        const shareIndex = indexes[t];
+        if (shareIndex === undefined) throw CoreError.fromCode(1307);
         // find pubshare in cache if its there
-        let pubShare: PublicShare;
-        if (this.publicShares[el]) {
-          if (this.publicShares[el][shareIndex]) {
-            pubShare = this.publicShares[el][shareIndex];
+        let pubShare: PublicShare | undefined;
+        const cachedShares = this.publicShares[el];
+        if (cachedShares) {
+          const cached = cachedShares[shareIndex];
+          if (cached) {
+            pubShare = cached;
           }
         }
 
         // if not reconstruct
         if (!pubShare) {
           const shareIndexBigInt = hexToBigInt(shareIndex);
-          pubShare = new PublicShare(shareIndexBigInt, polyCommitmentEval(this.publicPolynomials[el].polynomialCommitments, shareIndexBigInt));
+          const polynomial = this.publicPolynomials[el];
+          if (!polynomial) throw CoreError.default("there is no matching polyID");
+          pubShare = new PublicShare(shareIndexBigInt, polyCommitmentEval(polynomial.polynomialCommitments, shareIndexBigInt));
         }
         if (pubShare.shareCommitment.x === pubkey.x && pubShare.shareCommitment.y === pubkey.y) {
           const tempShare = new Share(pubShare.shareIndex, share);
@@ -299,15 +341,19 @@ class Metadata implements IMetadata {
   }
 
   clone(): Metadata {
-    return Metadata.fromJSON(JSON.parse(stringify(this, { replacer: bigIntReplacer })));
+    const serialized = stringify(this, { replacer: bigIntReplacer });
+    if (serialized === undefined) throw CoreError.default("Unable to serialize metadata");
+    return Metadata.fromJSON(JSON.parse(serialized));
   }
 
   toJSON(): StringifiedType {
     // squash data to serialized polyID according to spec
     const serializedPolyIDList = [];
     for (let i = 0; i < this.polyIDList.length; i += 1) {
-      const polyID = this.polyIDList[i][0];
-      const shareIndexes = this.polyIDList[i][1];
+      const polyEntry = this.polyIDList[i];
+      if (!polyEntry) throw CoreError.default("there is no matching polyID");
+      const polyID = polyEntry[0];
+      const shareIndexes = polyEntry[1];
       const sortedShareIndexes = shareIndexes.sort((a: string, b: string) => {
         const aBig = hexToBigInt(a);
         const bBig = hexToBigInt(b);
@@ -350,11 +396,26 @@ class Metadata implements IMetadata {
     };
   }): void {
     const { tssKeyType, tssTag, tssNonce, tssPolyCommits, factorPubs, factorEncs } = tssData;
-    if (tssKeyType) this.tssKeyTypes[tssTag] = tssKeyType;
-    if (tssNonce !== undefined) this.tssNonces[tssTag] = tssNonce;
-    if (tssPolyCommits) this.tssPolyCommits[tssTag] = tssPolyCommits;
-    if (factorPubs) this.factorPubs[tssTag] = factorPubs;
-    if (factorEncs) this.factorEncs[tssTag] = factorEncs;
+    if (tssKeyType) {
+      this.tssKeyTypes ??= {};
+      this.tssKeyTypes[tssTag] = tssKeyType;
+    }
+    if (tssNonce !== undefined) {
+      this.tssNonces ??= {};
+      this.tssNonces[tssTag] = tssNonce;
+    }
+    if (tssPolyCommits) {
+      this.tssPolyCommits ??= {};
+      this.tssPolyCommits[tssTag] = tssPolyCommits;
+    }
+    if (factorPubs) {
+      this.factorPubs ??= {};
+      this.factorPubs[tssTag] = factorPubs;
+    }
+    if (factorEncs) {
+      this.factorEncs ??= {};
+      this.factorEncs[tssTag] = factorEncs;
+    }
   }
 }
 

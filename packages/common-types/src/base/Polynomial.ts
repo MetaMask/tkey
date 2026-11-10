@@ -15,7 +15,7 @@ const N = secp256k1.Point.CURVE().n;
 class Polynomial implements ISerializable {
   polynomial: bigint[];
 
-  publicPolynomial: PublicPolynomial;
+  publicPolynomial!: PublicPolynomial;
 
   constructor(polynomial: bigint[]) {
     this.polynomial = polynomial;
@@ -32,9 +32,10 @@ class Polynomial implements ISerializable {
 
   polyEval(x: bigint): bigint {
     let xi = x;
-    let sum = this.polynomial[0];
+    let sum = this.polynomial[0] ?? 0n;
     for (let i = 1; i < this.polynomial.length; i += 1) {
-      const tmp = xi * this.polynomial[i];
+      const coefficient = this.polynomial[i] ?? 0n;
+      const tmp = xi * coefficient;
       sum = mod(sum + tmp, N);
       xi = mod(xi * x, N);
     }
@@ -45,6 +46,7 @@ class Polynomial implements ISerializable {
     const shares: ShareMap = {};
     for (let x = 0; x < shareIndexes.length; x += 1) {
       const idx = shareIndexes[x];
+      if (idx === undefined) continue;
       shares[idx.toString(16)] = new Share(idx, this.polyEval(idx));
     }
     return shares;
@@ -53,7 +55,9 @@ class Polynomial implements ISerializable {
   getPublicPolynomial(): PublicPolynomial {
     const polynomialCommitments: Point[] = [];
     for (let i = 0; i < this.polynomial.length; i += 1) {
-      polynomialCommitments.push(getPubKeyPoint(this.polynomial[i]));
+      const coefficient = this.polynomial[i];
+      if (coefficient === undefined) continue;
+      polynomialCommitments.push(getPubKeyPoint(coefficient));
     }
     this.publicPolynomial = new PublicPolynomial(polynomialCommitments);
     return this.publicPolynomial;

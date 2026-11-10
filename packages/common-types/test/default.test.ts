@@ -1,6 +1,6 @@
 import { generatePrivate as ecGeneratePrivate } from "@toruslabs/eccrypto";
 import { bytesToHex, bytesToNumberBE, secp256k1 } from "@toruslabs/metadata-helpers";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { getPubKeyECC, getPubKeyPoint, Point, Polynomial, PublicPolynomial, PublicShare, Share, ShareStore, toPrivKeyECC } from "../src/base";
 import {
@@ -195,8 +195,11 @@ describe("Polynomial", function () {
   it("generateShares produces shares that evaluate correctly", function () {
     const poly = new Polynomial([100n, 200n]);
     const shares = poly.generateShares([1n, 2n]);
-    expect(shares["1"].share).toBe(poly.polyEval(1n));
-    expect(shares["2"].share).toBe(poly.polyEval(2n));
+    const firstShare = shares["1"];
+    const secondShare = shares["2"];
+    if (!firstShare || !secondShare) throw new Error("expected generated shares");
+    expect(firstShare.share).toBe(poly.polyEval(1n));
+    expect(secondShare.share).toBe(poly.polyEval(2n));
   });
 
   it("getPublicPolynomial and getPolynomialID", function () {
