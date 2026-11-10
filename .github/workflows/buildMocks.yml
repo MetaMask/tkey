@@ -14,7 +14,7 @@ jobs:
     name: Backward Compatibility Tests
     strategy:
       matrix:
-        node: ["24.x"]
+        node: ["24.22.0"]
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
@@ -31,11 +31,14 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: "npm"
 
+      - name: Install npm 12
+        run: npm install --global npm@12.2.0
+
       - name: Install dependencies, pack
         run: |
           cd ./tkey
           npm ci
-          npm run pack:lerna
+          npm run pack
 
       - name: Clone comp tests
         uses: actions/checkout@v6

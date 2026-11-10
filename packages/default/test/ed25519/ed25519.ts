@@ -1,10 +1,11 @@
+import { randomBytes } from "crypto";
+
 /// <reference types="node" />
 import { ShareStore } from "@tkey/common-types";
 import { generatePrivateBigInt } from "@tkey/core";
 import { TorusServiceProvider } from "@tkey/service-provider-torus";
 import { TorusStorageLayer } from "@tkey/storage-layer-torus";
 import { bytesToHex } from "@toruslabs/metadata-helpers";
-import { randomBytes } from "crypto";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { TKeyDefault } from "../../src/index";

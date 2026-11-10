@@ -2,19 +2,10 @@
   "extends": "@toruslabs/config/tsconfig.library.json",
   "compilerOptions": {
     "paths": {
-      "@tkey/*": [
-        "../../packages/*"
-      ]
+      "@tkey/*": ["../../packages/*"]
     },
-    "typeRoots": [
-      "../../node_modules/@types"
-    ]
+    "typeRoots": ["../../node_modules/@types"]
   },
-  "include": [
-    "src",
-    "test"
-  ],
-  "exclude": [
-    "test/configs"
-  ]
+  "include": ["src", "test"],
+  "exclude": ["test/configs"]
 }

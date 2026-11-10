@@ -44,7 +44,7 @@ For more information, check out the [technical overview](https://hackmd.io/Tej2t
 | `@tkey/core`                   | [![npm version](https://img.shields.io/npm/v/@tkey/core?label=%22%22)](https://www.npmjs.com/package/@tkey/core/v/latest)                                     | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/core?label=%22%22)](https://bundlephobia.com/result?p=@tkey/core@latest)                                     | Core functionalities for creating a tkey                        |
 | 🐕‍🦺 **Service Provider**        |
 | `@tkey/service-provider-torus` | [![npm version](https://img.shields.io/npm/v/@tkey/service-provider-torus?label=%22%22)](https://www.npmjs.com/package/@tkey/service-provider-torus/v/latest) | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/service-provider-torus?label=%22%22)](https://bundlephobia.com/result?p=@tkey/service-provider-torus@latest) | `@service-provider-base` with DirectAuth functionality          |
-| 🗳 **Storage Layer**           |
+| 🗳 **Storage Layer**            |
 | `@tkey/storage-layer-torus`    | [![npm version](https://img.shields.io/npm/v/@tkey/storage-layer-torus?label=%22%22)](https://www.npmjs.com/package/@tkey/storage-layer-torus/v/latest)       | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/storage-layer-torus?label=%22%22)](https://bundlephobia.com/result?p=@tkey/storage-layer-torus@latest)       | get/set metadata for various shares                             |
 | 🔌 **Modules**                 |
 | `@tkey/chrome-storage`         | [![npm version](https://img.shields.io/npm/v/@tkey/chrome-storage?label=%22%22)](https://www.npmjs.com/package/@tkey/chrome-storage/v/latest)                 | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/chrome-storage?label=%22%22)](https://bundlephobia.com/result?p=@tkey/chrome-storage@latest)                 | Add/remove a share from chrome extension storage                |
@@ -93,7 +93,7 @@ v16 removes all legacy cryptography dependencies in favor of modern, audited alt
 
 ```
 npm install
-npm run pack:lerna
+npm run pack
 ```
 
 ## Bundling

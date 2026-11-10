@@ -20,6 +20,9 @@
     "browser-tests:cloud-mocked": "vp run -r --fail-if-no-match browser-tests:cloud-mocked",
     "browser-tests:cloud-prod": "vp run -r --fail-if-no-match browser-tests:cloud-prod",
     "lint": "vp run -r --fail-if-no-match lint",
+    "check": "vp check",
+    "typecheck": "for dir in packages/*; do npm exec --no -- tsc --noEmit -p \"$dir/tsconfig.json\" || exit 1; done",
+    "pack": "npm exec --workspaces -- npm pack",
     "pre-commit": "lint-staged",
     "version-packages": "changeset version && npm install --package-lock-only --ignore-scripts",
     "release-packages": "changeset publish"

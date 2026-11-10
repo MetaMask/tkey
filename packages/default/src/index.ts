@@ -25,7 +25,7 @@ export class TKeyDefault extends TKey {
     } else {
       finalStorageLayer = storageLayer;
     }
-    super({ ...(args || {}), modules: { ...defaultModules, ...modules }, serviceProvider: finalServiceProvider, storageLayer: finalStorageLayer });
+    super({ ...args, modules: { ...defaultModules, ...modules }, serviceProvider: finalServiceProvider, storageLayer: finalStorageLayer });
   }
 
   static async fromJSON(value: StringifiedType, args?: TKeyArgs): Promise<TKeyDefault> {
@@ -50,7 +50,7 @@ export class TKeyDefault extends TKey {
       new TorusStorageLayer({ hostUrl: "https://metadata.web3auth.io", serverTimeOffset });
 
     return super.fromJSON(value, {
-      ...(args || {}),
+      ...args,
       modules: { ...defaultModules, ...modules },
       serviceProvider: finalServiceProvider,
       storageLayer: finalStorageLayer,
