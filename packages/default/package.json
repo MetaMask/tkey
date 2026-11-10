@@ -49,7 +49,7 @@
     "@tkey/seed-phrase": "^17.2.1",
     "@toruslabs/eccrypto": "^8.0.0",
     "@toruslabs/http-helpers": "^10.0.0",
-    "viem": "^2.47.5"
+    "viem": "^2.57.16"
   },
   "lint-staged": {
     "!(*d).ts": [

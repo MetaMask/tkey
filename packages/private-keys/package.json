@@ -35,7 +35,7 @@
     "pre-commit": "lint-staged"
   },
   "dependencies": {
-    "@noble/curves": "^2.0.1",
+    "@noble/curves": "^2.4.0",
     "@tkey/common-types": "^17.2.0",
     "@toruslabs/metadata-helpers": "^9.0.0"
   },

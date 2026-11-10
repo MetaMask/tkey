@@ -38,8 +38,8 @@
     "url": "https://github.com/tkey/tkey/issues"
   },
   "dependencies": {
-    "@scure/bip32": "^2.0.1",
-    "@scure/bip39": "^2.0.1",
+    "@scure/bip32": "^2.4.0",
+    "@scure/bip39": "^2.4.0",
     "@tkey/common-types": "^17.2.0",
     "@toruslabs/metadata-helpers": "^9.0.0"
   },

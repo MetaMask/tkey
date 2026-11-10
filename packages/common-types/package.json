@@ -40,7 +40,7 @@
     "pre-commit": "lint-staged"
   },
   "dependencies": {
-    "@toruslabs/customauth": "^22.3.0",
+    "@toruslabs/customauth": "^22.3.3",
     "@toruslabs/eccrypto": "^8.0.0",
     "@toruslabs/metadata-helpers": "^9.0.0",
     "ts-custom-error": "^3.3.1"

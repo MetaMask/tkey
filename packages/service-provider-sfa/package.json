@@ -38,7 +38,7 @@
     "@toruslabs/constants": "^17.0.0",
     "@toruslabs/fetch-node-details": "^17.0.0",
     "@toruslabs/metadata-helpers": "^9.0.0",
-    "@toruslabs/torus.js": "^17.2.0"
+    "@toruslabs/torus.js": "^17.2.3"
   },
   "bugs": {
     "url": "https://github.com/tkey/tkey/issues"
