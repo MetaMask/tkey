@@ -5,7 +5,6 @@
     "packages/*"
   ],
   "scripts": {
-    "clean": "rimraf --glob \"packages/*/dist\" \"packages/*/*.tgz\" \"packages/*/.rts2_cache_*\"",
     "build": "vp run -r --fail-if-no-match build",
     "dev": "vp run -r --fail-if-no-match dev",
     "test": "vp run -r --fail-if-no-match --parallel test",
@@ -28,8 +27,6 @@
     "release-packages": "changeset publish"
   },
   "devDependencies": {
-    "@babel/register": "^7.29.13",
-    "@babel/runtime": "^7.29.13",
     "@changesets/cli": "^2.31.1",
     "@lavamoat/harden": "^0.8.1",
     "@toruslabs/config": "^5.0.0",
@@ -39,19 +36,11 @@
     "@vitest/browser-playwright": "5.1.0",
     "@vitest/coverage-istanbul": "5.1.0",
     "cross-env": "^10.1.0",
-    "dotenv": "^17.4.2",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "playwright": "^1.65.0",
-    "prettier": "^3.9.10",
-    "rimraf": "^6.1.4",
-    "tsconfig-paths": "^4.2.0",
-    "tsconfig-paths-webpack-plugin": "^4.2.0",
-    "tslib": "^2.9.1",
     "typescript": "^7.0.2",
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.5.1",
-    "vite-plus": "1.5.1",
-    "vitest": "5.1.0"
+    "vite-plus": "1.5.1"
   },
   "author": "Torus Labs",
   "license": "MIT",
