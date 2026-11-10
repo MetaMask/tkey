@@ -1,7 +1,5 @@
 # tKey
 
-[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 ![npm](https://img.shields.io/npm/dw/@tkey/core)
 
 tKey is the underlying SDK used to implement [Web3Auth Plug n Play](https://github.com/web3auth/web3auth). This package can also be used to self host Web3Auth in your own system. tKey stands for Threshold Key, which refers to the management keys & shares generated using threshold cryptography.
@@ -86,8 +84,8 @@ v16 removes all legacy cryptography dependencies in favor of modern, audited alt
 
 ### Requirements
 
-- This package requires a peer dependency of `@babel/runtime`
-- Node 22+
+- Node >=24.22.0
+- npm >=12
 
 ### Installation
 
@@ -98,17 +96,13 @@ npm run pack
 
 ## Bundling
 
-Each sub package is distributed in 3 formats
+Each package publishes two builds and the TypeScript declarations:
 
-- `esm` build `dist/<MODULE_NAME>.esm.js` in es6 format
-- `commonjs` build `dist/<MODULE_NAME>.cjs.js` in es5 format
-- `umd` build `dist/<MODULE_NAME>.umd.min.js` in es5 format without polyfilling corejs minified
+- `module`, `unpkg`, and `jsdelivr` point at `dist/lib.esm/index.js`
+- `main` points at `dist/lib.cjs/index.js`
+- `types` points at `dist/lib.cjs/index.d.ts`
 
-By default, the appropriate format is used for your specified usecase
-You can use a different format (if you know what you're doing) by referencing the correct file
-
-The cjs build is not polyfilled with core-js.
-It is upto the user to polyfill based on the browserlist they target
+There is no UMD build and no `@babel/runtime` peer dependency.
 
 ### Directly in Browser
 
