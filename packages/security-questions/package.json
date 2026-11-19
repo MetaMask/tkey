@@ -1,6 +1,6 @@
 {
   "name": "@tkey/security-questions",
-  "version": "17.2.0",
+  "version": "18.0.0",
   "description": "TKey Security Questions Module",
   "author": "Torus Labs",
   "homepage": "https://github.com/tkey/tkey#readme",
@@ -38,7 +38,7 @@
     "url": "https://github.com/tkey/tkey/issues"
   },
   "dependencies": {
-    "@tkey/common-types": "^17.2.0",
+    "@tkey/common-types": "^18.0.0",
     "@toruslabs/metadata-helpers": "^9.0.0"
   },
   "lint-staged": {
