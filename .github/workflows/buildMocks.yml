@@ -8,6 +8,8 @@ on:
   create:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   test:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}

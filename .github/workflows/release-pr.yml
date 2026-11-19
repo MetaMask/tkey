@@ -3,6 +3,8 @@ name: Create release pull request
 on:
   workflow_dispatch:
 
+permissions: {}
+
 concurrency:
   group: release-pr
   cancel-in-progress: false

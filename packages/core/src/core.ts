@@ -805,10 +805,12 @@ class ThresholdKey implements ITKey {
     } else {
       throw CoreError.default("can only add type ShareStore into shares");
     }
-    let sharesForPoly = Object.prototype.hasOwnProperty.call(this.shares, ss.polynomialID) ? this.shares[ss.polynomialID] : undefined;
+    const { polynomialID } = ss;
+    if (polynomialID === "__proto__") throw CoreError.default("invalid polynomialID");
+    let sharesForPoly = Object.prototype.hasOwnProperty.call(this.shares, polynomialID) ? this.shares[polynomialID] : undefined;
     if (!sharesForPoly) {
       sharesForPoly = {};
-      this.shares[ss.polynomialID] = sharesForPoly;
+      this.shares[polynomialID] = sharesForPoly;
     }
     sharesForPoly[ss.share.shareIndex.toString(16)] = ss;
   }

@@ -8,6 +8,8 @@ env:
   NODE_VERSION: 24.22.0
   FORCE_COLOR: 3
 
+permissions: {}
+
 jobs:
   test:
     runs-on: ubuntu-latest
