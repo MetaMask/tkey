@@ -1462,7 +1462,6 @@ export const sharedTestCases = (
         postboxKey: postboxKeyBN.toString(16),
         customAuthArgs: {
           enableOneKey: true,
-          metadataUrl: getMetadataUrl(),
           // This url has no effect as postbox key is passed, passing it just to satisfy direct auth checks.
           baseUrl: "http://localhost:3000",
           web3AuthClientId: "test",
@@ -1550,7 +1549,6 @@ export const sharedTestCases = (
         postboxKey: postboxKeyBN.toString(16),
         customAuthArgs: {
           enableOneKey: true,
-          metadataUrl,
           // This url has no effect as postbox key is passed, passing it just to satisfy direct auth checks.
           baseUrl: "http://localhost:3000",
           web3AuthClientId: "test",
