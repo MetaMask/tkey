@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { ED25519Format } from "../src/ED25519Format";
 import { SECP256K1Format } from "../src/SECP256K1Format";

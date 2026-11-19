@@ -1,6 +1,6 @@
 # tKey Share Serialization Module
 
-[![npm version](https://img.shields.io/npm/v/@tkey/share-serialization?label=%22%22)](https://www.npmjs.com/package/@tkey/share-serialization/v/latest)        [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/share-serialization?label=%22%22)](https://bundlephobia.com/result?p=@tkey/share-serialization@latest)
+[![npm version](https://img.shields.io/npm/v/@tkey/share-serialization?label=%22%22)](https://www.npmjs.com/package/@tkey/share-serialization/v/latest) [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/share-serialization?label=%22%22)](https://bundlephobia.com/result?p=@tkey/share-serialization@latest)
 
 The Share Serialization Module helps you add or remove the and password as a share for tkey. This module is the part of the [tKey SDK](https://github.com/tkey/tkey/).
 

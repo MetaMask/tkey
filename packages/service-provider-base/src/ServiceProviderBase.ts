@@ -27,7 +27,7 @@ class ServiceProviderBase implements IServiceProvider {
     this.serviceProviderName = "ServiceProviderBase";
   }
 
-  static fromJSON(value: StringifiedType): IServiceProvider {
+  static fromJSON(value: StringifiedType): IServiceProvider | undefined {
     const { enableLogging, postboxKey, serviceProviderName } = value;
     if (serviceProviderName !== "ServiceProviderBase") return undefined;
 
@@ -59,7 +59,7 @@ class ServiceProviderBase implements IServiceProvider {
     const recoveredSig = secp256k1.sign(msg, toPrivKeyECC(this.postboxKey), { prehash: false, format: "recovered" });
     const sigWithV = new Uint8Array(65);
     sigWithV.set(recoveredSig.slice(1, 65), 0); // r + s
-    sigWithV[64] = recoveredSig[0]; // v
+    sigWithV[64] = recoveredSig[0] ?? 0; // v
     return bytesToBase64(sigWithV);
   }
 

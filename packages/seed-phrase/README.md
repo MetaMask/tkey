@@ -1,9 +1,8 @@
 # tKey Seed Phrase Module
 
-[![npm version](https://img.shields.io/npm/v/@tkey/seed-phrase?label=%22%22)](https://www.npmjs.com/package/@tkey/seed-phrase/v/latest)                        [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/seed-phrase?label=%22%22)](https://bundlephobia.com/result?p=@tkey/seed-phrase@latest) 
+[![npm version](https://img.shields.io/npm/v/@tkey/seed-phrase?label=%22%22)](https://www.npmjs.com/package/@tkey/seed-phrase/v/latest) [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/seed-phrase?label=%22%22)](https://bundlephobia.com/result?p=@tkey/seed-phrase@latest)
 
 The tKey Seed Phrase Module helps you add or remove the and password as a share for tkey. This module is the part of the [tKey SDK](https://github.com/tkey/tkey/).
-
 
 ## Installation
 

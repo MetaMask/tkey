@@ -1,11 +1,29 @@
+import { randomBytes } from "crypto";
+
+/// <reference types="node" />
+import { ShareStore } from "@tkey/common-types";
 import { generatePrivateBigInt } from "@tkey/core";
 import { TorusServiceProvider } from "@tkey/service-provider-torus";
 import { TorusStorageLayer } from "@tkey/storage-layer-torus";
 import { bytesToHex } from "@toruslabs/metadata-helpers";
-import { randomBytes } from "crypto";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { TKeyDefault } from "../../src/index";
+
+function requireShare(share: ShareStore | undefined): ShareStore {
+  if (!share) throw new Error("expected share store");
+  return share;
+}
+
+function requireKey(key: bigint | null): bigint {
+  if (key === null) throw new Error("expected secp256k1 key");
+  return key;
+}
+
+function requireSeed(seed: Uint8Array | null): Uint8Array {
+  if (seed === null) throw new Error("expected ed25519 key");
+  return seed;
+}
 
 export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServiceProvider; storageLayer: TorusStorageLayer }): void {
   let customSP = params.torusSP;
@@ -39,11 +57,11 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
 
       const newInstance = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
       await newInstance.initialize();
-      newInstance.inputShareStore(share.newShareStores[share.newShareIndex.toString(16)]);
+      newInstance.inputShareStore(requireShare(share.newShareStores[share.newShareIndex.toString(16)]));
       await newInstance.reconstructKey();
 
-      expect(secp.toString(16)).toBe(newInstance.secp256k1Key.toString(16));
-      expect(bytesToHex(ed)).toBe(bytesToHex(newInstance.ed25519Key));
+      expect(requireKey(secp).toString(16)).toBe(requireKey(newInstance.secp256k1Key).toString(16));
+      expect(bytesToHex(requireSeed(ed))).toBe(bytesToHex(requireSeed(newInstance.ed25519Key)));
 
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
@@ -54,7 +72,6 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
 
     it("should import key for ed25519", async function () {
       // Test with migratable key.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (customSP as any).migratableKey = generatePrivateBigInt();
 
       const tb2 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
@@ -70,17 +87,17 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       {
         await tb2.reconstructKey();
         const edExported = tb2.ed25519Key;
-        expect(bytesToHex(ed)).toBe(bytesToHex(edExported));
+        expect(bytesToHex(ed)).toBe(bytesToHex(requireSeed(edExported)));
       }
 
       const newInstance = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
       await newInstance.initialize();
       const edPub = newInstance.getEd25519PublicKey();
 
-      newInstance.inputShareStore(share.newShareStores[share.newShareIndex.toString(16)]);
+      newInstance.inputShareStore(requireShare(share.newShareStores[share.newShareIndex.toString(16)]));
       await newInstance.reconstructKey();
 
-      expect(bytesToHex(ed)).toBe(bytesToHex(newInstance.ed25519Key));
+      expect(bytesToHex(ed)).toBe(bytesToHex(requireSeed(newInstance.ed25519Key)));
       expect(edPub).toBe(newInstance.getEd25519PublicKey());
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });
@@ -104,11 +121,11 @@ export function ed25519Tests(params: { manualSync: boolean; torusSP: TorusServic
       await newInstance.initialize();
       const edPub = newInstance.getEd25519PublicKey();
 
-      newInstance.inputShareStore(share.newShareStores[share.newShareIndex.toString(16)]);
+      newInstance.inputShareStore(requireShare(share.newShareStores[share.newShareIndex.toString(16)]));
       await newInstance.reconstructKey();
 
-      expect(secp.toString(16)).toBe(newInstance.secp256k1Key.toString(16));
-      expect(bytesToHex(ed)).toBe(bytesToHex(newInstance.ed25519Key));
+      expect(secp.toString(16)).toBe(requireKey(newInstance.secp256k1Key).toString(16));
+      expect(bytesToHex(ed)).toBe(bytesToHex(requireSeed(newInstance.ed25519Key)));
       expect(edPub).toBe(newInstance.getEd25519PublicKey());
       // should not able to reinitialize with import key
       const instance3 = new TKeyDefault({ serviceProvider: customSP, storageLayer: customSL, manualSync });

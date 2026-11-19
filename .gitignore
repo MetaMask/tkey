@@ -107,3 +107,4 @@ dist
 
 # Visual Studio Code
 /.vscode/
+.vitest/

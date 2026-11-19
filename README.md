@@ -1,7 +1,5 @@
 # tKey
 
-[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 ![npm](https://img.shields.io/npm/dw/@tkey/core)
 
 tKey is the underlying SDK used to implement [Web3Auth Plug n Play](https://github.com/web3auth/web3auth). This package can also be used to self host Web3Auth in your own system. tKey stands for Threshold Key, which refers to the management keys & shares generated using threshold cryptography.
@@ -44,7 +42,7 @@ For more information, check out the [technical overview](https://hackmd.io/Tej2t
 | `@tkey/core`                   | [![npm version](https://img.shields.io/npm/v/@tkey/core?label=%22%22)](https://www.npmjs.com/package/@tkey/core/v/latest)                                     | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/core?label=%22%22)](https://bundlephobia.com/result?p=@tkey/core@latest)                                     | Core functionalities for creating a tkey                        |
 | 🐕‍🦺 **Service Provider**        |
 | `@tkey/service-provider-torus` | [![npm version](https://img.shields.io/npm/v/@tkey/service-provider-torus?label=%22%22)](https://www.npmjs.com/package/@tkey/service-provider-torus/v/latest) | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/service-provider-torus?label=%22%22)](https://bundlephobia.com/result?p=@tkey/service-provider-torus@latest) | `@service-provider-base` with DirectAuth functionality          |
-| 🗳 **Storage Layer**           |
+| 🗳 **Storage Layer**            |
 | `@tkey/storage-layer-torus`    | [![npm version](https://img.shields.io/npm/v/@tkey/storage-layer-torus?label=%22%22)](https://www.npmjs.com/package/@tkey/storage-layer-torus/v/latest)       | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/storage-layer-torus?label=%22%22)](https://bundlephobia.com/result?p=@tkey/storage-layer-torus@latest)       | get/set metadata for various shares                             |
 | 🔌 **Modules**                 |
 | `@tkey/chrome-storage`         | [![npm version](https://img.shields.io/npm/v/@tkey/chrome-storage?label=%22%22)](https://www.npmjs.com/package/@tkey/chrome-storage/v/latest)                 | [![minzip](https://img.shields.io/bundlephobia/minzip/@tkey/chrome-storage?label=%22%22)](https://bundlephobia.com/result?p=@tkey/chrome-storage@latest)                 | Add/remove a share from chrome extension storage                |
@@ -86,29 +84,25 @@ v16 removes all legacy cryptography dependencies in favor of modern, audited alt
 
 ### Requirements
 
-- This package requires a peer dependency of `@babel/runtime`
-- Node 22+
+- Node >=24.22.0
+- npm >=12
 
 ### Installation
 
 ```
 npm install
-npm run pack:lerna
+npm run pack
 ```
 
 ## Bundling
 
-Each sub package is distributed in 3 formats
+Each package publishes two builds and the TypeScript declarations:
 
-- `esm` build `dist/<MODULE_NAME>.esm.js` in es6 format
-- `commonjs` build `dist/<MODULE_NAME>.cjs.js` in es5 format
-- `umd` build `dist/<MODULE_NAME>.umd.min.js` in es5 format without polyfilling corejs minified
+- `module`, `unpkg`, and `jsdelivr` point at `dist/lib.esm/index.js`
+- `main` points at `dist/lib.cjs/index.js`
+- `types` points at `dist/lib.cjs/index.d.ts`
 
-By default, the appropriate format is used for your specified usecase
-You can use a different format (if you know what you're doing) by referencing the correct file
-
-The cjs build is not polyfilled with core-js.
-It is upto the user to polyfill based on the browserlist they target
+There is no UMD build and no `@babel/runtime` peer dependency.
 
 ### Directly in Browser
 

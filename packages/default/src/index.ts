@@ -16,7 +16,7 @@ export class TKeyDefault extends TKey {
     let finalServiceProvider: IServiceProvider;
     let finalStorageLayer: IStorageLayer;
     if (!serviceProvider) {
-      finalServiceProvider = new TorusServiceProvider({ customAuthArgs });
+      finalServiceProvider = new TorusServiceProvider({ customAuthArgs: customAuthArgs! });
     } else {
       finalServiceProvider = serviceProvider;
     }
@@ -25,7 +25,7 @@ export class TKeyDefault extends TKey {
     } else {
       finalStorageLayer = storageLayer;
     }
-    super({ ...(args || {}), modules: { ...defaultModules, ...modules }, serviceProvider: finalServiceProvider, storageLayer: finalStorageLayer });
+    super({ ...args, modules: { ...defaultModules, ...modules }, serviceProvider: finalServiceProvider, storageLayer: finalStorageLayer });
   }
 
   static async fromJSON(value: StringifiedType, args?: TKeyArgs): Promise<TKeyDefault> {
@@ -40,7 +40,7 @@ export class TKeyDefault extends TKey {
       serviceProvider ||
       TorusServiceProvider.fromJSON(tempOldServiceProvider) ||
       ServiceProviderBase.fromJSON(tempOldServiceProvider) ||
-      new TorusServiceProvider({ customAuthArgs });
+      new TorusServiceProvider({ customAuthArgs: customAuthArgs! });
 
     tempOldStorageLayer.serviceProvider = finalServiceProvider;
     const finalStorageLayer: IStorageLayer =
@@ -50,7 +50,7 @@ export class TKeyDefault extends TKey {
       new TorusStorageLayer({ hostUrl: "https://metadata.web3auth.io", serverTimeOffset });
 
     return super.fromJSON(value, {
-      ...(args || {}),
+      ...args,
       modules: { ...defaultModules, ...modules },
       serviceProvider: finalServiceProvider,
       storageLayer: finalStorageLayer,

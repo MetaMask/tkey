@@ -1,7 +1,8 @@
+/// <reference types="node" />
 import { bytesToHex } from "@noble/curves/utils.js";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { generatePrivate } from "@toruslabs/eccrypto";
-import { describe, it } from "vitest";
+import { describe, it } from "vite-plus/test";
 
 import { getMetadataUrl, initStorageLayer } from "./helpers";
 import { sharedTestCases } from "./shared";

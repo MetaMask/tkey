@@ -25,12 +25,12 @@ const TKEYSTORE_ID = "answer";
 class SecurityQuestionsModule implements IModule {
   moduleName: string;
 
-  tbSDK: ITKeyApi;
+  tbSDK!: ITKeyApi;
 
   saveAnswers: boolean;
 
   constructor(saveAnswers?: boolean) {
-    this.saveAnswers = saveAnswers;
+    this.saveAnswers = saveAnswers ?? false;
     this.moduleName = SECURITY_QUESTIONS_MODULE_NAME;
   }
 
@@ -42,14 +42,18 @@ class SecurityQuestionsModule implements IModule {
     const sqIndex = sqStore.shareIndex.toString(16);
 
     // Assumption: If sqIndex doesn't exist, it must have been explicitly deleted.
-    if (oldShareStores[sqIndex] && newShareStores[sqIndex]) {
-      const sqAnswer = oldShareStores[sqIndex].share.share - sqStore.nonce;
-      const newNonce = mod(newShareStores[sqIndex].share.share - sqAnswer, secp256k1.Point.CURVE().n);
+    const oldShareStore = oldShareStores[sqIndex];
+    const refreshedShareStore = newShareStores[sqIndex];
+    const firstShareKey = Object.keys(newShareStores)[0];
+    const firstShareStore = firstShareKey === undefined ? undefined : newShareStores[firstShareKey];
+    if (oldShareStore && refreshedShareStore && firstShareStore) {
+      const sqAnswer = oldShareStore.share.share - sqStore.nonce;
+      const newNonce = mod(refreshedShareStore.share.share - sqAnswer, secp256k1.Point.CURVE().n);
 
       return new SecurityQuestionStore({
         nonce: newNonce,
-        polynomialID: newShareStores[Object.keys(newShareStores)[0]].polynomialID,
-        sqPublicShare: newShareStores[sqIndex].share.getPublicShare(),
+        polynomialID: firstShareStore.polynomialID,
+        sqPublicShare: refreshedShareStore.share.getPublicShare(),
         shareIndex: sqStore.shareIndex,
         questions: sqStore.questions,
       });
@@ -70,6 +74,7 @@ class SecurityQuestionsModule implements IModule {
     if (rawSqStore) throw SecurityQuestionsError.unableToReplace();
     const newSharesDetails = await this.tbSDK.generateNewShare();
     const newShareStore = newSharesDetails.newShareStores[newSharesDetails.newShareIndex.toString(16)];
+    if (!newShareStore) throw SecurityQuestionsError.unableToReplace();
     const userInputHash = answerToUserInputHashBigInt(answerString);
     const nonce = mod(newShareStore.share.share - userInputHash, secp256k1.Point.CURVE().n);
     const sqStore = new SecurityQuestionStore({

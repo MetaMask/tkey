@@ -28,11 +28,11 @@ export const SHARE_TRANSFER_MODULE_NAME = "shareTransfer";
 class ShareTransferModule implements IModule {
   moduleName: string;
 
-  tbSDK: ITKeyApi;
+  tbSDK!: ITKeyApi;
 
-  currentEncKey: bigint;
+  currentEncKey?: bigint;
 
-  requestStatusCheckId: number;
+  requestStatusCheckId?: number;
 
   requestStatusCheckInterval: number;
 
@@ -84,7 +84,7 @@ class ShareTransferModule implements IModule {
   async requestNewShare(
     userAgent: string,
     availableShareIndexes: Array<string>,
-    callback?: (err?: ITkeyError, shareStore?: ShareStore) => void
+    callback?: (err?: ITkeyError | null, shareStore?: ShareStore) => void
   ): Promise<string> {
     if (this.currentEncKey) throw ShareTransferError.requestExists(`${this.currentEncKey.toString(16)}`);
     this.currentEncKey = bytesToNumberBE(generatePrivate());
@@ -105,14 +105,15 @@ class ShareTransferModule implements IModule {
         setInterval(async () => {
           try {
             const latestShareTransferStore = await this.getShareTransferStore();
+            const pendingRequest = latestShareTransferStore[encPubKeyX];
             if (!this.currentEncKey) throw ShareTransferError.missingEncryptionKey();
-            if (latestShareTransferStore[encPubKeyX].encShareInTransit) {
-              const shareStoreBuf = await decrypt(toPrivKeyECC(this.currentEncKey), latestShareTransferStore[encPubKeyX].encShareInTransit);
+            if (pendingRequest?.encShareInTransit) {
+              const shareStoreBuf = await decrypt(toPrivKeyECC(this.currentEncKey), pendingRequest.encShareInTransit);
               const receivedShare = ShareStore.fromJSON(JSON.parse(bytesToUtf8(shareStoreBuf)));
               await this.tbSDK.inputShareStoreSafe(receivedShare, true);
               this._cleanUpCurrentRequest();
               callback(null, receivedShare);
-            } else if (!latestShareTransferStore[encPubKeyX]) {
+            } else if (!pendingRequest) {
               this._cleanUpCurrentRequest();
               callback(ShareTransferError.userCancelledRequest());
             }
@@ -141,25 +142,27 @@ class ShareTransferModule implements IModule {
 
   async approveRequest(encPubKeyX: string, shareStore?: ShareStore): Promise<void> {
     const shareTransferStore = await this.getShareTransferStore();
-    if (!shareTransferStore[encPubKeyX]) throw ShareTransferError.missingEncryptionKey();
+    const existingRequest = shareTransferStore[encPubKeyX];
+    if (!existingRequest) throw ShareTransferError.missingEncryptionKey();
 
     let shareBytes: Uint8Array;
     if (shareStore) {
       shareBytes = utf8ToBytes(JSON.stringify(shareStore));
     } else {
-      const store = new ShareRequest(shareTransferStore[encPubKeyX]);
+      const store = new ShareRequest(existingRequest);
       const { availableShareIndexes } = store;
       const metadata = this.tbSDK.getMetadata();
       const latestPolynomial = metadata.getLatestPublicPolynomial();
       const latestPolynomialId = latestPolynomial.getPolynomialID();
       const indexes = metadata.getShareIndexesForPolynomial(latestPolynomialId);
       const filtered = indexes.filter((el) => !availableShareIndexes.includes(el));
-      if (filtered.length === 0) throw ShareTransferError.default("no share index available to approve request");
-      const share = this.tbSDK.outputShareStore(hexToBigInt(filtered[0]));
+      const shareIndex = filtered[0];
+      if (filtered.length === 0 || shareIndex === undefined) throw ShareTransferError.default("no share index available to approve request");
+      const share = this.tbSDK.outputShareStore(hexToBigInt(shareIndex));
       shareBytes = utf8ToBytes(JSON.stringify(share));
     }
-    const shareRequest = new ShareRequest(shareTransferStore[encPubKeyX]);
-    shareTransferStore[encPubKeyX].encShareInTransit = await encrypt(shareRequest.encPubKey, shareBytes);
+    const shareRequest = new ShareRequest(existingRequest);
+    existingRequest.encShareInTransit = await encrypt(shareRequest.encPubKey, shareBytes);
     await this.setShareTransferStore(shareTransferStore);
     this.currentEncKey = undefined;
   }
@@ -190,12 +193,13 @@ class ShareTransferModule implements IModule {
         setInterval(async () => {
           try {
             const latestShareTransferStore = await this.getShareTransferStore();
+            const pendingRequest = latestShareTransferStore[encPubKeyX];
             if (!this.currentEncKey) throw ShareTransferError.missingEncryptionKey();
-            if (!latestShareTransferStore[encPubKeyX]) {
+            if (!pendingRequest) {
               this._cleanUpCurrentRequest();
               reject(ShareTransferError.userCancelledRequest());
-            } else if (latestShareTransferStore[encPubKeyX].encShareInTransit) {
-              const shareStoreBuf = await decrypt(toPrivKeyECC(this.currentEncKey), latestShareTransferStore[encPubKeyX].encShareInTransit);
+            } else if (pendingRequest.encShareInTransit) {
+              const shareStoreBuf = await decrypt(toPrivKeyECC(this.currentEncKey), pendingRequest.encShareInTransit);
               const receivedShare = ShareStore.fromJSON(JSON.parse(bytesToUtf8(shareStoreBuf)));
               await this.tbSDK.inputShareStoreSafe(receivedShare, true);
               if (deleteRequestAfterCompletion) {
@@ -214,7 +218,7 @@ class ShareTransferModule implements IModule {
   }
 
   async cancelRequestStatusCheck(): Promise<void> {
-    clearInterval(this.requestStatusCheckId);
+    if (this.requestStatusCheckId !== undefined) clearInterval(this.requestStatusCheckId);
   }
 
   async deleteShareTransferStore(encPubKey: string): Promise<void> {
@@ -232,7 +236,7 @@ class ShareTransferModule implements IModule {
 
   private _cleanUpCurrentRequest(): void {
     this.currentEncKey = undefined;
-    clearInterval(this.requestStatusCheckId);
+    if (this.requestStatusCheckId !== undefined) clearInterval(this.requestStatusCheckId);
   }
 }
 

@@ -8,7 +8,7 @@ import Metadata from "./metadata";
 class AuthMetadata implements IAuthMetadata {
   metadata: Metadata;
 
-  privKey: bigint;
+  privKey?: bigint;
 
   constructor(metadata: Metadata, privKey?: bigint) {
     this.metadata = metadata;
@@ -22,7 +22,9 @@ class AuthMetadata implements IAuthMetadata {
     const m = Metadata.fromJSON(data);
     if (!m.pubKey) throw CoreError.metadataPubKeyUnavailable();
 
-    const msgHash = keccak256Bytes(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })));
+    const serialized = stringify(data, { replacer: bigIntReplacer });
+    if (!serialized || !sig) throw CoreError.default("Signature not valid for returning metadata");
+    const msgHash = keccak256Bytes(utf8ToBytes(serialized));
     // keep lowS: false for backward compatibility with old @tkey/core@16.0.0
     // lowS: true work for both lowS and highS signatures
     if (!secp256k1.verify(hexToBytes(sig), msgHash, m.pubKey.toSEC1(true), { prehash: false, format: "der", lowS: false })) {
@@ -35,7 +37,9 @@ class AuthMetadata implements IAuthMetadata {
     const data = this.metadata;
 
     if (!this.privKey) throw CoreError.privKeyUnavailable();
-    const msgHash = keccak256Bytes(utf8ToBytes(stringify(data, { replacer: bigIntReplacer })));
+    const serialized = stringify(data, { replacer: bigIntReplacer });
+    if (!serialized) throw CoreError.default("Unable to serialize metadata");
+    const msgHash = keccak256Bytes(utf8ToBytes(serialized));
     const sig = secp256k1.sign(msgHash, toPrivKeyECC(this.privKey), { prehash: false, format: "der" });
 
     return {

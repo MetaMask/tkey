@@ -30,10 +30,10 @@ export async function decrypt(privKey: Uint8Array, msg: EncryptedMessage): Promi
 }
 
 export function isEmptyObject(obj: unknown): boolean {
-  return Object.keys(obj).length === 0 && obj.constructor === Object;
+  return typeof obj === "object" && obj !== null && Object.keys(obj).length === 0 && obj.constructor === Object;
 }
 
-export const isErrorObj = (err: unknown): boolean => err && (err as Error).stack && (err as Error).message !== "";
+export const isErrorObj = (err: unknown): boolean => Boolean(err && (err as Error).stack && (err as Error).message !== "");
 
 export async function prettyPrintError(error: unknown): Promise<Error> {
   if (isErrorObj(error)) {
@@ -64,7 +64,7 @@ export const KEY_NOT_FOUND = "KEY_NOT_FOUND";
 export const SHARE_DELETED = "SHARE_DELETED";
 
 export function derivePubKeyXFromPolyID(polyID: string): string {
-  return polyID.split("|")[0].slice(2);
+  return (polyID.split("|")[0] ?? "").slice(2);
 }
 
 export function generateID(): string {

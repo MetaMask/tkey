@@ -7,9 +7,9 @@ import { Torus, TorusKey } from "@toruslabs/torus.js";
 class TorusServiceProvider extends ServiceProviderBase {
   customAuthInstance: CustomAuth;
 
-  singleLoginKey: bigint;
+  singleLoginKey!: bigint;
 
-  public torusKey: TorusKey;
+  public torusKey!: TorusKey;
 
   public migratableKey: bigint | null = null;
 
@@ -22,7 +22,7 @@ class TorusServiceProvider extends ServiceProviderBase {
     this.serviceProviderName = "TorusServiceProvider";
   }
 
-  static fromJSON(value: StringifiedType): TorusServiceProvider {
+  static fromJSON(value: StringifiedType): TorusServiceProvider | undefined {
     const { enableLogging, postboxKey, customAuthArgs, serviceProviderName } = value;
     if (serviceProviderName !== "TorusServiceProvider") return undefined;
 

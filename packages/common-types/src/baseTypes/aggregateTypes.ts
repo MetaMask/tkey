@@ -186,7 +186,7 @@ export type BufferObj = {
 
 export interface ShareRequestArgs {
   encPubKey: unknown;
-  encShareInTransit: EncryptedMessage;
+  encShareInTransit?: EncryptedMessage;
   availableShareIndexes: string[];
   userAgent: string;
   userIp: string;
@@ -234,7 +234,7 @@ export interface IPrivateKeyFormat {
   privateKey: bigint;
   type: string;
   validatePrivateKey(privateKey: bigint): boolean;
-  createPrivateKeyStore(privateKey: bigint): IPrivateKeyStore;
+  createPrivateKeyStore(privateKey?: bigint): IPrivateKeyStore;
 }
 
 export interface IAuthMetadata {
@@ -250,7 +250,7 @@ export interface IMessageMetadata {
 export type IAuthMetadatas = IAuthMetadata[];
 export type ShareStores = ShareStore[];
 export type IMessageMetadatas = IMessageMetadata[];
-export type LocalTransitionShares = bigint[];
+export type LocalTransitionShares = Array<bigint | undefined>;
 export type LocalTransitionData = (IAuthMetadata | IMessageMetadata | ShareStore)[];
 export type LocalMetadataTransitions = [LocalTransitionShares, LocalTransitionData];
 
@@ -299,9 +299,9 @@ export interface ITKey extends ITKeyApi, ISerializable {
 
   shares: ShareStorePolyIDShareIndexMap;
 
-  secp256k1Key: bigint;
+  secp256k1Key: bigint | null;
 
-  ed25519Key: Uint8Array;
+  ed25519Key: Uint8Array | null;
 
   manualSync: boolean;
 

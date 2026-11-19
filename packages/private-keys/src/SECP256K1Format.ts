@@ -4,7 +4,6 @@ import { bytesToNumberBE, secp256k1 } from "@toruslabs/metadata-helpers";
 export class SECP256K1Format implements IPrivateKeyFormat {
   privateKey: bigint;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ecParams: any;
 
   type: string;

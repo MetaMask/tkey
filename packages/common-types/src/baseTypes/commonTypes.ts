@@ -22,7 +22,6 @@ export interface TorusServiceProviderArgs extends ServiceProviderArgs {
   customAuthArgs: CustomAuthArgs;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type StringifiedType = Record<string, any>;
 
 export interface ISerializable {
@@ -65,7 +64,7 @@ export interface IStorageLayer extends ISerializable {
 
   setMetadata<T>(params: { input: T; serviceProvider?: IServiceProvider; privKey?: bigint }): Promise<{ message: string }>;
 
-  setMetadataStream<T>(params: { input: T[]; serviceProvider?: IServiceProvider; privKey?: bigint[] }): Promise<{ message: string }>;
+  setMetadataStream<T>(params: { input: T[]; serviceProvider?: IServiceProvider; privKey?: Array<bigint | undefined> }): Promise<{ message: string }>;
 
   acquireWriteLock(params: { serviceProvider?: IServiceProvider; privKey?: bigint }): Promise<{ status: number; id?: string }>;
 
@@ -79,9 +78,7 @@ export type TorusStorageLayerArgs = {
 };
 
 export type MockStorageLayerArgs = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dataMap: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lockMap: any;
 };
 
@@ -90,7 +87,6 @@ export type ShareDescriptionMap = {
 };
 
 export type FromJSONConstructor = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fromJSON(value: StringifiedType): any;
 };
 

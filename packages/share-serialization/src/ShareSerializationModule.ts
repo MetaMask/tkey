@@ -10,7 +10,7 @@ export const SHARE_SERIALIZATION_MODULE_NAME = "shareSerialization";
 class ShareSerializationModule implements IModule {
   moduleName: string;
 
-  tbSDK: ITKeyApi;
+  tbSDK!: ITKeyApi;
 
   constructor() {
     this.moduleName = SHARE_SERIALIZATION_MODULE_NAME;

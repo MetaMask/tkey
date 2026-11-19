@@ -1,7 +1,7 @@
 import { Polynomial } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
 import { bytesToNumberBE } from "@toruslabs/metadata-helpers";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { generateRandomPolynomial, lagrangeInterpolation } from "../src/index";
 

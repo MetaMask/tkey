@@ -8,7 +8,7 @@ export const PRIVATE_KEY_MODULE_NAME = "privateKeyModule";
 class PrivateKeyModule implements IModule {
   moduleName: string;
 
-  tbSDK: ITKeyApi;
+  tbSDK!: ITKeyApi;
 
   privateKeyFormats: IPrivateKeyFormat[];
 

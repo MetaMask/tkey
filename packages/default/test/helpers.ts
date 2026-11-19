@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { TorusServiceProvider } from "@tkey/service-provider-torus";
 import { MockStorageLayer, TorusStorageLayer } from "@tkey/storage-layer-torus";
@@ -25,7 +26,7 @@ export function getServiceProvider(params: {
   const PRIVATE_KEY = privKeyBN ? privKeyBN.toString(16) : bytesToHex(generatePrivate());
   if (type === "TorusServiceProvider") {
     return new TorusServiceProvider({
-      postboxKey: isEmptyProvider ? null : PRIVATE_KEY,
+      postboxKey: isEmptyProvider ? undefined : PRIVATE_KEY,
       customAuthArgs: {
         baseUrl: "http://localhost:3000",
         web3AuthClientId: "test",
@@ -33,5 +34,5 @@ export function getServiceProvider(params: {
       },
     });
   }
-  return new ServiceProviderBase({ postboxKey: isEmptyProvider ? null : PRIVATE_KEY });
+  return new ServiceProviderBase({ postboxKey: isEmptyProvider ? undefined : PRIVATE_KEY });
 }

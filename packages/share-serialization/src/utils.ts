@@ -55,9 +55,10 @@ export function entropyToMnemonic(entropy: Uint8Array | string, english: string[
 
   const bits = entropyBits + checksumBits;
   const chunks = bits.match(/(.{1,11})/g);
+  if (!chunks) throw ShareSerializationError.invalidEntropy();
   const words = chunks.map((binary: string): string => {
     const index = binaryToByte(binary);
-    return english[index];
+    return english[index] ?? "";
   });
 
   return english[0] === "\u3042\u3044\u3053\u304f\u3057\u3093" // Japanese wordlist
@@ -89,7 +90,9 @@ export function mnemonicToEntropy(mnemonic: string, english: string[]): string {
   const checksumBits = bits.slice(dividerIndex);
 
   // calculate the checksum and compare
-  const entropyBytes = entropyBits.match(/(.{1,8})/g).map(binaryToByte);
+  const entropyChunks = entropyBits.match(/(.{1,8})/g);
+  if (!entropyChunks) throw ShareSerializationError.invalidEntropy();
+  const entropyBytes = entropyChunks.map(binaryToByte);
   if (entropyBytes.length < 16) {
     throw ShareSerializationError.invalidEntropy();
   }

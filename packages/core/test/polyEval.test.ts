@@ -1,7 +1,7 @@
 import { getPubKeyPoint, Point, Polynomial } from "@tkey/common-types";
 import { generatePrivate } from "@toruslabs/eccrypto";
 import { bytesToNumberBE } from "@toruslabs/metadata-helpers";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { generateRandomPolynomial, polyCommitmentEval } from "../src/index";
 
@@ -31,7 +31,9 @@ describe("polyCommitmentEval", function () {
       shareCommitment.push(polyCommitmentEval(publicPoly.polynomialCommitments, shareIndex));
     }
     expectedShareCommitment.forEach(function (expected, i) {
-      expect(shareCommitment[i].x).toBe(expected.x);
+      const commitment = shareCommitment[i];
+      if (!commitment) throw new Error("missing share commitment");
+      expect(commitment.x).toBe(expected.x);
     });
   });
 });
