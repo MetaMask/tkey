@@ -1,6 +1,8 @@
+import { generatePrivate } from "@tkey/common-types";
 import { TKey as ThresholdKey } from "@tkey/core";
 import { ServiceProviderBase } from "@tkey/service-provider-base";
 import { MockStorageLayer, TorusStorageLayer } from "@tkey/storage-layer-torus";
+import { bytesToHex } from "@toruslabs/metadata-helpers";
 import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import WebStorageModule, { WEB_STORAGE_MODULE_NAME } from "../src/WebStorageModule";
@@ -12,7 +14,7 @@ function initStorageLayer(mocked: string, extraParams: { hostUrl: string }) {
 const mocked = process.env.MOCKED || "false";
 const metadataURL = process.env.METADATA || "http://localhost:5051";
 
-const PRIVATE_KEY = "f70fb5f5970b363879bc36f54d4fc0ad77863bfd059881159251f50f48863acc";
+const PRIVATE_KEY = bytesToHex(generatePrivate());
 const defaultSP = new ServiceProviderBase({ postboxKey: PRIVATE_KEY });
 const defaultSL = initStorageLayer(mocked, { hostUrl: metadataURL });
 

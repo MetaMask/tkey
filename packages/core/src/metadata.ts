@@ -180,12 +180,10 @@ class Metadata implements IMetadata {
   }
 
   addPublicShare(polynomialID: PolynomialID, publicShare: PublicShare): void {
-    if (!(polynomialID in this.publicShares)) {
-      this.publicShares[polynomialID] = {};
-    }
-    const sharesForPolynomial = this.publicShares[polynomialID];
+    let sharesForPolynomial = Object.prototype.hasOwnProperty.call(this.publicShares, polynomialID) ? this.publicShares[polynomialID] : undefined;
     if (!sharesForPolynomial) {
-      throw CoreError.default("there is no matching polyID");
+      sharesForPolynomial = {};
+      this.publicShares[polynomialID] = sharesForPolynomial;
     }
     sharesForPolynomial[publicShare.shareIndex.toString(16)] = publicShare;
   }
@@ -288,7 +286,7 @@ class Metadata implements IMetadata {
 
   updateShareDescription(shareIndex: string, oldDescription: string, newDescription: string): void {
     const currentSD = this.getGeneralStoreDomain("shareDescriptions") as Record<string, string[]>;
-    const descriptions = currentSD[shareIndex];
+    const descriptions = Object.prototype.hasOwnProperty.call(currentSD, shareIndex) ? currentSD[shareIndex] : undefined;
     if (!descriptions) {
       throw CoreError.default(`No share description found for the given shareIndex:
         ${shareIndex} and description: ${oldDescription}`);

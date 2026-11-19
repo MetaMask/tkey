@@ -12,6 +12,8 @@ jobs:
   test:
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
     name: Backward Compatibility Tests
+    permissions:
+      contents: read
     strategy:
       matrix:
         node: ["24.22.0"]
@@ -21,12 +23,13 @@ jobs:
 
     steps:
       - name: checkout tkey repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: ./tkey
+          persist-credentials: false
 
       - name: Set up node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: ${{ matrix.node }}
           cache: "npm"
@@ -41,7 +44,7 @@ jobs:
           npm run pack
 
       - name: Clone comp tests
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: tkey/backward-compatibility-tests
           path: ./backward-compatibility-tests
@@ -62,7 +65,7 @@ jobs:
           cd ./backward-compatibility-tests
           npm run build-mocks
 
-      - uses: EndBug/add-and-commit@v9
+      - uses: EndBug/add-and-commit@cc9c08ba6c8df3b93a8f2db63e89b98368ae2ae8 # v11.1.1
         with:
           author_name: Auto
           branch: master
