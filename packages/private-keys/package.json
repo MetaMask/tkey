@@ -1,6 +1,6 @@
 {
   "name": "@tkey/private-keys",
-  "version": "17.2.0",
+  "version": "18.0.0",
   "description": "TKey Private Keys Module",
   "author": "Torus Labs",
   "homepage": "https://github.com/tkey/tkey#readme",
@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@noble/curves": "^2.4.0",
-    "@tkey/common-types": "^17.2.0",
+    "@tkey/common-types": "^18.0.0",
     "@toruslabs/metadata-helpers": "^9.0.0"
   },
   "bugs": {
