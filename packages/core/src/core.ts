@@ -153,21 +153,19 @@ class ThresholdKey implements ITKey {
     this.serverTimeOffset = serverTimeOffset;
   }
 
-  get secp256k1Key(): bigint {
+  get secp256k1Key(): bigint | null {
     if (typeof this.privKey !== "undefined") {
       return this.privKey;
     }
 
-    // Key is absent until reconstruct/initialize. Callers still observe null.
-    return null as unknown as bigint;
+    return null;
   }
 
-  get ed25519Key(): Uint8Array {
+  get ed25519Key(): Uint8Array | null {
     if (typeof this._ed25519Seed !== "undefined") {
       return this._ed25519Seed;
     }
-    // Seed is absent until it is imported or reconstructed. Callers still observe null.
-    return null as unknown as Uint8Array;
+    return null;
   }
 
   protected set secp256k1Key(privKey: bigint) {
@@ -223,7 +221,7 @@ class ThresholdKey implements ITKey {
     const sampleMessageMetadata: IMessageMetadata = { message: "Sample message", dateAdded: Date.now() };
     const MessageMetadataKeys = Object.keys(sampleMessageMetadata);
 
-    const localTransitionShares: Array<bigint | undefined> = [];
+    const localTransitionShares: LocalTransitionShares = [];
     const localTransitionData: LocalTransitionData = [];
 
     _localMetadataTransitions[0].forEach((x: string, index: number) => {
@@ -259,7 +257,7 @@ class ThresholdKey implements ITKey {
       if (!tempMetadata) throw CoreError.metadataUndefined();
       tb.metadata = tempMetadata;
       tb.lastFetchedCloudMetadata = tempCloud;
-      tb._localMetadataTransitions = [localTransitionShares as LocalTransitionShares, localTransitionData];
+      tb._localMetadataTransitions = [localTransitionShares, localTransitionData];
 
       if (tempCloud) {
         let shareToUseForSerialization: ShareStore | undefined;
@@ -710,12 +708,11 @@ class ThresholdKey implements ITKey {
   async addLocalMetadataTransitions(params: {
     input: LocalTransitionData;
     serviceProvider?: IServiceProvider;
-    privKey?: Array<bigint | undefined>;
+    privKey: LocalTransitionShares;
     acquireLock?: boolean;
   }): Promise<void> {
     const { privKey, input } = params;
-    if (!privKey) throw CoreError.privateKeyUnavailable();
-    this._localMetadataTransitions[0] = [...this._localMetadataTransitions[0], ...privKey] as LocalTransitionShares;
+    this._localMetadataTransitions[0] = [...this._localMetadataTransitions[0], ...privKey];
     this._localMetadataTransitions[1] = [...this._localMetadataTransitions[1], ...input];
     if (!this.manualSync) await this.syncLocalMetadataTransitions();
   }
@@ -945,7 +942,7 @@ class ThresholdKey implements ITKey {
     return this.storageLayer.setMetadata({ input: authMetadata, serviceProvider, privKey });
   }
 
-  async setAuthMetadataBulk(params: { input: Metadata[]; serviceProvider?: IServiceProvider; privKey?: bigint[] }): Promise<void> {
+  async setAuthMetadataBulk(params: { input: Metadata[]; serviceProvider?: IServiceProvider; privKey: bigint[] }): Promise<void> {
     if (!this.privKey) {
       throw CoreError.privateKeyUnavailable();
     }

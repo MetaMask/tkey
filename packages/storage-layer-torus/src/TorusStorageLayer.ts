@@ -135,7 +135,11 @@ class TorusStorageLayer implements IStorageLayer {
     }
   }
 
-  async setMetadataStream<T>(params: { input: Array<T>; serviceProvider?: IServiceProvider; privKey?: Array<bigint> }): Promise<{ message: string }> {
+  async setMetadataStream<T>(params: {
+    input: Array<T>;
+    serviceProvider?: IServiceProvider;
+    privKey?: Array<bigint | undefined>;
+  }): Promise<{ message: string }> {
     try {
       const { serviceProvider, privKey, input } = params;
       const newInput = input;

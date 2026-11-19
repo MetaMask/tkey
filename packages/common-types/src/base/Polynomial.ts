@@ -46,7 +46,7 @@ class Polynomial implements ISerializable {
     const shares: ShareMap = {};
     for (let x = 0; x < shareIndexes.length; x += 1) {
       const idx = shareIndexes[x];
-      if (idx === undefined) continue;
+      if (idx === undefined) throw new Error(`share index ${x} is missing`);
       shares[idx.toString(16)] = new Share(idx, this.polyEval(idx));
     }
     return shares;
@@ -56,7 +56,7 @@ class Polynomial implements ISerializable {
     const polynomialCommitments: Point[] = [];
     for (let i = 0; i < this.polynomial.length; i += 1) {
       const coefficient = this.polynomial[i];
-      if (coefficient === undefined) continue;
+      if (coefficient === undefined) throw new Error(`polynomial coefficient ${i} is missing`);
       polynomialCommitments.push(getPubKeyPoint(coefficient));
     }
     this.publicPolynomial = new PublicPolynomial(polynomialCommitments);

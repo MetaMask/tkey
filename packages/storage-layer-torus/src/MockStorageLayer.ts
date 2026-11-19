@@ -70,7 +70,11 @@ class MockStorageLayer implements IStorageLayer {
     return { message: "success" };
   }
 
-  async setMetadataStream<T>(params: { input: Array<T>; serviceProvider?: IServiceProvider; privKey?: Array<bigint> }): Promise<{ message: string }> {
+  async setMetadataStream<T>(params: {
+    input: Array<T>;
+    serviceProvider?: IServiceProvider;
+    privKey?: Array<bigint | undefined>;
+  }): Promise<{ message: string }> {
     const { serviceProvider, privKey, input } = params;
     input.forEach((el, index) => {
       let usedKey: bigint;
