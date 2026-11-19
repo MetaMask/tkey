@@ -27,20 +27,20 @@
     "release-packages": "changeset publish"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.1",
+    "@changesets/cli": "^3.0.3",
     "@lavamoat/harden": "^0.8.1",
     "@toruslabs/config": "^5.0.0",
     "@toruslabs/oxlint-config-typescript": "^1.1.0",
-    "@toruslabs/torus-scripts": "^9.0.1",
+    "@toruslabs/torus-scripts": "^9.0.2",
     "@types/node": "^26.6.6",
     "@vitest/browser-playwright": "5.1.0",
     "@vitest/coverage-istanbul": "5.1.0",
     "cross-env": "^10.1.0",
     "husky": "^9.1.7",
-    "lint-staged": "^16.4.0",
-    "playwright": "^1.65.0",
+    "lint-staged": "^17.6.1",
+    "playwright": "^1.65.1",
     "typescript": "^7.0.2",
-    "vite-plus": "1.5.1"
+    "vite-plus": "1.6.0"
   },
   "author": "Torus Labs",
   "license": "MIT",
@@ -56,7 +56,7 @@
     }
   },
   "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.5.1",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.6.0",
     "vitest": "5.1.0"
   },
   "allowScripts": {
