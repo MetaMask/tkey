@@ -37,7 +37,7 @@
     "@vitest/coverage-istanbul": "5.1.0",
     "cross-env": "^10.1.0",
     "husky": "^9.1.7",
-    "lint-staged": "^17.6.1",
+    "lint-staged": "^17.6.2",
     "playwright": "^1.65.1",
     "typescript": "^7.0.2",
     "vite-plus": "1.6.0"
