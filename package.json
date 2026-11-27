@@ -34,7 +34,7 @@
     "@toruslabs/torus-scripts": "^9.0.2",
     "@types/node": "^26.6.6",
     "@vitest/browser-playwright": "5.1.0",
-    "@vitest/coverage-istanbul": "5.1.0",
+    "@vitest/coverage-istanbul": "5.1.1",
     "cross-env": "^10.1.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.1",
